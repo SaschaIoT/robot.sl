@@ -1,0 +1,274 @@
+﻿body {
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: white;
+}
+
+#streamWebCam {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    z-index: 0;
+}
+
+.automatic-drive-button {
+    width: 64px;
+    height: 64px;
+    background-repeat: no-repeat;
+    background-image: url("../Images/automatic-drive@64x64.png");
+}
+
+.automatic-drive-active-button {
+    background-image: url("../Images/automatic-drive-active@64x64.png");
+}
+
+.automatic-drive-container {
+    position: fixed;
+    z-index: 1;
+    top: 20px;
+    right: 20px;
+}
+
+.fullscreen-button {
+    width: 64px;
+    height: 64px;
+    background-repeat: no-repeat;
+    background-image: url("../Images/fullscreen@64x64.png");
+}
+
+.fullscreen-active-button {
+    background-image: url("../Images/fullscreen-active@64x64.png");
+}
+
+.fullscreen-button-container {
+    position: fixed;
+    z-index: 1;
+    top: 20px;
+    left: 20px;
+}
+
+.latency {
+    position: fixed;
+    z-index: 30;
+    top: 20px;
+    left: 50%;
+    margin-left: -50px;
+    width: 100px;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -khtml-border-radius: 5px;
+}
+
+.latency-image {
+    float: right;
+    background-image: url("../Images/latency@24x24.png");
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+}
+
+.latency-good {
+    background-color: green;
+    background: rgba(181, 230,29,0.5);
+}
+
+.latency-okay {
+    background-color: orange;
+    background: rgba(255, 185, 38, 0.5);
+}
+
+.latency-bad {
+    background-color: red;
+    background: rgba(223, 36, 36, 0.5);
+}
+
+.latency-milliseconds {
+    float: right;
+    padding-top: 4px;
+    padding-right: 5px;
+}
+
+.latency-lost {
+    position: fixed;
+    z-index: 40;
+    top: 50%;
+    left: 50%;
+    width: 350px;
+    margin-left: -175px;
+    height: 46px;
+    margin-top: -23px;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 30px;
+    color: rgb(204, 40, 40);
+    background-image: url("../Images/latency-lost@64x64.png");
+    background-repeat: no-repeat;
+    background-position: right center;
+}
+
+.latency-lost-hide {
+    display: none;
+}
+
+/* Preload images */
+body:after {
+    display: none;
+    content: url("../Images/setting-icon@30x30.png") url("../Images/automatic-drive@64x64.png") url("../Images/automatic-drive-active@64x64.png") url("../Images/fullscreen@64x64.png") url("../Images/fullscreen-active@64x64.png") url("../Images/latency@24x24.png") url("../Images/latency-lost@64x64.png") url("../Images/tachometer@24x24.png") url(../Images/audio_volume_high@24x24.png) url(../Images/audio_volume_mute@24x24.png) url(../Images/close@24x24.png) url(../Images/reload@24x24.png);
+}
+
+.speed-color {
+    background: black;
+    background: rgba(217, 243, 255, 0.5);
+    position: fixed;
+    z-index: 30;
+    top: 60px;
+    left: 50%;
+    margin-left: -50px;
+    width: 100px;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -khtml-border-radius: 5px;
+}
+
+.speed-table td {
+    width: 100%;
+    color: black;
+}
+
+    .speed-table td:first-child {
+        text-align: right;
+    }
+
+.setting-icon {
+    background-image: url("../Images/setting-icon@30x30.png");
+    background-repeat: no-repeat;
+    background-position: center right;
+    width: 30px;
+    height: 30px;
+    padding-left: 86px;
+}
+
+.setting-color div {
+    font-weight: bold;
+    color: white;
+    z-index: 50;
+}
+
+.setting-color {
+    background: black;
+    background: rgba(217, 243, 255, 0.5);
+    position: fixed;
+    z-index: 30;
+    top: 20px;
+    left: 50%;
+    margin-left: -268px;
+    width: 202px;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -khtml-border-radius: 5px;
+}
+
+.setting-menu-point-hover {
+    cursor: pointer;
+    color: black !important;
+}
+
+    .setting-menu-point-hover:hover {
+        color: white !important;
+    }
+
+.setting-menu-hide {
+    display: none;
+}
+
+.visible {
+    display: inline !important;
+}
+
+.invisible {
+    display: none;
+}
+
+.tachometer-image {
+    float: right;
+    background-image: url("../Images/tachometer@24x24.png");
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    margin-top: 8px;
+}
+
+.speed-left-container {
+    float:left;
+    width: 75px;
+}
+
+.speed-right-container {
+    float:left;
+    width: 25px;
+}
+
+.settings-menu-point {
+    height: 30px;
+    padding-top: 6px;
+}
+
+.speaker-on-image {
+    background-image: url(../Images/audio_volume_high@24x24.png);
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 3px;
+}
+
+.speaker-off-image {
+    background-image: url(../Images/audio_volume_mute@24x24.png);
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 3px;
+}
+
+.shutdown-image {
+    background-image: url(../Images/close@24x24.png);
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 3px;
+}
+
+.restart-image {
+    background-image: url(../Images/reload@24x24.png);
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 3px;
+}
+
+.setting-menu-container {
+    z-index: 50;
+}
