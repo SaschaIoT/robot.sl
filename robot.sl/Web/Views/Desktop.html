@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link rel="apple-touch-icon" sizes="57x57" href="../Images/Favico/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="../Images/Favico/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="../Images/Favico/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="../Images/Favico/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="../Images/Favico/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="../Images/Favico/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="../Images/Favico/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="../Images/Favico/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../Images/Favico/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../Images/Favico/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../Images/Favico/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="../Images/Favico/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../Images/Favico/favicon-16x16.png">
+    <link rel="manifest" href="../Images/Favico/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="../Images/Favico/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta charset="utf-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>robot.sl</title>
+
+    <link rel="stylesheet" href="http://192.168.0.101/Styles/Desktop.css">
+</head>
+<body oncontextmenu="return false;">
+
+    <img id="streamWebCam" src="">
+    <div id="latencyLost" class="latency-lost latency-lost-hide">
+        Keine Verbindung
+    </div>
+    <div id="setting" class="setting-color">
+        <div id="settingButton"><div class="setting-icon"></div></div>
+        <div id="settingMenu" class="setting-menu-container setting-menu-hide">
+            <br />
+            <div id="speakerOnOff" class="settings-menu-point setting-menu-point-hover">&bull; Lautsprecher <span id="speakerOn" class="invisible"><span class="speaker-off-image"></span></span><span id="speakerOff" class="visible invisible"><span class="speaker-on-image"></span></span><br /><br /></div>
+            <div id="carSpeakerOnOff" class="settings-menu-point setting-menu-point-hover">&bull; Fahrzeug Lautsprecher <span id="carSpeakerOn" class="invisible"><span class="speaker-off-image"></span></span><span id="carSpeakerOff" class="visible invisible"><span class="speaker-on-image"></span></span><br /><br /></div>
+            <div id="headsetSpeakerOnOff" class="settings-menu-point setting-menu-point-hover">&bull; Headset Lautsprecher <span id="headsetSpeakerOn" class="invisible"><span class="speaker-off-image"></span></span><span id="headsetSpeakerOff" class="visible invisible"><span class="speaker-on-image"></span></span><br /><br /></div>
+            <div id="soundModeOnOff" class="settings-menu-point setting-menu-point-hover">&bull; Sound Modus <span id="soundModeOn" class="invisible"><span class="speaker-off-image"></span></span><span id="soundModeOff" class="visible invisible"><span class="speaker-on-image"></span></span><br /><br /></div>
+            <div id="ausschalten" class="settings-menu-point setting-menu-point-hover">&bull; Ausschalten <span class="shutdown-image"></span><br /><br /></div>
+            <div id="neustarten" class="settings-menu-point setting-menu-point-hover">&bull; Neustarten <span class="restart-image"></span><br /><br /></div>
+        </div>
+    </div>
+    <div id="latency-status-color" class="latency">
+        <div class="latency-image"></div>
+        <div id="latency-status-milliseconds" class="latency-milliseconds"></div>
+    </div>
+    <div class="speed-color">
+        <div class="speed-left-container">
+            <table class="speed-table">
+                <tr>
+                    <td><span id="roundsPerMinute">0</span></td>
+                    <td>
+                        <div id="speed-roundsPerMinute">RPM</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><span id="kilometerPerHour">0</span></td>
+                    <td>
+                        <div id="speed-kilomterPerHour">KM/h</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="speed-right-container">
+            <div class="tachometer-image"></div>
+        </div>
+    </div>
+    <div class="automatic-drive-container">
+        <div id="automaticDriveButton" class="automatic-drive-button"></div>
+    </div>
+    <div class="fullscreen-button-container">
+        <div id="fullscreenButton" class="fullscreen-button"></div>
+    </div>
+
+    <script type="text/javascript">
+        var xhttpRequestTimeout = 1000;
+        var getNewCameraFrameAfterMilliseconds = 50;
+    </script>
+    <script src="http://192.168.0.101/JavaScript/CommandsDesktop.js"></script>
+    <script src="http://192.168.0.101/JavaScript/State.js"></script>
+    <script src="http://192.168.0.101/JavaScript/FullscreenDesktop.js"></script>
+    <script src="http://192.168.0.101/JavaScript/Latency.js"></script>
+    <script src="http://192.168.0.101/JavaScript/CarControlCommandDesktop.js"></script>
+    <script src="http://192.168.0.101/JavaScript/Camera.js"></script>
+    <script src="http://192.168.0.101/JavaScript/Speed.js"></script>
+</body>
+</html>

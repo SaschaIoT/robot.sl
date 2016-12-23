@@ -1,0 +1,119 @@
+﻿<grammar
+  version="1.0"
+  xml:lang="de-DE"
+  xmlns="http://www.w3.org/2001/06/grammar"
+  root="rootRule"
+  tag-format="semantics/1.0">
+  <rule id="rootRule">
+    <one-of>
+      <item>
+        Vor
+      </item>
+      <item>
+        Zurück
+      </item>
+      <item>
+        Links
+      </item>
+      <item>
+        Leicht Links
+      </item>
+      <item>
+        Rechts
+      </item>
+      <item>
+        Leicht Rechts
+      </item>
+      <item>
+        Stop
+      </item>
+      <item>
+        Wenden
+      </item>
+      <item>
+        Langsam
+      </item>
+      <item>
+        Normal
+      </item>
+      <item>
+        Schnell
+      </item>
+      <item>
+        Tanzen
+      </item>
+      <item>
+        Befehle
+      </item>
+      <item>
+        Starte Dich neu
+      </item>
+      <item>
+        Neustarten
+      </item>
+      <item>
+        Schalte Dich aus
+      </item>
+      <item>
+        Auschalten
+      </item>
+      <item>
+        Ja
+      </item>
+      <item>
+        Aktiviere Lautsprecher
+      </item>
+      <item>
+        Deaktiviere Lautsprecher
+      </item>
+      <item>
+        Aktiviere Headset Lautsprecher
+      </item>
+      <item>
+        Deaktiviere Headset Lautsprecher
+      </item>
+      <item>
+        Aktiviere Fahrzeug Lautsprecher
+      </item>
+      <item>
+        Deaktiviere Fahrzeug Lautsprecher
+      </item>
+      <item>
+        Aktiviere Sound Modus
+      </item>
+      <item>
+        Deaktiviere Sound Modus
+      </item>
+      <item>
+        Lautsprecher und Sound Modus
+      </item>
+      <item>
+        Systembefehle
+      </item>
+      <item>
+        Steuerungsbefehle
+      </item>
+      <item>
+        Aktiviere automatisches Fahren
+      </item>
+      <item>
+        Deaktiviere automatisches Fahren
+      </item>
+      <item>
+        Nein
+      </item>
+      <item>
+        Kamera hoch
+      </item>
+      <item>
+        Kamera runter
+      </item>
+      <item>
+        Kamera leicht hoch
+      </item>
+      <item>
+        Kamera leicht runter
+      </item>
+    </one-of>
+  </rule>
+</grammar>
