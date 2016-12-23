@@ -54,7 +54,7 @@ namespace robot.sl.Audio.AudioPlaying
 
             if (speakerGain == null)
             {
-                speakerGain = 5.0;
+                speakerGain = 10.0;
             }
 
             if (speakerOnOff.CarSpeakerOn
