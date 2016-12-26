@@ -18,7 +18,7 @@ using Windows.UI.Xaml.Controls;
 namespace robot.sl.Devices
 {
     /// <summary>
-    /// Camera: ELP 2.8mm wide angle lens 1920x1080 HD
+    /// Camera: ELP 3.6mm 1920x1080 HD, ELP-USBFHD01M-L36
     /// </summary>
     public class Camera
     {
@@ -28,6 +28,12 @@ namespace robot.sl.Devices
         private volatile bool _isStopped = false;
         private volatile bool _isStopping = false;
 
+        //Check if camera support resolution before change
+        private const int VIDEO_WIDTH = 800;
+        private const int VIDEO_HEIGHT = 600;
+
+        private const double IMAGE_QUALITY_PERCENT = 0.75d;
+        
         public async Task Stop()
         {
             _isStopping = true;
@@ -81,7 +87,7 @@ namespace robot.sl.Devices
                 //Set resolution
                 var resolutions = _mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(MediaStreamType.VideoPreview);
                 var resolutionsVideo = resolutions.Where(r => r.GetType() == typeof(VideoEncodingProperties)).Select(r => (VideoEncodingProperties)r);
-                var targetResolutionVideo = resolutionsVideo.First(rv => rv.Width == 640 && rv.Height == 480 && rv.Subtype == "YUY2" && (rv.FrameRate != null && rv.FrameRate.Numerator == 30));
+                var targetResolutionVideo = resolutionsVideo.First(rv => rv.Width == VIDEO_WIDTH && rv.Height == VIDEO_HEIGHT && rv.Subtype == "YUY2"); //&& (rv.FrameRate != null && rv.FrameRate.Numerator == 30)
 
                 await _mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.VideoPreview, targetResolutionVideo);
 
@@ -117,13 +123,17 @@ namespace robot.sl.Devices
 #endif
             _isStopped = false;
 
+            var propertySet = new BitmapPropertySet();
+            var qualityValue = new BitmapTypedValue(IMAGE_QUALITY_PERCENT, Windows.Foundation.PropertyType.Single);
+            propertySet.Add("ImageQuality", qualityValue);
+
             while (!_isStopping)
             {
                 try
                 {
                     GarbageCollectorCanWorkHere();
 
-                    using (var videoFrame = new VideoFrame(BitmapPixelFormat.Bgra8, 640, 480))
+                    using (var videoFrame = new VideoFrame(BitmapPixelFormat.Bgra8, VIDEO_WIDTH, VIDEO_HEIGHT))
                     {
                         using (var stream = new InMemoryRandomAccessStream())
                         {
@@ -137,7 +147,7 @@ namespace robot.sl.Devices
                                 using (var bitmap = frameTask.Result)
                                 {
                                     //Begin: Throw out of memory exception in debug mode
-                                    var imageTask = BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream).AsTask();
+                                    var imageTask = BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream, propertySet).AsTask();
                                     imageTask.Wait();
                                     var encoder = imageTask.Result;
                                     encoder.SetSoftwareBitmap(bitmap.SoftwareBitmap);
@@ -154,10 +164,10 @@ namespace robot.sl.Devices
 
                                     //transform.ScaledWidth = 640; //old width
                                     //transform.ScaledHeight = 480; //old height
-
+                                    
                                     var flushTask = encoder.FlushAsync().AsTask();
                                     flushTask.Wait();
-
+                                    
                                     using (var asStream = stream.AsStream())
                                     {
                                         asStream.Position = 0;

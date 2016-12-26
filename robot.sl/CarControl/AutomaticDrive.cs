@@ -18,7 +18,7 @@ namespace robot.sl.CarControl
         
         private const int MIDDLE_VERTICAL = 580;
         private const int FRONT_MIDDLE_HORIZONTAL = 372;
-        private const int FRONT_LEFT_HORIZONTAL = 155;
+        private const int FRONT_LEFT_HORIZONTAL = 165;
         private const int FRONT_LEFT_MIDDLE_HORIZONTAL = 244;
         private const int FRONT_RIGHT_HORIZONTAL = 595;
         private const int FRONT_RIGHT_MIDDLE_HORIZONTAL = 485;
@@ -232,7 +232,7 @@ namespace robot.sl.CarControl
             
             Driving = null;
 
-            _servoController.PwmController.SetPwm(2, 0, 155);
+            _servoController.PwmController.SetPwm(2, 0, FRONT_LEFT_HORIZONTAL);
             _servoController.PwmController.SetPwm(3, 0, 182);
 
             _isStopped = true;
