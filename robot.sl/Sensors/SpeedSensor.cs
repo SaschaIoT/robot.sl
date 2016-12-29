@@ -1,12 +1,9 @@
-﻿using Microsoft.IoT.Lightning.Providers;
-using robot.sl.Helper;
+﻿using robot.sl.Helper;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Gpio;
-using System.Linq;
-using System.Diagnostics;
 
 namespace robot.sl.Sensors
 {
