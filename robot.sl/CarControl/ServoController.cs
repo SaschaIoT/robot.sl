@@ -25,7 +25,7 @@ namespace robot.sl.CarControl
             await PwmController.Initialize();
             PwmController.SetDesiredFrequency(60);
 
-            PwmController.SetPwm(0, 0, 360);
+            PwmController.SetPwm(0, 0, 333);
             PwmController.SetPwm(1, 0, 318);
             PwmController.SetPwm(2, 0, 165);
             PwmController.SetPwm(3, 0, 182);

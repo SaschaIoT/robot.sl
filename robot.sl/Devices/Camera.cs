@@ -10,6 +10,7 @@ using Windows.ApplicationModel.Core;
 using Windows.Graphics.Imaging;
 using Windows.Media;
 using Windows.Media.Capture;
+using Windows.Media.Capture.Frames;
 using Windows.Media.MediaProperties;
 using Windows.Storage.Streams;
 using Windows.UI.Core;
@@ -18,44 +19,33 @@ using Windows.UI.Xaml.Controls;
 namespace robot.sl.Devices
 {
     /// <summary>
-    /// Camera: ELP 3.6mm 1920x1080 HD, ELP-USBFHD01M-L36
+    /// Camera: ELP 3.6mm 1920x1080 HD, ELP-USBFHD01M-L28
     /// </summary>
     public class Camera
     {
         public byte[] Frame { get; set; }
         private MediaCapture _mediaCapture;
-        private CaptureElement _captureElement;
-        private volatile bool _isStopped = false;
+        private MediaFrameReader _mediaFrameReader;
+
         private volatile bool _isStopping = false;
+        private volatile bool _isStopped = true;
 
         //Check if camera support resolution before change
-        private const int VIDEO_WIDTH = 800;
-        private const int VIDEO_HEIGHT = 600;
+        private const int VIDEO_WIDTH = 640;
+        private const int VIDEO_HEIGHT = 480;
 
-        private const double IMAGE_QUALITY_PERCENT = 0.75d;
-        
-        public async Task Stop()
-        {
-            _isStopping = true;
-
-#if DEBUG
-            _isStopped = true;
-#endif
-
-            while (!_isStopped)
-            {
-                await Task.Delay(10);
-            }
-
-            _isStopping = false;
-        }
+        private const double IMAGE_QUALITY_PERCENT = 0.8d;
+        private BitmapPropertySet _imageQuality;
 
         public async Task Initialize()
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
             {
+                _imageQuality = new BitmapPropertySet();
+                var imageQualityValue = new BitmapTypedValue(IMAGE_QUALITY_PERCENT, Windows.Foundation.PropertyType.Single);
+                _imageQuality.Add("ImageQuality", imageQualityValue);
+
                 _mediaCapture = new MediaCapture();
-                _captureElement = new CaptureElement();
 
                 _mediaCapture.Failed += async (MediaCapture mediaCapture, MediaCaptureFailedEventArgs args) =>
                 {
@@ -65,46 +55,121 @@ namespace robot.sl.Devices
                        || args.Code == 3222093442)
                     {
                         await Logger.Write($"Reinitialize camera.");
-                        
+
                         await Initialize();
                     }
                 };
 
-                await _mediaCapture.InitializeAsync();
+                var frameSourceGroups = await MediaFrameSourceGroup.FindAllAsync();
 
-                _mediaCapture.VideoDeviceController.DesiredOptimization = Windows.Media.Devices.MediaCaptureOptimization.Quality;
-                _mediaCapture.VideoDeviceController.PrimaryUse = Windows.Media.Devices.CaptureUse.Video;
+                var settings = new MediaCaptureInitializationSettings()
+                {
+                    SharingMode = MediaCaptureSharingMode.ExclusiveControl,
 
-                //Flip frames 180 degrees
-                var result = _mediaCapture.VideoDeviceController.BacklightCompensation.TrySetValue(_mediaCapture.VideoDeviceController.BacklightCompensation.Capabilities.Max);
-                _mediaCapture.SetPreviewRotation(VideoRotation.Clockwise180Degrees);
+                    //With CPU the results contain always SoftwareBitmaps, otherwise with GPU
+                    //they preferring D3DSurface
+                    MemoryPreference = MediaCaptureMemoryPreference.Cpu,
 
-                if (!_mediaCapture.VideoDeviceController.Exposure.TrySetAuto(true))
+                    //Capture only video, no audio
+                    StreamingCaptureMode = StreamingCaptureMode.Video
+                };
+
+                await _mediaCapture.InitializeAsync(settings);
+
+                var mediaFrameSource = _mediaCapture.FrameSources.First().Value;
+                var videoDeviceController = mediaFrameSource.Controller.VideoDeviceController;
+
+                videoDeviceController.DesiredOptimization = Windows.Media.Devices.MediaCaptureOptimization.Quality;
+                videoDeviceController.PrimaryUse = Windows.Media.Devices.CaptureUse.Video;
+
+                if (!videoDeviceController.BacklightCompensation.TrySetValue(videoDeviceController.BacklightCompensation.Capabilities.Min))
+                {
+                    throw new Exception("Could not set min backlight compensation to camera.");
+                }
+
+                if (!videoDeviceController.Exposure.TrySetAuto(true))
                 {
                     throw new Exception("Could not set auto exposure to camera.");
                 }
+                
+                var videoFormat = mediaFrameSource.SupportedFormats.First(sf => sf.VideoFormat.Width == VIDEO_WIDTH
+                                                                                && sf.VideoFormat.Height == VIDEO_HEIGHT
+                                                                                && sf.Subtype == "YUY2");
 
-                //Set resolution
-                var resolutions = _mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(MediaStreamType.VideoPreview);
-                var resolutionsVideo = resolutions.Where(r => r.GetType() == typeof(VideoEncodingProperties)).Select(r => (VideoEncodingProperties)r);
-                var targetResolutionVideo = resolutionsVideo.First(rv => rv.Width == VIDEO_WIDTH && rv.Height == VIDEO_HEIGHT && rv.Subtype == "YUY2"); //&& (rv.FrameRate != null && rv.FrameRate.Numerator == 30)
+                await mediaFrameSource.SetFormatAsync(videoFormat);
 
-                await _mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.VideoPreview, targetResolutionVideo);
+                _mediaFrameReader = await _mediaCapture.CreateFrameReaderAsync(mediaFrameSource);
 
-                _captureElement.Source = _mediaCapture;
-
-                await _mediaCapture.StartPreviewAsync();
+                await _mediaFrameReader.StartAsync();
             });
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void GarbageCollectorCanWorkHere() { }
 
+        private void ProcessFrames()
+        {
+            _isStopped = false;
+
+            while (!_isStopping)
+            {
+                try
+                {
+                    GarbageCollectorCanWorkHere();
+
+                    var frame = _mediaFrameReader.TryAcquireLatestFrame();
+
+                    if (frame == null
+                        || frame.VideoMediaFrame == null
+                        || frame.VideoMediaFrame.SoftwareBitmap == null)
+                        continue;
+
+                    using (var stream = new InMemoryRandomAccessStream())
+                    {
+                        using (var bitmap = SoftwareBitmap.Convert(frame.VideoMediaFrame.SoftwareBitmap, BitmapPixelFormat.Rgba8, BitmapAlphaMode.Premultiplied))
+                        {
+                            var imageTask = BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream, _imageQuality).AsTask();
+                            imageTask.Wait();
+                            var encoder = imageTask.Result;
+                            encoder.SetSoftwareBitmap(bitmap);
+
+                            //Rotate image 180 degrees
+                            var transform = encoder.BitmapTransform;
+                            transform.Rotation = BitmapRotation.Clockwise180Degrees;
+
+                            var flushTask = encoder.FlushAsync().AsTask();
+                            flushTask.Wait();
+
+                            using (var asStream = stream.AsStream())
+                            {
+                                asStream.Position = 0;
+
+                                var image = new byte[asStream.Length];
+                                asStream.Read(image, 0, image.Length);
+
+                                Frame = image;
+
+                                encoder = null;
+                                bitmap.Dispose();
+                            }
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Logger.Write(nameof(Camera), exception).Wait();
+                }
+            }
+
+            _isStopped = true;
+        }
+
         public void Start()
         {
             Task.Factory.StartNew(() =>
             {
-                StartInternal();
+                ProcessFrames();
+
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
             .AsAsyncAction()
             .AsTask()
@@ -116,86 +181,18 @@ namespace robot.sl.Devices
             }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        private void StartInternal()
+        public async Task Stop()
         {
-#if DEBUG
-            return;
-#endif
-            _isStopped = false;
+            _isStopping = true;
 
-            var propertySet = new BitmapPropertySet();
-            var qualityValue = new BitmapTypedValue(IMAGE_QUALITY_PERCENT, Windows.Foundation.PropertyType.Single);
-            propertySet.Add("ImageQuality", qualityValue);
-
-            while (!_isStopping)
+            while (!_isStopped)
             {
-                try
-                {
-                    GarbageCollectorCanWorkHere();
-
-                    using (var videoFrame = new VideoFrame(BitmapPixelFormat.Bgra8, VIDEO_WIDTH, VIDEO_HEIGHT))
-                    {
-                        using (var stream = new InMemoryRandomAccessStream())
-                        {
-                            var frameTask = _mediaCapture.GetPreviewFrameAsync(videoFrame).AsTask();
-
-                            var timeoutFrameTask = Task.WhenAny(frameTask, Task.Delay(500));
-                            timeoutFrameTask.Wait();
-
-                            if (timeoutFrameTask.Result == frameTask)
-                            {
-                                using (var bitmap = frameTask.Result)
-                                {
-                                    //Begin: Throw out of memory exception in debug mode
-                                    var imageTask = BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream, propertySet).AsTask();
-                                    imageTask.Wait();
-                                    var encoder = imageTask.Result;
-                                    encoder.SetSoftwareBitmap(bitmap.SoftwareBitmap);
-                                    //End
-
-                                    ////Crop image. Make image size smaller for faster http video stream.
-                                    //var transform = encoder.BitmapTransform;
-                                    //var bounds = new BitmapBounds();
-                                    //bounds.X = 112; //new width - old width / 2
-                                    //bounds.Y = 84; //new height - old height / 2
-                                    //bounds.Height = 312; //new height
-                                    //bounds.Width = 416; //new width
-                                    //transform.Bounds = bounds;
-
-                                    //transform.ScaledWidth = 640; //old width
-                                    //transform.ScaledHeight = 480; //old height
-                                    
-                                    var flushTask = encoder.FlushAsync().AsTask();
-                                    flushTask.Wait();
-                                    
-                                    using (var asStream = stream.AsStream())
-                                    {
-                                        asStream.Position = 0;
-
-                                        var image = new byte[asStream.Length];
-                                        asStream.Read(image, 0, image.Length);
-
-                                        Frame = image;
-
-                                        encoder = null;
-                                        bitmap.SoftwareBitmap.Dispose();
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                Logger.Write($"Camera get frame Timeout").Wait();
-                            }
-                        }
-                    }
-                }
-                catch (Exception exception)
-                {
-                    Logger.Write($"Camera get frame Exception", exception).Wait();
-                }
+                await Task.Delay(10);
             }
 
-            _isStopped = true;
+            _isStopping = false;
+
+            await _mediaFrameReader.StopAsync();
         }
     }
 }
