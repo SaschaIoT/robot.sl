@@ -19,7 +19,7 @@ using Windows.UI.Xaml.Controls;
 namespace robot.sl.Devices
 {
     /// <summary>
-    /// Camera: ELP 2.8mm 1080p HD, ELP-USBFHD01M-L28
+    /// Camera: ELP 2.8mm wide angle lens 1080p HD USB Camera Module (ELP-USBFHD01M-L28)
     /// </summary>
     public class Camera
     {
