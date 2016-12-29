@@ -84,7 +84,7 @@ namespace robot.sl.Helper
 
         private static void ShutdownMotorsServos()
         {
-            _servoController.PwmController.SetPwm(0, 0, 360);
+            _servoController.PwmController.SetPwm(0, 0, 333);
             _servoController.PwmController.SetPwm(1, 0, 318);
             _servoController.PwmController.SetPwm(2, 0, 169);
             _servoController.PwmController.SetPwm(3, 0, 182);
