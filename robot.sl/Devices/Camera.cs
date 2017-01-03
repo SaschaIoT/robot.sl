@@ -88,7 +88,7 @@ namespace robot.sl.Devices
                 {
                     throw new Exception("Could not set auto exposure to camera.");
                 }
-                
+
                 var videoFormat = mediaFrameSource.SupportedFormats.First(sf => sf.VideoFormat.Width == VIDEO_WIDTH
                                                                                 && sf.VideoFormat.Height == VIDEO_HEIGHT
                                                                                 && sf.Subtype == "YUY2");
@@ -114,40 +114,40 @@ namespace robot.sl.Devices
                 {
                     GarbageCollectorCanWorkHere();
 
-                    var frame = _mediaFrameReader.TryAcquireLatestFrame();
-
-                    if (frame == null
-                        || frame.VideoMediaFrame == null
-                        || frame.VideoMediaFrame.SoftwareBitmap == null)
-                        continue;
-
-                    using (var stream = new InMemoryRandomAccessStream())
+                    using (var frame = _mediaFrameReader.TryAcquireLatestFrame())
                     {
-                        using (var bitmap = SoftwareBitmap.Convert(frame.VideoMediaFrame.SoftwareBitmap, BitmapPixelFormat.Rgba8, BitmapAlphaMode.Premultiplied))
+                        if (frame == null
+                            || frame.VideoMediaFrame == null
+                            || frame.VideoMediaFrame.SoftwareBitmap == null)
+                            continue;
+
+                        using (var stream = new InMemoryRandomAccessStream())
                         {
-                            var imageTask = BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream, _imageQuality).AsTask();
-                            imageTask.Wait();
-                            var encoder = imageTask.Result;
-                            encoder.SetSoftwareBitmap(bitmap);
-
-                            //Rotate image 180 degrees
-                            var transform = encoder.BitmapTransform;
-                            transform.Rotation = BitmapRotation.Clockwise180Degrees;
-
-                            var flushTask = encoder.FlushAsync().AsTask();
-                            flushTask.Wait();
-
-                            using (var asStream = stream.AsStream())
+                            using (var bitmap = SoftwareBitmap.Convert(frame.VideoMediaFrame.SoftwareBitmap, BitmapPixelFormat.Rgba8, BitmapAlphaMode.Premultiplied))
                             {
-                                asStream.Position = 0;
+                                var imageTask = BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream, _imageQuality).AsTask();
+                                imageTask.Wait();
+                                var encoder = imageTask.Result;
+                                encoder.SetSoftwareBitmap(bitmap);
 
-                                var image = new byte[asStream.Length];
-                                asStream.Read(image, 0, image.Length);
+                                //Rotate image 180 degrees
+                                var transform = encoder.BitmapTransform;
+                                transform.Rotation = BitmapRotation.Clockwise180Degrees;
 
-                                Frame = image;
+                                var flushTask = encoder.FlushAsync().AsTask();
+                                flushTask.Wait();
 
-                                encoder = null;
-                                bitmap.Dispose();
+                                using (var asStream = stream.AsStream())
+                                {
+                                    asStream.Position = 0;
+
+                                    var image = new byte[asStream.Length];
+                                    asStream.Read(image, 0, image.Length);
+
+                                    Frame = image;
+
+                                    encoder = null;
+                                }
                             }
                         }
                     }
