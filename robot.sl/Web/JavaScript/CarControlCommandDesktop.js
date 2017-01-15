@@ -151,8 +151,6 @@ document.body.addEventListener('mousemove', function (e) {
                 window.clearTimeout(mousemoveYPositive);
             }
 
-            entryCoordinatesLastMoveY = entryCoordinates.y;
-
             entryCoordinates.y = 0;
             entryCoordinatesLastMoveY = 0;
 
