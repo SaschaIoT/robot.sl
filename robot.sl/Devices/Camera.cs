@@ -76,7 +76,7 @@ namespace robot.sl.Devices
                 var mediaFrameSource = _mediaCapture.FrameSources.First().Value;
                 var videoDeviceController = mediaFrameSource.Controller.VideoDeviceController;
 
-                videoDeviceController.DesiredOptimization = Windows.Media.Devices.MediaCaptureOptimization.Quality;
+                videoDeviceController.DesiredOptimization = Windows.Media.Devices.MediaCaptureOptimization.Latency;
                 videoDeviceController.PrimaryUse = Windows.Media.Devices.CaptureUse.Video;
 
                 if (!videoDeviceController.BacklightCompensation.TrySetValue(videoDeviceController.BacklightCompensation.Capabilities.Min))
@@ -123,7 +123,7 @@ namespace robot.sl.Devices
 
                     using (var stream = new InMemoryRandomAccessStream())
                     {
-                        using (var bitmap = SoftwareBitmap.Convert(frame.VideoMediaFrame.SoftwareBitmap, BitmapPixelFormat.Rgba8, BitmapAlphaMode.Premultiplied))
+                        using (var bitmap = SoftwareBitmap.Convert(frame.VideoMediaFrame.SoftwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore))
                         {
                             var imageTask = BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream, _imageQuality).AsTask();
                             imageTask.Wait();
