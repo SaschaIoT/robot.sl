@@ -76,7 +76,7 @@ namespace robot.sl.Devices
                 var mediaFrameSource = _mediaCapture.FrameSources.First().Value;
                 var videoDeviceController = mediaFrameSource.Controller.VideoDeviceController;
 
-                videoDeviceController.DesiredOptimization = Windows.Media.Devices.MediaCaptureOptimization.Latency;
+                videoDeviceController.DesiredOptimization = Windows.Media.Devices.MediaCaptureOptimization.Quality;
                 videoDeviceController.PrimaryUse = Windows.Media.Devices.CaptureUse.Video;
 
                 if (!videoDeviceController.BacklightCompensation.TrySetValue(videoDeviceController.BacklightCompensation.Capabilities.Min))
