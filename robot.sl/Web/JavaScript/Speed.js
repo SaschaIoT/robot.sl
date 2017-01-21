@@ -1,7 +1,7 @@
 ﻿function GetSpeed() {
 
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://192.168.0.101/Speed?time=" + new Date().getTime(), true);
+    xhr.open("GET", "Speed?time=" + new Date().getTime(), true);
     xhr.responseType = "json";
 
     xhr.onreadystatechange = function () {

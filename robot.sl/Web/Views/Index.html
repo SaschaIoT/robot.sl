@@ -36,12 +36,12 @@
             isMobile = true;
         }
 
-        if (isMobile === true) {
-            window.location = "http://robot.sl/mobile";
-        } else {
-            window.location = "http://robot.sl/desktop";
-        }
 
+        if (isMobile === true) {
+            window.location.href = "/mobile";
+        } else {
+            window.location.href = "/desktop";
+        }
     </script>
 </body>
 </html>

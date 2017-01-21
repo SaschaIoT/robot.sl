@@ -261,7 +261,7 @@ function SendCarControlCommand() {
 
         var carCommandParameter = "<RequestBody>" + JSON.stringify(carControlCommand) + "</RequestBody>";
 
-        http.open("GET", "http://192.168.0.101/CarControlCommandTime" + new Date().getTime() + ".html?carCommandParameter=" + carCommandParameter, true);
+        http.open("GET", "CarControlCommandTime" + new Date().getTime() + ".html?carCommandParameter=" + carCommandParameter, true);
 
         http.timeout = xhttpRequestTimeout;
         http.ontimeout = function () {
