@@ -1,7 +1,7 @@
 ﻿function GetState() {
 
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "GetState?time=" + new Date().getTime(), true);
+    xhr.open("GET", "http://192.168.0.101/GetState?time=" + new Date().getTime(), true);
     xhr.responseType = "json";
 
     xhr.onreadystatechange = function () {

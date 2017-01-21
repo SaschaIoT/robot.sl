@@ -6,7 +6,7 @@ function StreamWebCam() {
     _imageRequestStart = new Date().getTime();
 
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "VideoFrameTime=" + new Date().getTime().toString() + ".html", true);
+    xhr.open("GET", "http://192.168.0.101/VideoFrameTime=" + new Date().getTime().toString() + ".html", true);
     xhr.responseType = "blob";
 
     xhr.onreadystatechange = function () {
