@@ -111,12 +111,12 @@ namespace robot.sl.CarControl
         }
         
         public async Task Initialize(AutomaticSpeakController automaticSpeakController,
-                                     byte addr = 0x60,
-                                     int freq = 1600)
+                                     byte i2cAddress = 0x60,
+                                     int frequency = 100)
         {
             _automaticSpeakController = automaticSpeakController;
-            _i2caddress = addr;
-            _frequency = freq;
+            _i2caddress = i2cAddress;
+            _frequency = frequency;
             Motors = new List<Motor>
             {
                 new Motor(this, 0),
@@ -125,7 +125,7 @@ namespace robot.sl.CarControl
                 new Motor(this, 3)
             };
 
-            PwmController = new PwmController(addr);
+            PwmController = new PwmController(i2cAddress);
             await PwmController.Initialize();
             PwmController.SetDesiredFrequency(_frequency);
 
