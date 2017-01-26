@@ -1,5 +1,6 @@
 ﻿using robot.sl.Helper;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -162,6 +163,13 @@ namespace robot.sl.Devices
 
         public void Start()
         {
+            //If debugger is attached you can't get frames from the camera, because the BitmapEncoder
+            //has a bug and not dispose correctly. This results in an System.OutOfMemoryException
+            if (Debugger.IsAttached)
+            {
+                return;
+            }
+
             Task.Factory.StartNew(() =>
             {
                 ProcessFrames();
