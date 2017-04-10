@@ -83,7 +83,7 @@ namespace robot.sl.Web
             var streamSocketListener = new StreamSocketListener();
             streamSocketListener.ConnectionReceived += ProcessRequest;
             streamSocketListener.Control.KeepAlive = false;
-            streamSocketListener.Control.NoDelay = false;
+            streamSocketListener.Control.NoDelay = true;
             streamSocketListener.Control.QualityOfService = SocketQualityOfService.LowLatency;
 
             return streamSocketListener;

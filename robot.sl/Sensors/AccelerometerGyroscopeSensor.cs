@@ -97,7 +97,19 @@ namespace robot.sl.Sensors
 
             while (!_isStopping)
             {
-                var acceleration = ReadInternal();
+                AccelerationGyroleration acceleration;
+
+                try
+                {
+                    acceleration = ReadInternal();
+                }
+                catch (Exception exception)
+                {
+                    Logger.Write($"{nameof(AccelerometerGyroscopeSensor)}, {nameof(StartInternal)}" , exception).Wait();
+
+                    Task.Delay(10).Wait();
+                    continue;
+                }
 
                 //Remove gravity
                 var alpha = 0.8d;
