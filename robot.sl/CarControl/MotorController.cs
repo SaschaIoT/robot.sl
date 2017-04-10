@@ -112,7 +112,7 @@ namespace robot.sl.CarControl
         
         public async Task Initialize(AutomaticSpeakController automaticSpeakController,
                                      byte i2cAddress = 0x60,
-                                     int frequency = 100)
+                                     int frequency = 40)
         {
             _automaticSpeakController = automaticSpeakController;
             _i2caddress = i2cAddress;
