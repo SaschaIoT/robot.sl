@@ -46,31 +46,29 @@ namespace robot.sl.Sensors
 
         public async Task Initialize()
         {
-            var settings = new I2cConnectionSettings(I2C_ADDRESS) { BusSpeed = I2cBusSpeed.FastMode, SharingMode = I2cSharingMode.Shared };
+            var settings = new I2cConnectionSettings(I2C_ADDRESS) { BusSpeed = I2cBusSpeed.StandardMode, SharingMode = I2cSharingMode.Shared };
             var controller = await I2cController.GetDefaultAsync();
             _accelerometer = controller.GetDevice(settings);
 
-            QueuedLock.Enter();
-
-            //Enable all axes with normal mode
-            _accelerometer.Write(new byte[] { REGISTER_POWER_MANAGEMENT_1, 0 }); //Wake up device
-            _accelerometer.Write(new byte[] { REGISTER_POWER_MANAGEMENT_1, 0x80 }); //Reset the device
-
-            QueuedLock.Exit();
+            Synchronous.Call(() =>
+            {
+                //Enable all axes with normal mode
+                _accelerometer.Write(new byte[] { REGISTER_POWER_MANAGEMENT_1, 0 }); //Wake up device
+                _accelerometer.Write(new byte[] { REGISTER_POWER_MANAGEMENT_1, 0x80 }); //Reset the device
+            });
 
             await Task.Delay(20);
 
-            QueuedLock.Enter();
+            Synchronous.Call(() =>
+            {
+                _accelerometer.Write(new byte[] { REGISTER_POWER_MANAGEMENT_1, 1 }); //Set clock source to gyro x
+                _accelerometer.Write(new byte[] { REGISTER_GYROSCOPE_CONFIG, 0 }); //+/- 250 degrees sec
+                _accelerometer.Write(new byte[] { REGISTER_ACCELEROMETER_CONFIG, 0 }); //+/- 2g
 
-            _accelerometer.Write(new byte[] { REGISTER_POWER_MANAGEMENT_1, 1 }); //Set clock source to gyro x
-            _accelerometer.Write(new byte[] { REGISTER_GYROSCOPE_CONFIG, 0 }); //+/- 250 degrees sec
-            _accelerometer.Write(new byte[] { REGISTER_ACCELEROMETER_CONFIG, 0 }); //+/- 2g
-
-            _accelerometer.Write(new byte[] { REGISTER_CONFIG, 1 }); //184 Hz, 2ms delay
-            _accelerometer.Write(new byte[] { REGISTER_SAMPLE_RATE_DIVIDER, 19 }); //Set rate 50Hz
-            _accelerometer.Write(new byte[] { REGISTER_POWER_MANAGEMENT_1, 0 }); //Wake up device
-
-            QueuedLock.Exit();
+                _accelerometer.Write(new byte[] { REGISTER_CONFIG, 1 }); //184 Hz, 2ms delay
+                _accelerometer.Write(new byte[] { REGISTER_SAMPLE_RATE_DIVIDER, 19 }); //Set rate 50Hz
+                _accelerometer.Write(new byte[] { REGISTER_POWER_MANAGEMENT_1, 0 }); //Wake up device
+            });
         }
 
         public void Start()
@@ -106,7 +104,7 @@ namespace robot.sl.Sensors
                 catch (Exception exception)
                 {
                     Logger.Write($"{nameof(AccelerometerGyroscopeSensor)}, {nameof(StartInternal)}" , exception).Wait();
-
+                    
                     Task.Delay(10).Wait();
                     continue;
                 }
@@ -159,11 +157,10 @@ namespace robot.sl.Sensors
             var data = new byte[14]; //6 bytes equals 2 bytes * 3 axes
             var readAddress = new byte[] { REGISTER_ACCELEROMETER_X }; //0x80 for autoincrement, read from register x all three axis
 
-            QueuedLock.Enter();
-
-            _accelerometer.WriteRead(readAddress, data);
-
-            QueuedLock.Exit();
+            Synchronous.Call(() =>
+            {
+                _accelerometer.WriteRead(readAddress, data);
+            });
 
             var xa = (short)(data[0] << 8 | data[1]);
             var ya = (short)(data[2] << 8 | data[3]);

@@ -163,7 +163,7 @@ namespace robot.sl.Audio
                     _recognationForwardBackward = true;
                     _recognationIsDriving = false;
                     _recognationShouldDancing = true;
-                    Task.Run(RecognationDance);
+                    RecognationDance();
                     break;
                 case "Aktiviere automatisches Fahren":
                     _automaticDrive.Start();
@@ -268,7 +268,7 @@ namespace robot.sl.Audio
             }
         }
 
-        private async Task RecognationDance()
+        private async void RecognationDance()
         {
             _dancingStopped = false;
 

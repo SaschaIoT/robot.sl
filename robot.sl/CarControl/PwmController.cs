@@ -35,11 +35,10 @@ namespace robot.sl.CarControl
 
         public void Reset()
         {
-            QueuedLock.Enter();
-
-            _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, 0x0 }); // reset the device
-
-            QueuedLock.Exit();
+            Synchronous.Call(() =>
+            {
+                _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, 0x0 }); // reset the device
+            });
 
             SetAllPwm(4096, 0);
         }
@@ -52,26 +51,24 @@ namespace robot.sl.CarControl
         /// <param name="off">the tick (between 0..4095) when the signal should change from high to low</param>
         public void SetPwm(byte channel, ushort on, ushort off)
         {
-            QueuedLock.Enter();
-
-            _pwmDevice.Write(new byte[] { (byte)(Registers.LED0_ON_L + 4 * channel), (byte)(on & 0xFF) });
-            _pwmDevice.Write(new byte[] { (byte)(Registers.LED0_ON_H + 4 * channel), (byte)(on >> 8) });
-            _pwmDevice.Write(new byte[] { (byte)(Registers.LED0_OFF_L + 4 * channel), (byte)(off & 0xFF) });
-            _pwmDevice.Write(new byte[] { (byte)(Registers.LED0_OFF_H + 4 * channel), (byte)(off >> 8) });
-
-            QueuedLock.Exit();
+            Synchronous.Call(() =>
+            {
+                _pwmDevice.Write(new byte[] { (byte)(Registers.LED0_ON_L + 4 * channel), (byte)(on & 0xFF) });
+                _pwmDevice.Write(new byte[] { (byte)(Registers.LED0_ON_H + 4 * channel), (byte)(on >> 8) });
+                _pwmDevice.Write(new byte[] { (byte)(Registers.LED0_OFF_L + 4 * channel), (byte)(off & 0xFF) });
+                _pwmDevice.Write(new byte[] { (byte)(Registers.LED0_OFF_H + 4 * channel), (byte)(off >> 8) });
+            });
         }
 
         public void SetAllPwm(ushort on, ushort off)
         {
-            QueuedLock.Enter();
-
-            _pwmDevice.Write(new byte[] { (byte)Registers.ALL_LED_ON_L, (byte)(on & 0xFF) });
-            _pwmDevice.Write(new byte[] { (byte)Registers.ALL_LED_ON_H, (byte)(on >> 8) });
-            _pwmDevice.Write(new byte[] { (byte)Registers.ALL_LED_OFF_L, (byte)(off & 0xFF) });
-            _pwmDevice.Write(new byte[] { (byte)Registers.ALL_LED_OFF_H, (byte)(off >> 8) });
-
-            QueuedLock.Exit();
+            Synchronous.Call(() =>
+            {
+                _pwmDevice.Write(new byte[] { (byte)Registers.ALL_LED_ON_L, (byte)(on & 0xFF) });
+                _pwmDevice.Write(new byte[] { (byte)Registers.ALL_LED_ON_H, (byte)(on >> 8) });
+                _pwmDevice.Write(new byte[] { (byte)Registers.ALL_LED_OFF_L, (byte)(off & 0xFF) });
+                _pwmDevice.Write(new byte[] { (byte)Registers.ALL_LED_OFF_H, (byte)(off >> 8) });
+            });
         }
 
         /// <summary>
@@ -93,20 +90,19 @@ namespace robot.sl.CarControl
 
             byte prescale = (byte)Math.Floor(prescaleval + 0.5f);
 
-            QueuedLock.Enter();
+            Synchronous.Call(() =>
+            {
+                var readBuffer = new byte[1];
+                _pwmDevice.WriteRead(new byte[] { (byte)Registers.MODE1 }, readBuffer);
 
-            var readBuffer = new byte[1];
-            _pwmDevice.WriteRead(new byte[] { (byte)Registers.MODE1 }, readBuffer);
-
-            byte oldmode = readBuffer[0];
-            byte newmode = (byte)((oldmode & 0x7F) | 0x10); //sleep
-            _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, newmode });
-            _pwmDevice.Write(new byte[] { (byte)Registers.PRESCALE, prescale });
-            _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, oldmode });
-            Task.Delay(TimeSpan.FromMilliseconds(5)).Wait();
-            _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, (byte)(oldmode | 0xa1) });
-
-            QueuedLock.Exit();
+                byte oldmode = readBuffer[0];
+                byte newmode = (byte)((oldmode & 0x7F) | 0x10); //sleep
+                _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, newmode });
+                _pwmDevice.Write(new byte[] { (byte)Registers.PRESCALE, prescale });
+                _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, oldmode });
+                Task.Delay(TimeSpan.FromMilliseconds(5)).Wait();
+                _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, (byte)(oldmode | 0xa1) });
+            });
 
             ActualFrequency = frequency;
 

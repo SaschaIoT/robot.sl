@@ -31,11 +31,10 @@ namespace robot.sl.Sensors
             //"Adafruit 16-Channel PWM/Servo HAT for Raspberry Pi" are not the same, but it conflicting because the
             //"Adafruit 16-Channel PWM/Servo HAT for Raspberry Pi" has a bug.
 
-            QueuedLock.Enter();
-            
-            _distanceMeasurementSensor.Write(new byte[] { 0xe0, 0xAA, 0xA5, 0x71 }); //0x71 is the 8 bit address of the I2c device
-
-            QueuedLock.Exit();
+            Synchronous.Call(() =>
+            {
+                _distanceMeasurementSensor.Write(new byte[] { 0xe0, 0xAA, 0xA5, 0x71 }); //0x71 is the 8 bit address of the I2c device
+            });
         }
 
         public async Task<int> ReadDistanceInCm(int countMesaurements)
@@ -53,23 +52,21 @@ namespace robot.sl.Sensors
         {
             int range = 0;
             byte[] range_highLowByte = new byte[2];
-            
-            QueuedLock.Enter();
 
-            //Call device measurement
-            _distanceMeasurementSensor.Write(new byte[] { 0x51 });
-
-            QueuedLock.Exit();
+            Synchronous.Call(() =>
+            {
+                //Call device measurement
+                _distanceMeasurementSensor.Write(new byte[] { 0x51 });
+            });
 
             //Wait device measured
             await Task.Delay(100);
 
-            QueuedLock.Enter();
-
-            //Read measurement
-            _distanceMeasurementSensor.WriteRead(new byte[] { 0xe1 }, range_highLowByte);
-
-            QueuedLock.Exit();
+            Synchronous.Call(() =>
+            {
+                //Read measurement
+                _distanceMeasurementSensor.WriteRead(new byte[] { 0xe1 }, range_highLowByte);
+            });
 
             range = (range_highLowByte[0] * 256) + range_highLowByte[1];
 
