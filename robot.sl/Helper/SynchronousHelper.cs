@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace robot.sl.Helper
 {
@@ -13,38 +15,6 @@ namespace robot.sl.Helper
             {
                 action();
             }
-        }
-    }
-
-    public static class QueuedLock
-    {
-        private static object innerLock = new object();
-        private static volatile int ticketsCount = 0;
-        private static volatile int ticketToRide = 1;
-        
-        public static void Enter()
-        {
-            int myTicket = Interlocked.Increment(ref ticketsCount);
-            Monitor.Enter(innerLock);
-            while (true)
-            {
-
-                if (myTicket == ticketToRide)
-                {
-                    return;
-                }
-                else
-                {
-                    Monitor.Wait(innerLock);
-                }
-            }
-        }
-
-        public static void Exit()
-        {
-            Interlocked.Increment(ref ticketToRide);
-            Monitor.PulseAll(innerLock);
-            Monitor.Exit(innerLock);
         }
     }
 }

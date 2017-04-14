@@ -73,7 +73,7 @@ namespace robot.sl.Helper
                 await _automaticSpeakController.Stop();
                 await _accelerometerSensor.Stop();
                 AudioPlayerController.Stop();
-                SpeedSensor.Stop();
+                await SpeedSensor.Stop();
 
                 ShutdownMotorsServos();
             });
