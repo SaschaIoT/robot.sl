@@ -28,6 +28,10 @@ namespace robot.sl.Devices
         private volatile bool _isStopping = false;
         private volatile bool _isStopped = true;
 
+        //Commet in for server side frame rate measurement
+        //public double FrameRate { get; private set; }
+        //private DateTime _lastFrame;
+
         //Check if camera support resolution before change
         private const int VIDEO_WIDTH = 640;
         private const int VIDEO_HEIGHT = 480;
@@ -144,9 +148,17 @@ namespace robot.sl.Devices
 
                                 var image = new byte[asStream.Length];
                                 asStream.Read(image, 0, image.Length);
+                                
+                                //Commet in for server side frame rate measurement
+                                //if(StructuralComparisons.StructuralEqualityComparer.Equals(image, Frame) == false)
+                                //{
+                                //    var now = DateTime.Now;
+                                //    FrameRate = now.Subtract(_lastFrame).TotalMilliseconds;
+                                //    _lastFrame = now;
+                                //}
 
                                 Frame = image;
-
+                                
                                 encoder = null;
                             }
                         }

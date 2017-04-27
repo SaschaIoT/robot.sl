@@ -27,8 +27,8 @@ namespace robot.sl.CarControl
 
             PwmController.SetPwm(0, 0, 333);
             PwmController.SetPwm(1, 0, 318);
-            PwmController.SetPwm(2, 0, 165);
-            PwmController.SetPwm(3, 0, 182);
+            PwmController.SetPwm(2, 0, 135);
+            PwmController.SetPwm(3, 0, 202);
         }
 
         public void MoveServo(CarControlCommand carControlCommand)
