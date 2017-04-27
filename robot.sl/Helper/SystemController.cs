@@ -86,8 +86,8 @@ namespace robot.sl.Helper
         {
             _servoController.PwmController.SetPwm(0, 0, 333);
             _servoController.PwmController.SetPwm(1, 0, 318);
-            _servoController.PwmController.SetPwm(2, 0, 169);
-            _servoController.PwmController.SetPwm(3, 0, 182);
+            _servoController.PwmController.SetPwm(2, 0, 135);
+            _servoController.PwmController.SetPwm(3, 0, 202);
             _servoController.PwmController.SetAllPwm(4096, 0);
 
             _motorController.GetMotor(1).Run(MotorAction.RELEASE);

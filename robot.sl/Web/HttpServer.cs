@@ -241,6 +241,17 @@ namespace robot.sl.Web
 
                 HttpServerResponse.WriteResponseJson(speedResponse.Stringify(), outputStream);
             }
+            //Commet in for server side frame rate measurement
+            ////Get server video frame rate
+            //else if (relativeUrlLower.StartsWith("/servervideoframerate"))
+            //{
+            //    var speedResponse = new JsonObject
+            //                            {
+            //                                { "FrameRate", JsonValue.CreateNumberValue(_camera.FrameRate)}
+            //                            };
+
+            //    HttpServerResponse.WriteResponseJson(speedResponse.Stringify(), outputStream);
+            //}
             //Get speaker states (on/off) and automatic drive state (on/off)
             else if (relativeUrlLower.StartsWith("/getstate"))
             {
