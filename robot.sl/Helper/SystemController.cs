@@ -63,8 +63,6 @@ namespace robot.sl.Helper
             {
                 var stopTask = Task.Run(async () =>
                 {
-                    ShutdownMotorsServos();
-
                     _httpServerController.Stop();
                     await _camera.Stop();
                     await _gamepadController.Stop();
