@@ -59,27 +59,31 @@ namespace robot.sl.Helper
 
         public static async Task StopAll()
         {
-            var stopTask = Task.Run(async () =>
+            try
             {
-                ShutdownMotorsServos();
+                var stopTask = Task.Run(async () =>
+                {
+                    ShutdownMotorsServos();
 
-                _httpServerController.Stop();
-                await _camera.Stop();
-                await _gamepadController.Stop();
-                await _speechRecognation.Stop();
-                await _automaticDrive.Stop();
-                _servoController.Stop();
-                _motorController.Stop();
-                await _automaticSpeakController.Stop();
-                await _accelerometerSensor.Stop();
-                AudioPlayerController.Stop();
-                await SpeedSensor.Stop();
+                    _httpServerController.Stop();
+                    await _camera.Stop();
+                    await _gamepadController.Stop();
+                    await _speechRecognation.Stop();
+                    await _automaticDrive.Stop();
+                    _servoController.Stop();
+                    _motorController.Stop();
+                    await _automaticSpeakController.Stop();
+                    await _accelerometerSensor.Stop();
+                    AudioPlayerController.Stop();
+                    await SpeedSensor.Stop();
 
-                ShutdownMotorsServos();
-            });
+                    ShutdownMotorsServos();
+                });
 
-            var timeout = TimeSpan.FromSeconds(5);
-            await TaskHelper.WithTimeoutAfterStart(ct => stopTask.WithCancellation(ct), timeout);
+                var timeout = TimeSpan.FromSeconds(10);
+                await TaskHelper.WithTimeoutAfterStart(ct => stopTask.WithCancellation(ct), timeout);
+            }
+            catch (TaskCanceledException) { }
         }
 
         private static void ShutdownMotorsServos()
@@ -88,6 +92,9 @@ namespace robot.sl.Helper
             _servoController.PwmController.SetPwm(1, 0, 318);
             _servoController.PwmController.SetPwm(2, 0, 135);
             _servoController.PwmController.SetPwm(3, 0, 202);
+
+            Task.Delay(2500).Wait();
+
             _servoController.PwmController.SetAllPwm(4096, 0);
 
             _motorController.GetMotor(1).Run(MotorAction.RELEASE);
@@ -103,8 +110,11 @@ namespace robot.sl.Helper
                 return;
             }
 
-            await StopAll();
-            await AudioPlayerController.PlayAndWaitAsync(AudioName.Shutdown);
+            var stopAll = StopAll();
+            var shutdownSound = AudioPlayerController.PlayAndWaitAsync(AudioName.Shutdown);
+
+            await Task.WhenAll(new[] { stopAll, shutdownSound });
+
             await ProcessLauncher.RunToCompletionAsync(@"CmdWrapper.exe", "\"shutdown -s -t 0\"");
         }
 
