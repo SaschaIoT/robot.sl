@@ -61,9 +61,7 @@ namespace robot.sl.Devices
                         await Initialize();
                     }
                 };
-
-                var frameSourceGroups = await MediaFrameSourceGroup.FindAllAsync();
-
+                
                 var settings = new MediaCaptureInitializationSettings()
                 {
                     SharingMode = MediaCaptureSharingMode.ExclusiveControl,
@@ -84,10 +82,10 @@ namespace robot.sl.Devices
                 videoDeviceController.DesiredOptimization = Windows.Media.Devices.MediaCaptureOptimization.Quality;
                 videoDeviceController.PrimaryUse = Windows.Media.Devices.CaptureUse.Video;
 
-                if (!videoDeviceController.BacklightCompensation.TrySetValue(videoDeviceController.BacklightCompensation.Capabilities.Min))
-                {
-                    throw new Exception("Could not set min backlight compensation to camera.");
-                }
+                //if (!videoDeviceController.BacklightCompensation.TrySetValue(videoDeviceController.BacklightCompensation.Capabilities.Min))
+                //{
+                //    throw new Exception("Could not set min backlight compensation to camera.");
+                //}
 
                 if (!videoDeviceController.Exposure.TrySetAuto(true))
                 {
