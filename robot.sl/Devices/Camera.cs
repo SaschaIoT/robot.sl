@@ -1,5 +1,6 @@
 ﻿using robot.sl.Helper;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -26,23 +27,33 @@ namespace robot.sl.Devices
         private MediaFrameReader _mediaFrameReader;
 
         private volatile bool _isStopping = false;
-        private volatile bool _isStopped = true;
+        private volatile int _stoppedWorkerCount = GET_FRAME_WORKER_COUNT;
+
+        //Get video frame workers
+        private const int GET_FRAME_WORKER_COUNT = 6;
+        private List<long> _getFrameDurationMilliseconds = new List<long>();
+        private volatile object _getFrameLock = new object();
+        private volatile Stopwatch _lastFrame = new Stopwatch();
+        private DateTime _lastFrameAdded = new DateTime();
+        private volatile object _lastFrameAddedLock = new object();
 
         //Commet in for server side frame rate measurement
         //public double FrameRate { get; private set; }
-        //private DateTime _lastFrame;
+        //private DateTime _frameRateLastFrame;
 
         //Check if camera support resolution before change
-        private const int VIDEO_WIDTH = 640;
-        private const int VIDEO_HEIGHT = 480;
+        private const int VIDEO_WIDTH = 1280;
+        private const int VIDEO_HEIGHT = 720;
 
-        private const double IMAGE_QUALITY_PERCENT = 0.8d;
+        private const double IMAGE_QUALITY_PERCENT = 0.6d;
         private BitmapPropertySet _imageQuality;
 
         public async Task Initialize()
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAndAwaitAsync(CoreDispatcherPriority.Normal, async () =>
             {
+                _lastFrame.Start();
+
                 _imageQuality = new BitmapPropertySet();
                 var imageQualityValue = new BitmapTypedValue(IMAGE_QUALITY_PERCENT, Windows.Foundation.PropertyType.Single);
                 _imageQuality.Add("ImageQuality", imageQualityValue);
@@ -61,7 +72,7 @@ namespace robot.sl.Devices
                         await Initialize();
                     }
                 };
-                
+
                 var settings = new MediaCaptureInitializationSettings()
                 {
                     SharingMode = MediaCaptureSharingMode.ExclusiveControl,
@@ -82,19 +93,19 @@ namespace robot.sl.Devices
                 videoDeviceController.DesiredOptimization = Windows.Media.Devices.MediaCaptureOptimization.Quality;
                 videoDeviceController.PrimaryUse = Windows.Media.Devices.CaptureUse.Video;
 
-                //if (!videoDeviceController.BacklightCompensation.TrySetValue(videoDeviceController.BacklightCompensation.Capabilities.Min))
-                //{
-                //    throw new Exception("Could not set min backlight compensation to camera.");
-                //}
+                if (!videoDeviceController.BacklightCompensation.TrySetValue(videoDeviceController.BacklightCompensation.Capabilities.Max))
+                {
+                    throw new Exception("Could not set min backlight compensation to camera.");
+                }
 
                 if (!videoDeviceController.Exposure.TrySetAuto(true))
                 {
                     throw new Exception("Could not set auto exposure to camera.");
                 }
-
+                
                 var videoFormat = mediaFrameSource.SupportedFormats.First(sf => sf.VideoFormat.Width == VIDEO_WIDTH
                                                                                 && sf.VideoFormat.Height == VIDEO_HEIGHT
-                                                                                && sf.Subtype == "YUY2");
+                                                                                && sf.Subtype == "MJPG");
 
                 await mediaFrameSource.SetFormatAsync(videoFormat);
 
@@ -109,13 +120,18 @@ namespace robot.sl.Devices
 
         private void ProcessFrames()
         {
-            _isStopped = false;
+            _stoppedWorkerCount--;
 
             while (!_isStopping)
             {
                 try
                 {
                     GarbageCollectorCanWorkHere();
+
+                    WaitGetNewFrame();
+
+                    var getFrameDuration = new Stopwatch();
+                    getFrameDuration.Start();
 
                     var frame = _mediaFrameReader.TryAcquireLatestFrame();
 
@@ -146,17 +162,28 @@ namespace robot.sl.Devices
 
                                 var image = new byte[asStream.Length];
                                 asStream.Read(image, 0, image.Length);
-                                
-                                //Commet in for server side frame rate measurement
-                                //if(StructuralComparisons.StructuralEqualityComparer.Equals(image, Frame) == false)
-                                //{
-                                //    var now = DateTime.Now;
-                                //    FrameRate = now.Subtract(_lastFrame).TotalMilliseconds;
-                                //    _lastFrame = now;
-                                //}
 
-                                Frame = image;
-                                
+                                lock (_lastFrameAddedLock)
+                                {
+                                    var now = DateTime.Now;
+                                    if (now > _lastFrameAdded)
+                                    {
+                                        Frame = image;
+                                        _lastFrameAdded = now;
+
+                                        if(_getFrameDurationMilliseconds.Count == 100)
+                                        {
+                                            _getFrameDurationMilliseconds.RemoveAt(0);
+                                        }
+
+                                        _getFrameDurationMilliseconds.Add(getFrameDuration.ElapsedMilliseconds);
+                                        
+                                        //Commet in for server side frame rate measurement
+                                        //FrameRate = now.Subtract(_frameRateLastFrame).TotalMilliseconds;
+                                        //_frameRateLastFrame = now;
+                                    }
+                                }
+
                                 encoder = null;
                             }
                         }
@@ -168,7 +195,7 @@ namespace robot.sl.Devices
                 }
             }
 
-            _isStopped = true;
+            _stoppedWorkerCount++;
         }
 
         public void Start()
@@ -180,26 +207,29 @@ namespace robot.sl.Devices
                 return;
             }
 
-            Task.Factory.StartNew(() =>
+            for (int workerNumber = 0; workerNumber < GET_FRAME_WORKER_COUNT; workerNumber++)
             {
-                ProcessFrames();
+                Task.Factory.StartNew(() =>
+                {
+                    ProcessFrames();
 
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-            .AsAsyncAction()
-            .AsTask()
-            .ContinueWith((t) =>
-            {
-                Logger.Write(nameof(Camera), t.Exception).Wait();
-                SystemController.ShutdownApplication(true).Wait();
+                }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+                .AsAsyncAction()
+                .AsTask()
+                .ContinueWith((t) =>
+                {
+                    Logger.Write(nameof(Camera), t.Exception).Wait();
+                    SystemController.ShutdownApplication(true).Wait();
 
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                }, TaskContinuationOptions.OnlyOnFaulted);
+            }
         }
 
         public async Task Stop()
         {
             _isStopping = true;
 
-            while (!_isStopped)
+            while (_stoppedWorkerCount != GET_FRAME_WORKER_COUNT)
             {
                 await Task.Delay(10);
             }
@@ -207,6 +237,21 @@ namespace robot.sl.Devices
             _isStopping = false;
 
             await _mediaFrameReader.StopAsync();
+        }
+
+        public void WaitGetNewFrame()
+        {
+            lock (_getFrameLock)
+            {
+                var getFrameMilliseconds = 0d;
+                if(_getFrameDurationMilliseconds.Count >= 1)
+                {
+                    getFrameMilliseconds = _getFrameDurationMilliseconds.Average();
+                }
+
+                SpinWait.SpinUntil(() => _lastFrame.Elapsed.Milliseconds >= (getFrameMilliseconds / GET_FRAME_WORKER_COUNT));
+                _lastFrame.Restart();
+            }
         }
     }
 }

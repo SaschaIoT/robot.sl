@@ -97,7 +97,8 @@
 }
 
 #streamWebCam {
-    width: 100%;
+    width: calc(100% + 7px);
+    left: -7px;
     height: 100%;
     position: fixed;
     z-index: 0;
