@@ -1,33 +1,4 @@
-﻿function isFullScreen() {
-    var fullScreen = document.fullScreenElement !== undefined
-        || document.mozFullscreenEnabled
-        || document.webkitIsFullScreen
-        || document.msFullscreenElement ? true : false;
-
-    return fullScreen;
-}
-
-document.addEventListener("webkitfullscreenchange", function () {
-
-    setFullScreenButton();
-});
-
-document.addEventListener("mozfullscreenchange", function () {
-
-    setFullScreenButton();
-});
-
-document.addEventListener("fullscreenchange", function () {
-
-    setFullScreenButton();
-});
-
-document.addEventListener("MSFullscreenChange", function () {
-
-    setFullScreenButton();
-});
-
-var fullscreenButton = document.getElementById("fullscreenButton");
+﻿var fullscreenButton = document.getElementById("fullscreenButton");
 
 function isiOSDevice() {
 
@@ -53,43 +24,35 @@ if (isiOSDevice()) {
     fullscreenButton.style.display = "none";
 }
 
-fullscreenButton.addEventListener("touchstart", function (e) {
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    toggleFullScreen(document.body);
+document.addEventListener(fullScreenAPI.fullScreenEventName, function () {
+    setFullScreenButton();
 });
 
 function setFullScreenButton() {
 
-    if (isFullScreen()) {
+    if (fullScreenAPI.supportFullScreen === false) {
+        return;
+    }
+
+    if (fullScreenAPI.isFullScreen()) {
         fullscreenButton.classList.add("fullscreen-active-button");
     } else {
         fullscreenButton.classList.remove("fullscreen-active-button");
     }
 }
 
-function toggleFullScreen(elem) {
-    if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
-        if (elem.requestFullScreen) {
-            elem.requestFullScreen();
-        } else if (elem.mozRequestFullScreen) {
-            elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullScreen) {
-            elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-        } else if (elem.msRequestFullscreen) {
-            elem.msRequestFullscreen();
-        }
-    } else {
-        if (document.cancelFullScreen) {
-            document.cancelFullScreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.webkitCancelFullScreen) {
-            document.webkitCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-        }
+fullscreenButton.addEventListener("touchstart", function (e) {
+
+    if (fullScreenAPI.supportFullScreen === false) {
+        return;
     }
-}
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (fullScreenAPI.isFullScreen() === false) {
+        fullScreenAPI.requestFullScreen(document.documentElement)
+    } else {
+        fullScreenAPI.cancelFullScreen();
+    }
+});
