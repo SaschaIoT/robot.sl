@@ -31,10 +31,10 @@ namespace robot.sl.Devices
 
         //Get video frame workers
         private const int GET_FRAME_WORKER_COUNT = 6;
-        private List<long> _getFrameDurationMilliseconds = new List<long>();
+        private long _frameDuration = 0;
         private volatile object _getFrameLock = new object();
         private volatile Stopwatch _lastFrame = new Stopwatch();
-        private DateTime _lastFrameAdded = new DateTime();
+        private volatile Stopwatch _lastFrameAdded = new Stopwatch();
         private volatile object _lastFrameAddedLock = new object();
 
         //Commet in for server side frame rate measurement
@@ -53,6 +53,7 @@ namespace robot.sl.Devices
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAndAwaitAsync(CoreDispatcherPriority.Normal, async () =>
             {
                 _lastFrame.Start();
+                _lastFrameAdded.Start();
 
                 _imageQuality = new BitmapPropertySet();
                 var imageQualityValue = new BitmapTypedValue(IMAGE_QUALITY_PERCENT, Windows.Foundation.PropertyType.Single);
@@ -102,7 +103,7 @@ namespace robot.sl.Devices
                 {
                     throw new Exception("Could not set auto exposure to camera.");
                 }
-                
+
                 var videoFormat = mediaFrameSource.SupportedFormats.First(sf => sf.VideoFormat.Width == VIDEO_WIDTH
                                                                                 && sf.VideoFormat.Height == VIDEO_HEIGHT
                                                                                 && sf.Subtype == "MJPG");
@@ -128,12 +129,12 @@ namespace robot.sl.Devices
                 {
                     GarbageCollectorCanWorkHere();
 
-                    WaitGetNewFrame();
-
-                    var getFrameDuration = new Stopwatch();
-                    getFrameDuration.Start();
+                    WaitFrame();
 
                     var frame = _mediaFrameReader.TryAcquireLatestFrame();
+
+                    var frameDuration = new Stopwatch();
+                    frameDuration.Start();
 
                     if (frame == null
                         || frame.VideoMediaFrame == null
@@ -165,20 +166,15 @@ namespace robot.sl.Devices
 
                                 lock (_lastFrameAddedLock)
                                 {
-                                    var now = DateTime.Now;
-                                    if (now > _lastFrameAdded)
+                                    if (_lastFrameAdded.Elapsed.Subtract(frameDuration.Elapsed) > TimeSpan.Zero)
                                     {
                                         Frame = image;
-                                        _lastFrameAdded = now;
 
-                                        if(_getFrameDurationMilliseconds.Count == 100)
-                                        {
-                                            _getFrameDurationMilliseconds.RemoveAt(0);
-                                        }
+                                        _lastFrameAdded = frameDuration;
+                                        _frameDuration = frameDuration.ElapsedMilliseconds;
 
-                                        _getFrameDurationMilliseconds.Add(getFrameDuration.ElapsedMilliseconds);
-                                        
                                         //Commet in for server side frame rate measurement
+                                        //var now = DateTime.Now;
                                         //FrameRate = now.Subtract(_frameRateLastFrame).TotalMilliseconds;
                                         //_frameRateLastFrame = now;
                                     }
@@ -239,18 +235,12 @@ namespace robot.sl.Devices
             await _mediaFrameReader.StopAsync();
         }
 
-        public void WaitGetNewFrame()
+        public void WaitFrame()
         {
             lock (_getFrameLock)
             {
-                var getFrameMilliseconds = 0d;
-                if(_getFrameDurationMilliseconds.Count >= 1)
-                {
-                    getFrameMilliseconds = _getFrameDurationMilliseconds.Average();
-                }
-
-                SpinWait.SpinUntil(() => _lastFrame.Elapsed.Milliseconds >= (getFrameMilliseconds / GET_FRAME_WORKER_COUNT));
-                _lastFrame.Restart();
+                var wait = _frameDuration / GET_FRAME_WORKER_COUNT;
+                Task.Delay(wait.SafeConvertToInt32()).Wait();
             }
         }
     }
