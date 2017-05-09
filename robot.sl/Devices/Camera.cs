@@ -185,6 +185,7 @@ namespace robot.sl.Devices
                         }
                     }
                 }
+                catch(ObjectDisposedException) { }
                 catch (Exception exception)
                 {
                     Logger.Write(nameof(Camera), exception).Wait();
