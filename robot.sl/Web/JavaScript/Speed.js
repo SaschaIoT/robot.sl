@@ -1,38 +1,61 @@
-﻿function GetSpeed() {
+﻿var webSocketSpeed;
+var speedTime;
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://192.168.0.101/Speed?time=" + new Date().getTime(), true);
-    xhr.responseType = "json";
+function GetSpeed() {
 
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4) {
-            if (xhr.status === 200) {
-                var speedResponse = xhr.response;
-                document.getElementById("roundsPerMinute").innerHTML = speedResponse.RoundsPerMinute;
-                document.getElementById("kilometerPerHour").innerHTML = speedResponse.KilometerPerHour;
-            }
-        }
-    }
+    webSocketSpeed = new WebSocket('ws://192.168.0.101:80/Controller');
 
-    xhr.timeout = xhttpRequestTimeout;
-    xhr.ontimeout = function () {
-        setTimeout(function () {
-            GetSpeed();
-        }, 250);
-    }
+    webSocketSpeed.onopen = function () {
+        webSocketHelper.waitUntilWebsocketReady(function () {
+            webSocketSpeed.send(JSON.stringify({ command: "Speed" }));
+        }, webSocketSpeed, 0);
+    };
 
-    xhr.onerror = function () {
-        setTimeout(function () {
-            GetSpeed();
-        }, 250);
-    }
+    webSocketSpeed.onmessage = function () {
 
-    xhr.onload = function () {
-        setTimeout(function () {
-            GetSpeed();
-        }, 250);
-    }
+        var speed = JSON.parse(event.data).parameter;
 
-    xhr.send();
+        UpdateSpeed(speed);
+
+        webSocketHelper.waitUntilWebsocketReady(function () {
+            webSocketSpeed.send(JSON.stringify({ command: "Speed" }));
+        }, webSocketSpeed, 0);
+
+        speedTime = new Date().getTime();
+    };
 }
-GetSpeed();
+
+function UpdateSpeed(speed) {
+    document.getElementById("roundsPerMinute").innerHTML = speed.RoundsPerMinute;
+    document.getElementById("kilometerPerHour").innerHTML = speed.KilometerPerHour;
+}
+
+function KeepAliveGetSpeed() {
+
+    var duration = 0;
+    if (speedTime !== undefined) {
+        duration = new Date().getTime() - speedTime
+    }
+
+    if (speedTime !== undefined
+        && duration <= requestTimeout) {
+
+        setTimeout(function () {
+            KeepAliveGetSpeed();
+        }, 50);
+    } else {
+
+        if (webSocketSpeed !== undefined) {
+            try {
+                webSocketSpeed.close();
+            } catch (e) { }
+        }
+
+        GetSpeed();
+
+        speedTime = new Date().getTime();
+        KeepAliveGetSpeed();
+    }
+}
+
+KeepAliveGetSpeed();
