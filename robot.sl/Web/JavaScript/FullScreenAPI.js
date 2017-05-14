@@ -1,6 +1,5 @@
 ﻿(function() {
-    var
-        fullScreenAPI = {
+    var fullScreenAPI = {
             supportFullScreen: false,
             nonNativesupportFullScreen: false,
             isFullScreen: function() { return false; },

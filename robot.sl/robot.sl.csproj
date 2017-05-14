@@ -136,8 +136,10 @@
     <Compile Include="Helper\SynchronousHelper.cs" />
     <Compile Include="Web\HttpContentType.cs" />
     <Compile Include="Web\HttpServer.cs" />
+    <Compile Include="Web\HttpServerRequest.cs" />
     <Compile Include="Web\HttpServerResponse.cs" />
     <Compile Include="Web\HttpStatusCode.cs" />
+    <Compile Include="Web\WebSocket.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -219,6 +221,7 @@
     <Content Include="Web\JavaScript\Latency.js" />
     <Content Include="Web\JavaScript\Speed.js" />
     <Content Include="Web\JavaScript\State.js" />
+    <Content Include="Web\JavaScript\WebSocketHelper.js" />
     <Content Include="Web\Styles\desktop.css" />
     <Content Include="Web\Styles\mobile.css" />
     <Content Include="Web\Views\Desktop.html" />

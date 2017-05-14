@@ -1,41 +1,60 @@
-﻿function GetServerVideoFrameRate() {
+﻿var webSocketServerVideoFrameRate;
+var serverVideoFrameRateTime;
 
-    _lastImageRequest = new Date();
-    _imageRequestStart = new Date().getTime();
+function GetServerVideoFrameRate() {
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://192.168.0.101/ServerVideoFrameRate" + new Date().getTime().toString(), true);
-    xhr.responseType = "json";
+    webSocketServerVideoFrameRate = new WebSocket('ws://192.168.0.101:80/Controller');
 
-    xhr.timeout = xhttpRequestTimeout;
-    xhr.ontimeout = function () {
-        setTimeout(function () {
-            GetServerVideoFrameRate();
-        }, 50);
-    }
+    webSocketServerVideoFrameRate.onopen = function () {
+        webSocketHelper.waitUntilWebsocketReady(function () {
+            webSocketServerVideoFrameRate.send(JSON.stringify({ command: "ServerVideoFrameRate" }));
+        }, webSocketServerVideoFrameRate, 0);
+    };
 
-    xhr.onerror = function () {
-        
-        setTimeout(function () {
-            GetServerVideoFrameRate();
-        }, 50);
-    }
+    webSocketServerVideoFrameRate.onmessage = function () {
 
-    xhr.onload = function () {
+        var serverVideoFrameRate = JSON.parse(event.data).parameter;
 
-        if (xhr.readyState == 4) {
-            if (xhr.status === 200) {
-                var frameRate = xhr.response;
-                 console.log("Server video frame rate: " + frameRate.FrameRate)
-            }
-        }
+        UpdateServerVideoFrameRate(serverVideoFrameRate);
 
-        setTimeout(function () {
-            GetServerVideoFrameRate();
-        }, 50);
-    }
+        webSocketHelper.waitUntilWebsocketReady(function () {
+            webSocketServerVideoFrameRate.send(JSON.stringify({ command: "ServerVideoFrameRate" }));
+        }, webSocketServerVideoFrameRate, 0);
 
-    xhr.send();
+        serverVideoFrameRateTime = new Date().getTime();
+    };
 }
 
-GetServerVideoFrameRate();
+function UpdateServerVideoFrameRate(serverVideoFrameRate) {
+    console.log("Server video frame rate: " + serverVideoFrameRate.FrameRate)
+}
+
+function KeepAliveGetServerVideoFrameRate() {
+
+    var duration = 0;
+    if (serverVideoFrameRateTime !== undefined) {
+        duration = new Date().getTime() - serverVideoFrameRateTime
+    }
+
+    if (serverVideoFrameRateTime !== undefined
+        && duration <= requestTimeout) {
+
+        setTimeout(function () {
+            KeepAliveGetServerVideoFrameRate();
+        }, 50);
+    } else {
+
+        if (webSocketServerVideoFrameRate !== undefined) {
+            try {
+                webSocketServerVideoFrameRate.close();
+            } catch (e) { }
+        }
+
+        GetServerVideoFrameRate();
+
+        serverVideoFrameRateTime = new Date().getTime();
+        KeepAliveGetServerVideoFrameRate();
+    }
+}
+
+KeepAliveGetServerVideoFrameRate();

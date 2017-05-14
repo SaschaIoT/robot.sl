@@ -1,50 +1,78 @@
-﻿var _lastImageRequest = new Date();
-var _imageRequestStart;
-function StreamWebCam() {
+﻿var webSocketVideoFrame;
+var frameTime;
 
-    _lastImageRequest = new Date();
-    _imageRequestStart = new Date().getTime();
+function GetVideoFrames() {
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://192.168.0.101/VideoFrame" + new Date().getTime().toString() + ".jpeg", true);
-    xhr.responseType = "arraybuffer";
+    webSocketVideoFrame = new WebSocket('ws://192.168.0.101:80/VideoFrame');
+    webSocketVideoFrame.binaryType = "arraybuffer";
 
-    xhr.timeout = xhttpRequestTimeout;
-    xhr.ontimeout = function () {
-        ProcessGlobalRequestTime(_imageRequestStart, true);
-        StreamWebCamLimited();
+    webSocketVideoFrame.onopen = function () {
+        webSocketHelper.waitUntilWebsocketReady(function () {
+            webSocketVideoFrame.send(JSON.stringify({ command: "VideoFrame" }));
+        }, webSocketVideoFrame, 0);
+    };
+
+    webSocketVideoFrame.onmessage = function () {
+
+        if (frameTime !== undefined)
+            UpdateLatency(frameTime, false);
+
+        var bytearray = new Uint8Array(event.data);
+
+        var blob = new Blob([event.data], { type: "image/jpeg" });
+        var url = createObjectURL(blob);
+        document.querySelector("#streamWebCam").src = url;
+
+        webSocketHelper.waitUntilWebsocketReady(function () {
+            webSocketVideoFrame.send(JSON.stringify({ command: "VideoFrame" }));
+        }, webSocketVideoFrame, 0);
+
+        frameTime = new Date().getTime();
+    };
+}
+
+function createObjectURL(blob) {
+    if (window.webkitURL) {
+        return window.webkitURL.createObjectURL(blob);
+    } else if (window.URL && window.URL.createObjectURL) {
+        return window.URL.createObjectURL(blob);
+    } else {
+        return null;
+    }
+}
+
+function KeepAliveGetVideoFrames() {
+
+    var duration = 0;
+    if (frameTime !== undefined) {
+        duration = new Date().getTime() - frameTime
     }
 
-    xhr.onerror = function () {
-        ProcessGlobalRequestTime(_imageRequestStart, true);
-        StreamWebCamLimited();
-    }
+    if (frameTime !== undefined
+        && duration <= requestTimeout) {
 
-    xhr.onload = function () {
+        setTimeout(function () {
+            KeepAliveGetVideoFrames();
+        }, 50);
+    } else {
 
-        if (xhr.status === 200) {
-            var blob = new Blob([xhr.response], { type: "image/jpeg" });
-            var url = webkitURL.createObjectURL(blob);
-            document.querySelector("#streamWebCam").src = url;
+        if (webSocketVideoFrame !== undefined) {
+            try {
+                webSocketVideoFrame.close();
+            } catch (e) { }
         }
 
-        ProcessGlobalRequestTime(_imageRequestStart, false);
-        StreamWebCamLimited();
-    }
+        if (frameTime !== undefined) {
+            UpdateLatency(duration, true);
+        } else {
+            UpdateLatency(2001, true);
+        } 
 
-    xhr.send();
-}
+        GetVideoFrames();
 
-function StreamWebCamLimited() {
-    var millisecondsSinceLastRequest = new Date() - _lastImageRequest;
-
-    if (millisecondsSinceLastRequest >= getNewCameraFrameAfterMilliseconds) {
-        setTimeout(function () { StreamWebCam(); }, 0);
-
-    } else {
-        var newRequestIn = getNewCameraFrameAfterMilliseconds - millisecondsSinceLastRequest;
-        setTimeout(function () { StreamWebCam(); }, newRequestIn);
+        frameTime = new Date().getTime();
+        KeepAliveGetVideoFrames();
     }
 }
 
-StreamWebCam();
+KeepAliveGetVideoFrames();

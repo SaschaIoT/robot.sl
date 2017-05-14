@@ -109,7 +109,7 @@ namespace robot.sl.Audio
                     && !_carNotMoving.HasValue)
                 {
                     _carNotMoving = DateTime.Now;
-                    randomMinutes = random.Next(3, 5);
+                    randomMinutes = random.Next(10, 15);
                 }
                 else if (CarMoveCommand != null && CarMoveCommand.Speed > 0)
                 {

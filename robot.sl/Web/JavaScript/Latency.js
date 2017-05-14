@@ -1,42 +1,40 @@
-﻿var _globalRequestTimes = new Array();
-var _lastLatencyStatusUpdate = new Date();
+﻿var requestTimes = new Array();
+var lastUpdate = new Date();
 var _firstLatencyStatusUpdate = true;
 
-function ProcessGlobalRequestTime(currentRequestStart, isErrorRequest) {
+function UpdateLatency(startTime, error) {
 
-    _globalRequestTimes.push({
-        duration: new Date().getTime() - currentRequestStart,
-        isErrorRequest: isErrorRequest
+    requestTimes.push({
+        duration: new Date().getTime() - startTime,
+        error: error
     });
 
-    if (_globalRequestTimes.length > 3) {
-        _globalRequestTimes = _globalRequestTimes.slice(_globalRequestTimes.length - 3, 3);
+    if (requestTimes.length >= 4) {
+        requestTimes = requestTimes.slice(1);
     }
 
     var connectionLost = true;
-    for (var i = 0; i < _globalRequestTimes.length; i++) {
-        if (_globalRequestTimes[i].isErrorRequest === false) {
+    for (var i = 0; i < requestTimes.length; i++) {
+        if (requestTimes[i].error === false) {
             connectionLost = false;
             break;
         }
     }
 
-    var sumRequestTimes = 0;
-    for (var i = 0; i < _globalRequestTimes.length; i++) {
-        sumRequestTimes += _globalRequestTimes[i].duration;
+    var requestTimesSum = 0;
+    for (var i = 0; i < requestTimes.length; i++) {
+        requestTimesSum += requestTimes[i].duration;
     }
 
-    var averageRequestTimes = Math.round(sumRequestTimes / _globalRequestTimes.length);
+    var averageRequestTimes = Math.round(requestTimesSum / requestTimes.length);
 
     var latencyStatusColor = document.getElementById("latency-status-color");
     var latencyStatusMilliseconds = document.getElementById("latency-status-milliseconds");
 
     var now = new Date();
-    if (_firstLatencyStatusUpdate === true
-        || (now - _lastLatencyStatusUpdate) >= 1000) {
+    if ((now - lastUpdate) >= 500) {
 
-        _firstLatencyStatusUpdate = false;
-        _lastLatencyStatusUpdate = now;
+        lastUpdate = now;
 
         if (connectionLost === true) {
             latencyStatusColor.classList.add("latency-bad");

@@ -191,21 +191,6 @@ document.body.addEventListener("click", function (e) {
 
 }, false);
 
-var carControlCommandActionNecessary = false;
-function IsCarControlCommandActionNecessary(carControlCommand) {
-    if (!carControlCommand.directionControlUp
-        && !carControlCommand.directionControlLeft
-        && !carControlCommand.directionControlRight
-        && !carControlCommand.directionControlDown
-        && !carControlCommand.speedControlForward
-        && !carControlCommand.speedControlBackward) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-var _carControlCommandRequestStart;
 function SendCarControlCommand() {
 
     var speedControlLeftRight = 0;
@@ -242,51 +227,12 @@ function SendCarControlCommand() {
         speedControlLeftRight: speedControlLeftRight
     };
 
-    var isCarControlCommandActionNecessary = IsCarControlCommandActionNecessary(carControlCommand);
-
-    if (!isCarControlCommandActionNecessary
-        && !carControlCommandActionNecessary) {
-        setTimeout(function () { SendCarControlCommand(); }, 20);
-    } else {
-
-        _carControlCommandRequestStart = new Date().getTime();
-
-        if (!isCarControlCommandActionNecessary) {
-            carControlCommandActionNecessary = false;
-        } else {
-            carControlCommandActionNecessary = true;
-        }
-
-        var http = new XMLHttpRequest();
-
-        var carCommandParameter = "<RequestBody>" + JSON.stringify(carControlCommand) + "</RequestBody>";
-
-        http.open("GET", "http://192.168.0.101/CarControlCommandTime" + new Date().getTime() + ".html?carCommandParameter=" + carCommandParameter, true);
-
-        http.timeout = xhttpRequestTimeout;
-        http.ontimeout = function () {
-            ProcessGlobalRequestTime(_carControlCommandRequestStart, true);
-            setTimeout(function () { SendCarControlCommand(); }, 100);
-        }
-
-        http.onerror = function () {
-            ProcessGlobalRequestTime(_carControlCommandRequestStart, true);
-            setTimeout(function () { SendCarControlCommand(); }, 100);
-        }
-
-        http.onload = function () {
-            ProcessGlobalRequestTime(_carControlCommandRequestStart, false);
-            setTimeout(function () { SendCarControlCommand(); }, 100);
-        }
-
-        http.send();
-    }
+    webSocketHelper.waitUntilWebsocketReady(function () {
+        webSocketCarControlCommand.send(JSON.stringify({ command: "CarControlCommand", parameter: carControlCommand }));
+    }, webSocketCarControlCommand, 0);
 }
 
-SendCarControlCommand();
-
 function Stop() {
-    carControlCommandActionNecessary = true;
     directionControlUpCurrent = false;
     directionControlLeftCurrent = false;
     directionControlRightCurrent = false;
@@ -315,3 +261,54 @@ function PointerLockChanged() {
 window.onblur = function () {
     Stop();
 };
+
+var webSocketCarControlCommand;
+var carControlCommandTime;
+
+function GetCarControlCommand() {
+
+    webSocketCarControlCommand = new WebSocket('ws://192.168.0.101:80/Controller');
+
+    webSocketCarControlCommand.onopen = function () {
+        SendCarControlCommand();
+    };
+
+    webSocketCarControlCommand.onmessage = function () {
+
+        setTimeout(function () {
+            SendCarControlCommand();
+        }, 40);
+
+        carControlCommandTime = new Date().getTime();
+    };
+}
+
+function KeepAliveCarControlCommand() {
+
+    var duration = 0;
+    if (carControlCommandTime !== undefined) {
+        duration = new Date().getTime() - carControlCommandTime
+    }
+
+    if (carControlCommandTime !== undefined
+        && duration <= requestTimeout) {
+
+        setTimeout(function () {
+            KeepAliveCarControlCommand();
+        }, 50);
+    } else {
+
+        if (webSocketCarControlCommand !== undefined) {
+            try {
+                webSocketCarControlCommand.close();
+            } catch (e) { }
+        }
+
+        GetCarControlCommand();
+
+        carControlCommandTime = new Date().getTime();
+        KeepAliveCarControlCommand();
+    }
+}
+
+KeepAliveCarControlCommand();
