@@ -1,6 +1,5 @@
 ﻿using robot.sl.Helper;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -12,7 +11,6 @@ using Windows.ApplicationModel.Core;
 using Windows.Graphics.Imaging;
 using Windows.Media.Capture;
 using Windows.Media.Capture.Frames;
-using Windows.Media.Editing;
 using Windows.Storage.Streams;
 using Windows.UI.Core;
 

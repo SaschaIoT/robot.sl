@@ -2,15 +2,12 @@
 using robot.sl.CarControl;
 using robot.sl.Devices;
 using robot.sl.Helper;
-using robot.sl.Sensors;
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Data.Json;
 using Windows.Networking.Sockets;
 using Windows.Storage;
 using Windows.Storage.Streams;
