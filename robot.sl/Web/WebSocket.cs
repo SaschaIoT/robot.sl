@@ -58,11 +58,43 @@ namespace robot.sl.Web
 
         public async Task Start()
         {
-            await WriteHandshake();
-            await ReadFrames();
+            if(await CheckWebSocketVersionSupport())
+            {
+                await ReadFrames();
+            }
         }
 
-        public async Task WriteHandshake()
+
+        private async Task<bool> CheckWebSocketVersionSupport()
+        {
+            var webSocketVersion = new Regex("Sec-WebSocket-Version:(.*)", RegexOptions.IgnoreCase).Match(_httpServerRequest.Request).Groups[1].Value.Trim();
+            if(webSocketVersion != "13")
+            {
+                await WriteUpgradeRequired();
+
+                return false;
+            }
+            else
+            {
+                await WriteHandshake();
+
+                return true;
+            }
+        }
+
+        private async Task WriteUpgradeRequired()
+        {
+            var response = Encoding.UTF8.GetBytes("HTTP/1.1 426 Upgrade Required" + Environment.NewLine
+                + "Connection: Upgrade" + Environment.NewLine
+                + "Upgrade: websocket" + Environment.NewLine
+                + "Sec-WebSocket-Version: 13" + Environment.NewLine
+                + Environment.NewLine);
+
+            await _outputStream.WriteAsync(response.AsBuffer());
+            await _outputStream.FlushAsync();
+        }
+
+        private async Task WriteHandshake()
         {
             var response = Encoding.UTF8.GetBytes("HTTP/1.1 101 Switching Protocols" + Environment.NewLine
                 + "Connection: Upgrade" + Environment.NewLine
@@ -70,7 +102,7 @@ namespace robot.sl.Web
                 + "Sec-WebSocket-Accept: " + Convert.ToBase64String(
                     SHA1.Create().ComputeHash(
                         Encoding.UTF8.GetBytes(
-                            new Regex("Sec-WebSocket-Key: (.*)").Match(_httpServerRequest.Request).Groups[1].Value.Trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+                            new Regex("Sec-WebSocket-Key:(.*)", RegexOptions.IgnoreCase).Match(_httpServerRequest.Request).Groups[1].Value.Trim() + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
                         )
                     )
                 ) + Environment.NewLine

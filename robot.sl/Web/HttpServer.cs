@@ -305,7 +305,7 @@ namespace robot.sl.Web
 
         private bool HttpGetRequestHasUrl(string httpRequest)
         {
-            var regex = new Regex("^.*GET.*HTTP.*\\r\\n.*$", RegexOptions.Multiline);
+            var regex = new Regex("GET.*HTTP.*\r\n", RegexOptions.IgnoreCase);
             return regex.IsMatch(httpRequest.ToUpper());
         }
 
