@@ -72,7 +72,7 @@ function KeepAliveGetVideoFrames() {
 
         setTimeout(function () {
             KeepAliveGetVideoFrames();
-        }, 1000);
+        }, 4000);
     }
 }
 
