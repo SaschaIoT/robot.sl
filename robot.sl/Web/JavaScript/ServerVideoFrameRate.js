@@ -53,7 +53,10 @@ function KeepAliveGetServerVideoFrameRate() {
         GetServerVideoFrameRate();
 
         serverVideoFrameRateTime = new Date().getTime();
-        KeepAliveGetServerVideoFrameRate();
+
+        setTimeout(function () {
+            KeepAliveGetServerVideoFrameRate();
+        }, 1000);
     }
 }
 

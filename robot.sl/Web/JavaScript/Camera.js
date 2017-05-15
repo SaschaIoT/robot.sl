@@ -70,8 +70,9 @@ function KeepAliveGetVideoFrames() {
 
         GetVideoFrames();
 
-        frameTime = new Date().getTime();
-        KeepAliveGetVideoFrames();
+        setTimeout(function () {
+            KeepAliveGetVideoFrames();
+        }, 1000);
     }
 }
 

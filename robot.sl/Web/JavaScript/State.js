@@ -139,7 +139,10 @@ function KeepAliveGetState() {
         GetState();
 
         stateTime = new Date().getTime();
-        KeepAliveGetState();
+
+        setTimeout(function () {
+            KeepAliveGetState();
+        }, 1000);
     }
 }
 

@@ -307,7 +307,10 @@ function KeepAliveCarControlCommand() {
         GetCarControlCommand();
 
         carControlCommandTime = new Date().getTime();
-        KeepAliveCarControlCommand();
+
+        setTimeout(function () {
+            KeepAliveCarControlCommand();
+        }, 1000);
     }
 }
 
