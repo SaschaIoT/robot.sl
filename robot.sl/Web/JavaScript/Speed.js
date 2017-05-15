@@ -54,7 +54,10 @@ function KeepAliveGetSpeed() {
         GetSpeed();
 
         speedTime = new Date().getTime();
-        KeepAliveGetSpeed();
+
+        setTimeout(function () {
+            KeepAliveGetSpeed();
+        }, 1000);
     }
 }
 
