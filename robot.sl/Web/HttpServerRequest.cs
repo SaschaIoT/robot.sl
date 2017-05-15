@@ -18,13 +18,13 @@ namespace robot.sl.Web
             Request = request;
             Error = error;
 
-            var urlRegex = new Regex(".*GET (.*) HTTP.*");
+            var urlRegex = new Regex(".*GET(.*)HTTP.*", RegexOptions.IgnoreCase);
             var urlGroups = urlRegex.Match(request).Groups;
-            Url = urlGroups.Count >= 2 ? urlGroups[1].Value : string.Empty;
+            Url = urlGroups.Count >= 2 ? urlGroups[1].Value.Trim() : string.Empty;
 
-            var bodyRegex = new Regex("<RequestBody>(.*)</RequestBody>");
-            var bodyGroups = bodyRegex.Match(Uri.UnescapeDataString(request)).Groups;
-            var body = bodyGroups.Count >= 2 ? bodyGroups[1].Value : null;
+            var bodyRegex = new Regex("<RequestBody>(.*)</RequestBody>", RegexOptions.IgnoreCase);
+            var bodyGroups = bodyRegex.Match(Uri.UnescapeDataString(Url)).Groups;
+            var body = bodyGroups.Count >= 2 ? bodyGroups[1].Value.Trim() : null;
             if(body != null)
             {
                 JsonObject bodyJson = null;
