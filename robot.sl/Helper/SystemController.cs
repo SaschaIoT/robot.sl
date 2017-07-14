@@ -147,6 +147,16 @@ namespace robot.sl.Helper
             }
         }
 
+        public static async Task SetDefaultRenderDevice(string renderDeviceName)
+        {
+            await SetDefaultRenderCaptureDevice.SetDefaultRenderDevice(renderDeviceName);
+        }
+
+        public static async Task SetDefaultCaptureDevice(string captureDeviceName)
+        {
+            await SetDefaultRenderCaptureDevice.SetDefaultCaptureDevice(captureDeviceName);
+        }
+        
         public static async Task ShutdownApplication(bool unhandeledException)
         {
             if (unhandeledException)

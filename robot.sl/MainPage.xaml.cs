@@ -35,6 +35,8 @@ namespace robot.sl
         private const int AUDIO_RENDER_VOLUME = 100;
         private const double AUDIO_CAPTURE_VOLUME = 96.14;
         private const int I2C_ADDRESS_SERVO = 56;
+        private const string DEFAULT_RENDER_DEVICE = "Logitech";
+        private const string DEFAULT_CAPTURE_DEVICE = "Logitech";
 
         public MainPage()
         {
@@ -50,6 +52,9 @@ namespace robot.sl
 
         private async Task Initialze()
         {
+            await SystemController.SetDefaultRenderDevice(DEFAULT_RENDER_DEVICE);
+            await SystemController.SetDefaultCaptureDevice(DEFAULT_CAPTURE_DEVICE);
+
             if (LightningProvider.IsLightningEnabled)
             {
                 LowLevelDevicesController.DefaultProvider = LightningProvider.GetAggregateProvider();
