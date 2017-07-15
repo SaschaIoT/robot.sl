@@ -9,7 +9,6 @@ namespace robot.sl.Audio
     public static class SpeechSynthesis
     {
         private static SpeechSynthesizer _speechSynthesizer;
-        private static MediaPlayer _mediaPlayer;
         public static void Initialze()
         {
             _speechSynthesizer = new SpeechSynthesizer();
@@ -18,8 +17,6 @@ namespace robot.sl.Audio
                         && m.Gender == VoiceGender.Female
                         select m).FirstOrDefault();
             _speechSynthesizer.Voice = info;
-            _mediaPlayer = BackgroundMediaPlayer.Current;
-            _mediaPlayer.AutoPlay = false;
         }
 
         public static async Task<SpeechSynthesisStream> SpeakAsStream(string speechText)
