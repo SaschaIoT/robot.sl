@@ -1,4 +1,5 @@
-﻿using robot.sl.Helper;
+﻿using robot.sl.Exceptions;
+using robot.sl.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,12 @@ namespace robot.sl.Sensors
     /// </summary>
     public class DistanceMeasurementSensor
     {
+        public class Measurement
+        {
+            public int DistanceInCm { get; set; }
+            public bool Error { get; set; }
+        }
+
         private I2cDevice _distanceMeasurementSensor;
 
         public async Task Initialize(int i2cAddress)
@@ -40,37 +47,63 @@ namespace robot.sl.Sensors
         public async Task<int> ReadDistanceInCm(int countMesaurements)
         {
             var measurements = new List<int>();
+            var errorCount = 0;
             for (int measurementNumber = 0; measurementNumber < countMesaurements; measurementNumber++)
             {
-                measurements.Add(await ReadDistanceInCm());
+                var measurement = await ReadDistanceInCm();
+
+                if (measurement.Error == false)
+                {
+                    measurements.Add(measurement.DistanceInCm);
+                }
+                else
+                {
+                    errorCount++;
+                    measurementNumber--;
+
+                    if (errorCount == 5)
+                    {
+                        throw new RobotSlException($"{nameof(DistanceMeasurementSensor)}, {nameof(ReadDistanceInCm)}: Exception: Distance measurement fails for than 5 times.");
+                    }
+                }
             }
 
             return measurements.Min();
         }
 
-        public async Task<int> ReadDistanceInCm()
+        public async Task<Measurement> ReadDistanceInCm()
         {
-            int range = 0;
-            byte[] range_highLowByte = new byte[2];
+            var measurement = new Measurement();
 
-            Synchronous.Call(() =>
+            try
             {
-                //Call device measurement
-                _distanceMeasurementSensor.Write(new byte[] { 0x51 });
-            });
+                byte[] range_highLowByte = new byte[2];
 
-            //Wait device measured
-            await Task.Delay(100);
+                Synchronous.Call(() =>
+                {
+                    //Call device measurement
+                    _distanceMeasurementSensor.Write(new byte[] { 0x51 });
+                });
 
-            Synchronous.Call(() =>
+                //Wait device measured
+                await Task.Delay(150);
+
+                Synchronous.Call(() =>
+                {
+                    //Read measurement
+                    _distanceMeasurementSensor.WriteRead(new byte[] { 0xe1 }, range_highLowByte);
+                });
+
+                measurement.DistanceInCm = (range_highLowByte[0] * 256) + range_highLowByte[1];
+            }
+            catch (Exception exception)
             {
-                //Read measurement
-                _distanceMeasurementSensor.WriteRead(new byte[] { 0xe1 }, range_highLowByte);
-            });
+                measurement.Error = true;
 
-            range = (range_highLowByte[0] * 256) + range_highLowByte[1];
+                await Logger.Write($"{nameof(DistanceMeasurementSensor)}, {nameof(ReadDistanceInCm)}: ", exception);
+            }
 
-            return range;
+            return measurement;
         }
     }
 }
