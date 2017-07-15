@@ -103,9 +103,10 @@ namespace robot.sl.Devices
                     throw new Exception("Could not set auto exposure to camera.");
                 }
 
-                var videoFormat = mediaFrameSource.SupportedFormats.First(sf => sf.VideoFormat.Width == VIDEO_WIDTH
+                var videoFormat = mediaFrameSource.SupportedFormats.Where(sf => sf.VideoFormat.Width == VIDEO_WIDTH
                                                                                 && sf.VideoFormat.Height == VIDEO_HEIGHT
-                                                                                && sf.Subtype == "MJPG");
+                                                                                && sf.Subtype == "MJPG")
+                                                                   .OrderByDescending(m => m.FrameRate.Numerator / m.FrameRate.Denominator).First();
 
                 await mediaFrameSource.SetFormatAsync(videoFormat);
 
