@@ -14,16 +14,16 @@ function UpdateLatency(startTime, error) {
     }
 
     var connectionLost = true;
-    for (var i = 0; i < requestTimes.length; i++) {
-        if (requestTimes[i].error === false) {
+    for (var clIndex = 0; clIndex < requestTimes.length; clIndex++) {
+        if (requestTimes[clIndex].error === false) {
             connectionLost = false;
             break;
         }
     }
 
     var requestTimesSum = 0;
-    for (var i = 0; i < requestTimes.length; i++) {
-        requestTimesSum += requestTimes[i].duration;
+    for (var rtsIndex = 0; rtsIndex < requestTimes.length; rtsIndex++) {
+        requestTimesSum += requestTimes[rtsIndex].duration;
     }
 
     var averageRequestTimes = Math.round(requestTimesSum / requestTimes.length);
@@ -32,7 +32,8 @@ function UpdateLatency(startTime, error) {
     var latencyStatusMilliseconds = document.getElementById("latency-status-milliseconds");
 
     var now = new Date();
-    if ((now - lastUpdate) >= 500) {
+    var time = now - lastUpdate;
+    if (time >= 500) {
 
         lastUpdate = now;
 

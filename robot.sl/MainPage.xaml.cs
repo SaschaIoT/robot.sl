@@ -35,8 +35,8 @@ namespace robot.sl
         private const int AUDIO_RENDER_VOLUME = 100;
         private const double AUDIO_CAPTURE_VOLUME = 96.14;
         private const int I2C_ADDRESS_SERVO = 56;
-        private const string DEFAULT_RENDER_DEVICE = "Logitech";
-        private const string DEFAULT_CAPTURE_DEVICE = "Logitech";
+        private const string DEFAULT_RENDER_DEVICE = "Logitech G933";
+        private const string DEFAULT_CAPTURE_DEVICE = "Logitech G933";
 
         public MainPage()
         {
