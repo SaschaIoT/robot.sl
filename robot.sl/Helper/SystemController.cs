@@ -88,8 +88,8 @@ namespace robot.sl.Helper
         {
             _servoController.PwmController.SetPwm(0, 0, 333);
             _servoController.PwmController.SetPwm(1, 0, 318);
-            _servoController.PwmController.SetPwm(2, 0, 135);
-            _servoController.PwmController.SetPwm(3, 0, 202);
+            _servoController.PwmController.SetPwm(2, 0, 150);
+            _servoController.PwmController.SetPwm(3, 0, 190);
 
             Task.Delay(2500).Wait();
 

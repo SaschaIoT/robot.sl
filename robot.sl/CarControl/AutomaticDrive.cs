@@ -16,12 +16,13 @@ namespace robot.sl.CarControl
         private ServoController _servoController;
         private DistanceMeasurementSensor _distanceMeasurementSensor = null;
         
-        private const int MIDDLE_VERTICAL = 580;
-        private const int FRONT_MIDDLE_HORIZONTAL = 372;
-        private const int FRONT_LEFT_HORIZONTAL = 135;
-        private const int FRONT_LEFT_MIDDLE_HORIZONTAL = 244;
+        private const int MIDDLE_VERTICAL = 530;
+        private const int TOP_VERTICAL = 190;
+        private const int FRONT_MIDDLE_HORIZONTAL = 378;
+        private const int FRONT_LEFT_HORIZONTAL = 150;
+        private const int FRONT_LEFT_MIDDLE_HORIZONTAL = 240;
         private const int FRONT_RIGHT_HORIZONTAL = 595;
-        private const int FRONT_RIGHT_MIDDLE_HORIZONTAL = 485;
+        private const int FRONT_RIGHT_MIDDLE_HORIZONTAL = 490;
 
         public bool IsRunning
         {
@@ -233,7 +234,7 @@ namespace robot.sl.CarControl
             Driving = null;
 
             _servoController.PwmController.SetPwm(2, 0, FRONT_LEFT_HORIZONTAL);
-            _servoController.PwmController.SetPwm(3, 0, 202);
+            _servoController.PwmController.SetPwm(3, 0, TOP_VERTICAL);
 
             _isStopped = true;
         }
