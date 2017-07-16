@@ -120,6 +120,7 @@
     <Compile Include="Devices\Gamepad.cs" />
     <Compile Include="Devices\GamepadButtonDown.cs" />
     <Compile Include="Exceptions\RobotSlException.cs" />
+    <Compile Include="Helper\ServoHelper.cs" />
     <Compile Include="Helper\SetDefaultRenderCaptureDevice.cs" />
     <Compile Include="Helper\NumberHelper.cs" />
     <Compile Include="Helper\DispatcherHelper.cs" />

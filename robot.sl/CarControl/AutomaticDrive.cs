@@ -16,14 +16,6 @@ namespace robot.sl.CarControl
         private ServoController _servoController;
         private DistanceMeasurementSensor _distanceMeasurementSensor = null;
         
-        private const int MIDDLE_VERTICAL = 530;
-        private const int TOP_VERTICAL = 190;
-        private const int FRONT_MIDDLE_HORIZONTAL = 378;
-        private const int FRONT_LEFT_HORIZONTAL = 150;
-        private const int FRONT_LEFT_MIDDLE_HORIZONTAL = 240;
-        private const int FRONT_RIGHT_HORIZONTAL = 595;
-        private const int FRONT_RIGHT_MIDDLE_HORIZONTAL = 490;
-
         public bool IsRunning
         {
             get
@@ -148,8 +140,8 @@ namespace robot.sl.CarControl
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                _servoController.PwmController.SetPwm(2, 0, FRONT_MIDDLE_HORIZONTAL);
-                _servoController.PwmController.SetPwm(3, 0, MIDDLE_VERTICAL);
+                _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.CameraHorizontalMiddle);
+                _servoController.PwmController.SetPwm(Servo.DistanceSensorVertical, 0, ServoPositions.DistanceSensorVerticalMiddle);
 
                 await Task.Delay(TimeSpan.FromMilliseconds(1500), cancellationToken);
 
@@ -233,8 +225,8 @@ namespace robot.sl.CarControl
             
             Driving = null;
 
-            _servoController.PwmController.SetPwm(2, 0, FRONT_LEFT_HORIZONTAL);
-            _servoController.PwmController.SetPwm(3, 0, TOP_VERTICAL);
+            _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
+            _servoController.PwmController.SetPwm(Servo.DistanceSensorVertical, 0, ServoPositions.DistanceSensorVerticalTop);
 
             _isStopped = true;
         }
@@ -372,7 +364,7 @@ namespace robot.sl.CarControl
         {
             if (!_isForward)
             {
-                _servoController.PwmController.SetPwm(2, 0, FRONT_MIDDLE_HORIZONTAL);
+                _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalMiddle);
                 await Task.Delay(1000, cancellationToken);
             }
 
@@ -396,7 +388,7 @@ namespace robot.sl.CarControl
             Driving = null;
 
             //Left
-            _servoController.PwmController.SetPwm(2, 0, FRONT_LEFT_HORIZONTAL);
+            _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
             await Task.Delay(500, cancellationToken);
             currentDistance = await _distanceMeasurementSensor.ReadDistanceInCm(3);
 
@@ -406,7 +398,7 @@ namespace robot.sl.CarControl
             }
 
             //LeftMiddle
-            _servoController.PwmController.SetPwm(2, 0, FRONT_LEFT_MIDDLE_HORIZONTAL);
+            _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeftMiddle);
             await Task.Delay(250, cancellationToken);
             currentDistance = await _distanceMeasurementSensor.ReadDistanceInCm(3);
 
@@ -416,7 +408,7 @@ namespace robot.sl.CarControl
             }
 
             //RightMiddle
-            _servoController.PwmController.SetPwm(2, 0, FRONT_RIGHT_MIDDLE_HORIZONTAL);
+            _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalRightMiddle);
             await Task.Delay(250, cancellationToken);
             currentDistance = await _distanceMeasurementSensor.ReadDistanceInCm(3);
 
@@ -426,7 +418,7 @@ namespace robot.sl.CarControl
             }
 
             //Right
-            _servoController.PwmController.SetPwm(2, 0, FRONT_RIGHT_HORIZONTAL);
+            _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalRight);
             await Task.Delay(250, cancellationToken);
             currentDistance = await _distanceMeasurementSensor.ReadDistanceInCm(3);
 
