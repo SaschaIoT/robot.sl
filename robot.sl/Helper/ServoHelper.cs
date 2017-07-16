@@ -29,6 +29,6 @@ namespace robot.sl.Helper
         public static ushort DistanceSensorHorizontalRightMiddle { get; } = 370;
 
         public static ushort DistanceSensorVerticalTop { get; } = 150;
-        public static ushort DistanceSensorVerticalMiddle { get; } = 430;
+        public static ushort DistanceSensorVerticalMiddle { get; } = 450;
     }
 }
