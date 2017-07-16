@@ -116,7 +116,7 @@ namespace robot.sl.Audio.AudioPlaying
             //CarSpeakerOff
             var audioFile34 = AddAudioFile(AudioName.CarSpeakerOff, "Der Fahrzeug Lautsprecher ist jetzt aus.");
             //CarSpeakerAlreadyOff
-            var audioFile35 = AddAudioFile(AudioName.CarSpeakerAlreadyOff, "Der Fahrzeug Lautsprecher ist bereits an.");
+            var audioFile35 = AddAudioFile(AudioName.CarSpeakerAlreadyOff, "Der Fahrzeug Lautsprecher ist bereits aus.");
             //CarSpeakerOn
             var audioFile36 = AddAudioFile(AudioName.CarSpeakerOn, "Der Fahrzeug Lautsprecher ist jetzt an.");
             //CarSpeakerAlreadyOn
