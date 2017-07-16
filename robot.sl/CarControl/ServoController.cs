@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using robot.sl.Helper;
+using System.Threading.Tasks;
 
 namespace robot.sl.CarControl
 {
@@ -9,10 +10,9 @@ namespace robot.sl.CarControl
     public class ServoController
     {
         public PwmController PwmController;
-        private ushort _servoMinValue = 170;
-        private ushort _servoMaxValue = 465;
-        private ushort _servoCameraVerticalValue = 318;
+
         private volatile bool _isStopped = false;
+        private ushort _servoCameraVerticalValue = ServoPositions.CameraVerticalMiddle;
 
         public void Stop()
         {
@@ -23,12 +23,12 @@ namespace robot.sl.CarControl
         {
             PwmController = new PwmController(0x41);
             await PwmController.Initialize();
-            PwmController.SetDesiredFrequency(60);
+            PwmController.SetDesiredFrequency(50);
 
-            PwmController.SetPwm(0, 0, 333);
-            PwmController.SetPwm(1, 0, 318);
-            PwmController.SetPwm(2, 0, 135);
-            PwmController.SetPwm(3, 0, 202);
+            PwmController.SetPwm(Servo.CameraHorizontal, 0, ServoPositions.CameraHorizontalMiddle);
+            PwmController.SetPwm(Servo.CameraVertical, 0, ServoPositions.CameraVerticalMiddle);
+            PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
+            PwmController.SetPwm(Servo.DistanceSensorVertical, 0, ServoPositions.DistanceSensorVerticalTop);
         }
 
         public void MoveServo(CarControlCommand carControlCommand)
@@ -40,35 +40,35 @@ namespace robot.sl.CarControl
 
             if (carControlCommand.DirectionControlUp)
             {
-                if (_servoMinValue == _servoCameraVerticalValue)
+                if (ServoPositions.CameraVerticalTop == _servoCameraVerticalValue)
                 {
                     return;
                 }
 
                 _servoCameraVerticalValue -= carControlCommand.DirectionControlUpDownStepSpeed;
 
-                if (_servoCameraVerticalValue < _servoMinValue)
+                if (_servoCameraVerticalValue < ServoPositions.CameraVerticalTop)
                 {
-                    _servoCameraVerticalValue = _servoMinValue;
+                    _servoCameraVerticalValue = ServoPositions.CameraVerticalTop;
                 }
 
-                PwmController.SetPwm(1, 0, _servoCameraVerticalValue);
+                PwmController.SetPwm(Servo.CameraVertical, 0, _servoCameraVerticalValue);
             }
             else if (carControlCommand.DirectionControlDown)
             {
-                if (_servoMaxValue == _servoCameraVerticalValue)
+                if (ServoPositions.CameraVerticalBottom == _servoCameraVerticalValue)
                 {
                     return;
                 }
 
                 _servoCameraVerticalValue += carControlCommand.DirectionControlUpDownStepSpeed;
 
-                if (_servoCameraVerticalValue > _servoMaxValue)
+                if (_servoCameraVerticalValue > ServoPositions.CameraVerticalBottom)
                 {
-                    _servoCameraVerticalValue = _servoMaxValue;
+                    _servoCameraVerticalValue = ServoPositions.CameraVerticalBottom;
                 }
 
-                PwmController.SetPwm(1, 0, _servoCameraVerticalValue);
+                PwmController.SetPwm(Servo.CameraVertical, 0, _servoCameraVerticalValue);
             }
         }
     }

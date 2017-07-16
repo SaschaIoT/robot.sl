@@ -86,11 +86,11 @@ namespace robot.sl.Helper
 
         private static void ShutdownMotorsServos()
         {
-            _servoController.PwmController.SetPwm(0, 0, 333);
-            _servoController.PwmController.SetPwm(1, 0, 318);
-            _servoController.PwmController.SetPwm(2, 0, 150);
-            _servoController.PwmController.SetPwm(3, 0, 190);
-
+            _servoController.PwmController.SetPwm(Servo.CameraHorizontal, 0, ServoPositions.CameraHorizontalMiddle);
+            _servoController.PwmController.SetPwm(Servo.CameraVertical, 0, ServoPositions.CameraVerticalMiddle);
+            _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
+            _servoController.PwmController.SetPwm(Servo.DistanceSensorVertical, 0, ServoPositions.DistanceSensorVerticalTop);
+            
             Task.Delay(2500).Wait();
 
             _servoController.PwmController.SetAllPwm(4096, 0);
