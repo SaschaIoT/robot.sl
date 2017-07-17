@@ -116,9 +116,6 @@ namespace robot.sl.Devices
             });
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void GarbageCollectorCanWorkHere() { }
-
         private void ProcessFrames()
         {
             _stoppedWorkerCount--;
@@ -127,60 +124,59 @@ namespace robot.sl.Devices
             {
                 try
                 {
-                    GarbageCollectorCanWorkHere();
-
                     WaitFrame();
 
-                    var frame = _mediaFrameReader.TryAcquireLatestFrame();
-
-                    var frameDuration = new Stopwatch();
-                    frameDuration.Start();
-
-                    if (frame == null
-                        || frame.VideoMediaFrame == null
-                        || frame.VideoMediaFrame.SoftwareBitmap == null)
-                        continue;
-
-                    using (var stream = new InMemoryRandomAccessStream())
+                    using (var frame = _mediaFrameReader.TryAcquireLatestFrame())
                     {
-                        using (var bitmap = SoftwareBitmap.Convert(frame.VideoMediaFrame.SoftwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore))
+                        var frameDuration = new Stopwatch();
+                        frameDuration.Start();
+
+                        if (frame == null
+                            || frame.VideoMediaFrame == null
+                            || frame.VideoMediaFrame.SoftwareBitmap == null)
+                            continue;
+
+                        using (var stream = new InMemoryRandomAccessStream())
                         {
-                            var imageTask = BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream, _imageQuality).AsTask();
-                            imageTask.Wait();
-                            var encoder = imageTask.Result;
-                            encoder.SetSoftwareBitmap(bitmap);
-
-                            //Rotate image 180 degrees
-                            var transform = encoder.BitmapTransform;
-                            transform.Rotation = BitmapRotation.Clockwise180Degrees;
-
-                            var flushTask = encoder.FlushAsync().AsTask();
-                            flushTask.Wait();
-
-                            using (var asStream = stream.AsStream())
+                            using (var bitmap = SoftwareBitmap.Convert(frame.VideoMediaFrame.SoftwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore))
                             {
-                                asStream.Position = 0;
+                                var imageTask = BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, stream, _imageQuality).AsTask();
+                                imageTask.Wait();
+                                var encoder = imageTask.Result;
+                                encoder.SetSoftwareBitmap(bitmap);
 
-                                var image = new byte[asStream.Length];
-                                asStream.Read(image, 0, image.Length);
+                                //Rotate image 180 degrees
+                                var transform = encoder.BitmapTransform;
+                                transform.Rotation = BitmapRotation.Clockwise180Degrees;
 
-                                lock (_lastFrameAddedLock)
+                                var flushTask = encoder.FlushAsync().AsTask();
+                                flushTask.Wait();
+
+                                using (var asStream = stream.AsStream())
                                 {
-                                    if (_lastFrameAdded.Elapsed.Subtract(frameDuration.Elapsed) > TimeSpan.Zero)
+                                    asStream.Position = 0;
+
+                                    var image = new byte[asStream.Length];
+                                    asStream.Read(image, 0, image.Length);
+
+                                    lock (_lastFrameAddedLock)
                                     {
-                                        Frame = image;
+                                        if (_lastFrameAdded.Elapsed.Subtract(frameDuration.Elapsed) > TimeSpan.Zero)
+                                        {
+                                            Frame = image;
 
-                                        _lastFrameAdded = frameDuration;
-                                        _frameDuration = frameDuration.ElapsedMilliseconds;
+                                            _lastFrameAdded = frameDuration;
+                                            _frameDuration = frameDuration.ElapsedMilliseconds;
 
-                                        //Commet in for server side frame rate measurement
-                                        //var now = DateTime.Now;
-                                        //FrameRate = now.Subtract(_frameRateLastFrame).TotalMilliseconds;
-                                        //_frameRateLastFrame = now;
+                                            //Commet in for server side frame rate measurement
+                                            //var now = DateTime.Now;
+                                            //FrameRate = now.Subtract(_frameRateLastFrame).TotalMilliseconds;
+                                            //_frameRateLastFrame = now;
+                                        }
                                     }
-                                }
 
-                                encoder = null;
+                                    encoder = null;
+                                }
                             }
                         }
                     }
