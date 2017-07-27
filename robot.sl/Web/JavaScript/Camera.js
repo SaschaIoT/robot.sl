@@ -1,5 +1,7 @@
 ﻿var webSocketVideoFrame;
 var frameTime;
+var streamWebCamElement = document.querySelector("#streamWebCam");
+var lastImageUrl;
 
 function GetVideoFrames() {
 
@@ -20,16 +22,20 @@ function GetVideoFrames() {
         var bytearray = new Uint8Array(event.data);
 
         var blob = new Blob([event.data], { type: "image/jpeg" });
-        var url = createObjectURL(blob);
-        document.querySelector("#streamWebCam").src = url;
-
-        webSocketHelper.waitUntilWebsocketReady(function () {
-            webSocketVideoFrame.send(JSON.stringify({ command: "VideoFrame" }));
-        }, webSocketVideoFrame, 0);
+        lastImageUrl = createObjectURL(blob);
+        streamWebCamElement.src = lastImageUrl;
 
         frameTime = new Date().getTime();
     };
 }
+
+streamWebCamElement.addEventListener("load", function (e) {
+    URL.revokeObjectURL(lastImageUrl);
+
+    webSocketHelper.waitUntilWebsocketReady(function () {
+        webSocketVideoFrame.send(JSON.stringify({ command: "VideoFrame" }));
+    }, webSocketVideoFrame, 0);
+});
 
 function createObjectURL(blob) {
     if (window.webkitURL) {
