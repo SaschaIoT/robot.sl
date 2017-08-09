@@ -276,11 +276,7 @@ namespace robot.sl.Web
             {
                 await Task.Delay(1);
                 
-                var readBytesTask = _inputStream.ReadAsync(buffer, BUFFER_SIZE, InputStreamOptions.Partial);
-                var timeout = TimeSpan.FromMilliseconds(500);
-                await TaskHelper.WithTimeoutAfterStart(ct => readBytesTask.AsTask(ct), timeout);
-
-                var readBytes = readBytesTask.AsTask().Result;
+                var readBytes = await _inputStream.ReadAsync(buffer, BUFFER_SIZE, InputStreamOptions.Partial);
 
                 var readBytesLength = (int)readBytes.Length;
 

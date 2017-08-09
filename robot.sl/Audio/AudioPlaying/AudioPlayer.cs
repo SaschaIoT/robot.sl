@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
 using Windows.Media.Audio;
@@ -32,7 +33,7 @@ namespace robot.sl.Audio.AudioPlaying
             _fileInputs.Add(file.Name, fileInputNode);
         }
 
-        public async Task Play(string key, double gain)
+        public async Task Play(string key, double gain, CancellationToken? cancellationToken)
         {
             foreach (var soundeNode in _fileInputs.Select(fi => fi.Value))
             {
@@ -44,7 +45,10 @@ namespace robot.sl.Audio.AudioPlaying
             sound.Seek(TimeSpan.Zero);
             sound.Start();
 
-            await Task.Delay(sound.Duration);
+            if(cancellationToken.HasValue == false)
+                await Task.Delay(sound.Duration);
+            else
+                await Task.Delay(sound.Duration, cancellationToken.Value);
         }
 
         private async Task CreateAudioGraphAsync(bool isHeadset)
