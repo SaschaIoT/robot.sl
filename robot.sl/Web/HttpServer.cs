@@ -137,11 +137,9 @@ namespace robot.sl.Web
                     return new HttpServerRequest(null, true);
                 }
 
-                var inputStreamReadTask = inputStream.ReadAsync(buffer, BUFFER_SIZE, InputStreamOptions.Partial);
-                var timeout = TimeSpan.FromMilliseconds(1000);
-                await TaskHelper.WithTimeoutAfterStart(ct => inputStreamReadTask.AsTask(ct), timeout);
+                var readed = await inputStream.ReadAsync(buffer, BUFFER_SIZE, InputStreamOptions.Partial);
 
-                request += Encoding.UTF8.GetString(data, 0, (int)inputStreamReadTask.AsTask().Result.Length);
+                request += Encoding.UTF8.GetString(data, 0, (int)readed.Length);
             }
 
             return new HttpServerRequest(request, error);

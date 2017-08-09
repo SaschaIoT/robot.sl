@@ -55,6 +55,9 @@ namespace robot.sl
             await SystemController.SetDefaultRenderDevice(DEFAULT_RENDER_DEVICE);
             await SystemController.SetDefaultCaptureDevice(DEFAULT_CAPTURE_DEVICE);
 
+            await SystemController.SetAudioRenderVolume(AUDIO_RENDER_VOLUME, true);
+            await SystemController.SetAudioCaptureVolume(AUDIO_CAPTURE_VOLUME, true);
+
             if (LightningProvider.IsLightningEnabled)
             {
                 LowLevelDevicesController.DefaultProvider = LightningProvider.GetAggregateProvider();
@@ -102,9 +105,6 @@ namespace robot.sl
             _httpServerController = new HttpServerController(_motorController, _servoController, _automaticDrive, _camera);
 
             SystemController.Initialize(_accelerometerSensor, _automaticSpeakController, _motorController, _servoController, _automaticDrive, _camera, _httpServerController, _speechRecognation, _gamepadController);
-
-            await SystemController.SetAudioRenderVolume(AUDIO_RENDER_VOLUME, true);
-            await SystemController.SetAudioCaptureVolume(AUDIO_CAPTURE_VOLUME, true);
             
             await AudioPlayerController.PlayAndWaitAsync(AudioName.Welcome);
 

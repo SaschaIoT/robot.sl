@@ -59,29 +59,25 @@ namespace robot.sl.Helper
 
         public static async Task StopAll()
         {
-            try
+            var stopTask = Task.Run(async () =>
             {
-                var stopTask = Task.Run(async () =>
-                {
-                    _httpServerController.Stop();
-                    await _camera.Stop();
-                    await _gamepadController.Stop();
-                    await _speechRecognation.Stop();
-                    await _automaticDrive.Stop();
-                    _servoController.Stop();
-                    _motorController.Stop();
-                    await _automaticSpeakController.Stop();
-                    await _accelerometerSensor.Stop();
-                    AudioPlayerController.Stop();
-                    await SpeedSensor.Stop();
+                _httpServerController.Stop();
+                await _camera.Stop();
+                await _gamepadController.Stop();
+                await _speechRecognation.Stop();
+                await _automaticDrive.Stop();
+                _servoController.Stop();
+                _motorController.Stop();
+                await _automaticSpeakController.Stop();
+                await _accelerometerSensor.Stop();
+                AudioPlayerController.Stop();
+                await SpeedSensor.Stop();
 
-                    ShutdownMotorsServos();
-                });
+                ShutdownMotorsServos();
+            });
 
-                var timeout = TimeSpan.FromSeconds(10);
-                await TaskHelper.WithTimeoutAfterStart(ct => stopTask.WithCancellation(ct), timeout);
-            }
-            catch (TaskCanceledException) { }
+            var timeTask = Task.Delay(TimeSpan.FromSeconds(10));
+            await Task.WhenAny(stopTask, timeTask);
         }
 
         private static void ShutdownMotorsServos()
@@ -90,7 +86,7 @@ namespace robot.sl.Helper
             _servoController.PwmController.SetPwm(Servo.CameraVertical, 0, ServoPositions.CameraVerticalMiddle);
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
             _servoController.PwmController.SetPwm(Servo.DistanceSensorVertical, 0, ServoPositions.DistanceSensorVerticalTop);
-            
+
             Task.Delay(2500).Wait();
 
             _servoController.PwmController.SetAllPwm(4096, 0);
@@ -156,7 +152,7 @@ namespace robot.sl.Helper
         {
             await SetDefaultRenderCaptureDevice.SetDefaultCaptureDevice(captureDeviceName);
         }
-        
+
         public static async Task ShutdownApplication(bool unhandeledException)
         {
             if (unhandeledException)

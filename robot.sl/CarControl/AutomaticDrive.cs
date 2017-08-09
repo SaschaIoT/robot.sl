@@ -138,8 +138,6 @@ namespace robot.sl.CarControl
         {
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.CameraHorizontalMiddle);
                 _servoController.PwmController.SetPwm(Servo.DistanceSensorVertical, 0, ServoPositions.DistanceSensorVerticalMiddle);
 
@@ -149,6 +147,8 @@ namespace robot.sl.CarControl
 
                 while (!_isStopping)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     await Task.Delay(TimeSpan.FromMilliseconds(25), cancellationToken);
 
                     CarMoveCommand carMoveCommand = null;
@@ -345,8 +345,8 @@ namespace robot.sl.CarControl
                 _motorController.MoveCar(null, carMoveCommand);
 
                 Driving = null;
-
-                await AudioPlayerController.PlayAndWaitAsync(AudioName.AutomatischesFahrenFesthaengen).WithCancellation(cancellationToken);
+                
+                await AudioPlayerController.PlayAndWaitAsync(AudioName.AutomatischesFahrenFesthaengen, cancellationToken);
 
                 await TurnBackward(1000, cancellationToken);
                 await TurnLeft(700, cancellationToken, false);
