@@ -93,7 +93,7 @@ namespace robot.sl.CarControl
 
             StartInternal(_cancellationTokenSource.Token);
 
-            await AudioPlayerController.PlayAndWaitAsync(AudioName.StartAutomaticDrive);
+            await AudioPlayerController.Play(AudioName.StartAutomaticDrive);
         }
 
         public async Task Stop()
@@ -118,8 +118,8 @@ namespace robot.sl.CarControl
             }
 
             _isStopping = false;
-
-            await AudioPlayerController.PlayAndWaitAsync(AudioName.StopAutomaticDrive);
+            
+            await AudioPlayerController.Play(AudioName.StopAutomaticDrive);
         }
 
         public async Task StartStopToggle()
