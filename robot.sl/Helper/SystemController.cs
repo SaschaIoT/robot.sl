@@ -76,8 +76,12 @@ namespace robot.sl.Helper
                 ShutdownMotorsServos();
             });
 
-            var timeTask = Task.Delay(TimeSpan.FromSeconds(10));
-            await Task.WhenAny(stopTask, timeTask);
+            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(10));
+
+            if (timeoutTask == await Task.WhenAny(stopTask, timeoutTask))
+            {
+                await Logger.Write($"{nameof(SystemController)}, {nameof(StopAll)}: Could not completely stop application before closing.");
+            }
         }
 
         private static void ShutdownMotorsServos()
