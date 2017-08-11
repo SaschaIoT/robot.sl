@@ -257,7 +257,7 @@ namespace robot.sl.Audio
             if (_recognationShouldDancing
                 && _recognationDanceCancellationTokenSource != null)
             {
-                _recognationDanceCancellationTokenSource.Cancel();
+                _recognationDanceCancellationTokenSource.Cancel(true);
             }
 
             _recognationShouldDancing = false;

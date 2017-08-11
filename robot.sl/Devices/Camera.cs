@@ -1,9 +1,9 @@
-﻿using robot.sl.Helper;
+﻿using robot.sl.Exceptions;
+using robot.sl.Helper;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,12 +95,12 @@ namespace robot.sl.Devices
 
                 if (!videoDeviceController.BacklightCompensation.TrySetValue(videoDeviceController.BacklightCompensation.Capabilities.Max))
                 {
-                    throw new Exception("Could not set min backlight compensation to camera.");
+                    throw new RobotSlException("Could not set min backlight compensation to camera.");
                 }
 
                 if (!videoDeviceController.Exposure.TrySetAuto(true))
                 {
-                    throw new Exception("Could not set auto exposure to camera.");
+                    throw new RobotSlException("Could not set auto exposure to camera.");
                 }
 
                 var videoFormat = mediaFrameSource.SupportedFormats.Where(sf => sf.VideoFormat.Width == VIDEO_WIDTH

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace robot.sl.Helper
+﻿namespace robot.sl.Helper
 {
     public static class Servo
     {
@@ -28,7 +22,7 @@ namespace robot.sl.Helper
         public static ushort DistanceSensorHorizontalRight { get; } = 455;
         public static ushort DistanceSensorHorizontalRightMiddle { get; } = 370;
 
-        public static ushort DistanceSensorVerticalTop { get; } = 150;
-        public static ushort DistanceSensorVerticalMiddle { get; } = 450;
+        public static ushort DistanceSensorVerticalTop { get; } = 130;
+        public static ushort DistanceSensorVerticalMiddle { get; } = 400;
     }
 }

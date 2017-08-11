@@ -107,7 +107,7 @@ namespace robot.sl.CarControl
 
             if (_cancellationTokenSource != null)
             {
-                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Cancel(true);
             }
 
             _isStopping = true;

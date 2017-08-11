@@ -1,4 +1,5 @@
 ﻿using robot.sl.Audio;
+using robot.sl.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -49,7 +50,7 @@ namespace robot.sl.CarControl
             }
             else
             {
-                throw new Exception("Motor must be between 1 and 4 inclusive");
+                throw new RobotSlException("Motor must be between 1 and 4 inclusive");
             }
 
             MotorPwmPin = motorPwmPin;
@@ -140,12 +141,12 @@ namespace robot.sl.CarControl
         {
             if (pin < 0 || pin > 15)
             {
-                throw new Exception("PWM pin must be between 0 and 15 inclusive");
+                throw new RobotSlException("PWM pin must be between 0 and 15 inclusive");
             }
 
             if (value != 0 && value != 1)
             {
-                throw new Exception("Pin value must be 0 or 1!");
+                throw new RobotSlException("Pin value must be 0 or 1!");
             }
 
             if (value == 0)
@@ -162,7 +163,7 @@ namespace robot.sl.CarControl
         {
             if (num < 1 || num > 4)
             {
-                throw new Exception("MotorHAT Motor must be between 1 and 4 inclusive");
+                throw new RobotSlException("MotorHAT Motor must be between 1 and 4 inclusive");
             }
 
             return Motors[num - 1];
