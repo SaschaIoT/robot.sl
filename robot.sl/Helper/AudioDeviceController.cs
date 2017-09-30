@@ -6,7 +6,7 @@ using Windows.System;
 
 namespace robot.sl.Helper
 {
-    public static class SetDefaultRenderCaptureDevice
+    public static class AudioDeviceController
     {
         //To allow to run IoTCoreAudioControlTool.exe from UWP apps, execute the following command with powershell on the Windows IoT Core device
         //reg.exe ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\EmbeddedMode\ProcessLauncher" /f /v AllowedExecutableFilesList /t REG_MULTI_SZ /d "C:\Windows\System32\IoTCoreAudioControlTool.exe\0"
@@ -15,6 +15,16 @@ namespace robot.sl.Helper
         {
             public bool Error { get; set; }
             public string Result { get; set; }
+        }
+
+        public static async Task SetDefaultRenderDeviceVolume(int volume)
+        {
+            await ExecuteCommand($"r {volume}");
+        }
+
+        public static async Task SetDefaultCaptureDeviceVolume(int volume)
+        {
+            await ExecuteCommand($"c {volume}");
         }
 
         public static async Task SetDefaultRenderDevice(string renderDeviceName)
@@ -81,7 +91,7 @@ namespace robot.sl.Helper
             {
                 commandResult.Error = true;
 
-                await Logger.Write("Could not set audio capture volume.");
+                await Logger.Write("Error executing IoTCoreAudioControlTool.exe command.");
             }
 
             return commandResult;

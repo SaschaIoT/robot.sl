@@ -113,7 +113,7 @@ namespace robot.sl.Helper
 
             await Task.WhenAll(new[] { stopAll, shutdownSound });
 
-            await ProcessLauncher.RunToCompletionAsync(@"CmdWrapper.exe", "\"shutdown -s -t 0\"");
+            await DeviceController.ShutdownDevice();
         }
 
         public static async Task Restart()
@@ -125,36 +125,27 @@ namespace robot.sl.Helper
 
             await StopAll();
             await AudioPlayerController.PlayAndWaitAsync(AudioName.Restart);
-            await ProcessLauncher.RunToCompletionAsync(@"CmdWrapper.exe", "\"shutdown -r -t 0\"");
+            await DeviceController.RestartDevice();
         }
 
-        public static async Task SetAudioRenderVolume(int volume, bool retryOnException)
+        public static async Task SetDefaultRenderDeviceVolume(int volume)
         {
-            var result = await ProcessLauncher.RunToCompletionAsync(@"SetAudioRenderVolume.exe", volume.ToString(CultureInfo.InvariantCulture));
-            if (result.ExitCode != 200)
-            {
-                await Logger.Write("Could not set audio render volume.");
-            }
+            await AudioDeviceController.SetDefaultRenderDeviceVolume(volume);
         }
 
-        public static async Task SetAudioCaptureVolume(double volume, bool retryOnException)
+        public static async Task SetDefaultCaptureDeviceVolume(int volume)
         {
-            //96.14% db equals 90% volume with Logitech G933 Headset
-            var result = await ProcessLauncher.RunToCompletionAsync(@"SetAudioCaptureVolume.exe", volume.ToString(CultureInfo.InvariantCulture));
-            if (result.ExitCode != 200)
-            {
-                await Logger.Write("Could not set audio capture volume.");
-            }
+            await AudioDeviceController.SetDefaultCaptureDeviceVolume(volume);
         }
 
         public static async Task SetDefaultRenderDevice(string renderDeviceName)
         {
-            await SetDefaultRenderCaptureDevice.SetDefaultRenderDevice(renderDeviceName);
+            await AudioDeviceController.SetDefaultRenderDevice(renderDeviceName);
         }
 
         public static async Task SetDefaultCaptureDevice(string captureDeviceName)
         {
-            await SetDefaultRenderCaptureDevice.SetDefaultCaptureDevice(captureDeviceName);
+            await AudioDeviceController.SetDefaultCaptureDevice(captureDeviceName);
         }
 
         public static async Task ShutdownApplication(bool unhandeledException)

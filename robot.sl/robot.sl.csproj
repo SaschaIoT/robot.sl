@@ -120,8 +120,9 @@
     <Compile Include="Devices\Gamepad.cs" />
     <Compile Include="Devices\GamepadButtonDown.cs" />
     <Compile Include="Exceptions\RobotSlException.cs" />
+    <Compile Include="Helper\DeviceController.cs" />
     <Compile Include="Helper\ServoHelper.cs" />
-    <Compile Include="Helper\SetDefaultRenderCaptureDevice.cs" />
+    <Compile Include="Helper\AudioDeviceController.cs" />
     <Compile Include="Helper\NumberHelper.cs" />
     <Compile Include="Helper\DispatcherHelper.cs" />
     <Compile Include="Helper\EnumHelper.cs" />
@@ -149,8 +150,8 @@
     <None Include="robot.sl_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="CmdWrapper.exe" />
     <Content Include="Audio\SpeechRecognizerGrammer.xml" />
+    <Content Include="CmdWrapper.exe" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -159,8 +160,6 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="SetAudioCaptureVolume.exe" />
-    <Content Include="SetAudioRenderVolume.exe" />
     <Content Include="Web\Images\arrow-bottom%4064x64.png" />
     <Content Include="Web\Images\arrow-bottom-pressed%4064x64.png" />
     <Content Include="Web\Images\arrow-left%4064x64.png" />
