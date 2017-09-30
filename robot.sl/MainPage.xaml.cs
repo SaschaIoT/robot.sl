@@ -32,11 +32,14 @@ namespace robot.sl
         private GamepadController _gamepadController;
         private SpeechRecognition _speechRecognation;
 
-        private const int AUDIO_RENDER_VOLUME = 100;
-        private const double AUDIO_CAPTURE_VOLUME = 96.14;
         private const int I2C_ADDRESS_SERVO = 56;
-        private const string DEFAULT_RENDER_DEVICE = "Logitech G933";
-        private const string DEFAULT_CAPTURE_DEVICE = "Logitech G933";
+
+        private const int HEADSET_AUDIO_RENDER_VOLUME = 70;
+        private const int SPEAKER_AUDIO_RENDER_VOLUME = 70;
+        private const int HEADSET_AUDIO_CAPTURE_VOLUME = 50;
+        private const string HEADSET_RENDER_DEVICE = "Logitech G933";
+        private const string SPEAKER_RENDER_DEVICE = "SPDIF";
+        private const string HEADSET_CAPTURE_DEVICE = "Logitech G933";
 
         public MainPage()
         {
@@ -52,11 +55,14 @@ namespace robot.sl
 
         private async Task Initialze()
         {
-            await SystemController.SetDefaultRenderDevice(DEFAULT_RENDER_DEVICE);
-            await SystemController.SetDefaultCaptureDevice(DEFAULT_CAPTURE_DEVICE);
+            await SystemController.SetDefaultRenderDevice(SPEAKER_RENDER_DEVICE);
+            await SystemController.SetDefaultRenderDeviceVolume(SPEAKER_AUDIO_RENDER_VOLUME);
 
-            await SystemController.SetAudioRenderVolume(AUDIO_RENDER_VOLUME, true);
-            await SystemController.SetAudioCaptureVolume(AUDIO_CAPTURE_VOLUME, true);
+            await SystemController.SetDefaultRenderDevice(HEADSET_RENDER_DEVICE);
+            await SystemController.SetDefaultRenderDeviceVolume(HEADSET_AUDIO_RENDER_VOLUME);
+
+            await SystemController.SetDefaultCaptureDevice(HEADSET_CAPTURE_DEVICE);
+            await SystemController.SetDefaultCaptureDeviceVolume(HEADSET_AUDIO_CAPTURE_VOLUME);
 
             if (LightningProvider.IsLightningEnabled)
             {
