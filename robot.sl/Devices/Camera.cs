@@ -65,7 +65,8 @@ namespace robot.sl.Devices
                     await Logger.Write($"Camera Failed Event: {args.Code}, {args.Message}");
 
                     if (args.Code == 2147942414
-                       || args.Code == 3222093442)
+                       || args.Code == 3222093442
+                       || args.Code == 3222093474)
                     {
                         await Logger.Write($"Reinitialize camera.");
 
