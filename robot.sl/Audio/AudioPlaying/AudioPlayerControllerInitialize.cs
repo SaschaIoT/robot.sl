@@ -14,13 +14,15 @@ namespace robot.sl.Audio.AudioPlaying
             var soundFile = await ApplicationData.Current.LocalFolder.TryGetItemAsync(EnumHelper.GetName(audioName));
             if (soundFile == null)
             {
-                var headsetStream = await SpeechSynthesis.SpeakAsStream(text);
-
-                var localFolder = ApplicationData.Current.LocalFolder;
-                storageFile = await localFolder.CreateFileAsync(EnumHelper.GetName(audioName), CreationCollisionOption.FailIfExists);
-                using (var outputStream = await storageFile.OpenStreamForWriteAsync())
+                using (var headsetStream = await SpeechSynthesis.SpeakAsStream(text))
                 {
-                    await headsetStream.AsStream().CopyToAsync(outputStream);
+                    var localFolder = ApplicationData.Current.LocalFolder;
+                    storageFile = await localFolder.CreateFileAsync(EnumHelper.GetName(audioName), CreationCollisionOption.FailIfExists);
+                    using (var outputStream = await storageFile.OpenStreamForWriteAsync())
+                    {
+                        await headsetStream.AsStream().CopyToAsync(outputStream);
+                        await outputStream.FlushAsync();
+                    }
                 }
             }
 
