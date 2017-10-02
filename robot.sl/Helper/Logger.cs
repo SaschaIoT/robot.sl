@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Storage;
 
@@ -8,6 +7,9 @@ namespace robot.sl.Helper
     public static class Logger
     {
         public const string FILE_NAME = "debug.txt";
+        const string LOG_ENTRY_BEGIN = "[Log Entry Begin]";
+        const string LOG_ENTRY_END = "[Log Entry End]";
+        const int LOG_FILE_MAX_LENGTH = 250000;
 
         public static async Task Write(string message, Exception exception)
         {
@@ -19,11 +21,18 @@ namespace robot.sl.Helper
             //Parallel file writing cause exception, prevent application from crashing
             try
             {
-                var messageLines = new List<string>() { message };
                 var localFolder = ApplicationData.Current.LocalFolder;
                 await localFolder.CreateFileAsync(FILE_NAME, CreationCollisionOption.OpenIfExists);
                 var logFile = await localFolder.GetFileAsync(FILE_NAME);
-                await FileIO.AppendLinesAsync(logFile, messageLines);
+
+                var logEntryOld = await FileIO.ReadTextAsync(logFile);
+                var logEntryNew = $"\r\n{LOG_ENTRY_BEGIN}\r\n[{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss:.fff")}]\r\n{message}\r\n{LOG_ENTRY_END}\r\n";
+                var logEntry = logEntryNew + logEntryOld;
+
+                if (logEntry.Length > LOG_FILE_MAX_LENGTH)
+                    logEntry = logEntry.Substring(0, LOG_FILE_MAX_LENGTH);
+
+                await FileIO.WriteTextAsync(logFile, logEntry);
             }
             catch (Exception) { }
         }
