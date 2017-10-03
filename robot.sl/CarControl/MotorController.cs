@@ -176,7 +176,10 @@ namespace robot.sl.CarControl
             {
                 return;
             }
-            
+
+            //Straight away correction
+            var leftCorrectionFaktor = 0.89;
+
             //Speed from 0 to 255
             var dcMotorMaxSpeed = 255;
 
@@ -300,9 +303,10 @@ namespace robot.sl.CarControl
                     motorRight1.Run(MotorAction.BACKWARD);
                     motorRight2.Run(MotorAction.BACKWARD);
                 }
-                
-                motorLeft1.SetSpeed(carSpeedSlow);
-                motorLeft2.SetSpeed(carSpeedSlow);
+
+                var carSpeedSlowWithLeftCorrection = (int)Math.Round(carSpeedSlow * leftCorrectionFaktor);
+                motorLeft1.SetSpeed(carSpeedSlowWithLeftCorrection);
+                motorLeft2.SetSpeed(carSpeedSlowWithLeftCorrection);
                 motorRight1.SetSpeed(carSpeedFull);
                 motorRight2.SetSpeed(carSpeedFull);
             }
@@ -326,9 +330,10 @@ namespace robot.sl.CarControl
                     motorRight1.Run(MotorAction.BACKWARD);
                     motorRight2.Run(MotorAction.BACKWARD);
                 }
-                
-                motorLeft1.SetSpeed(carSpeedFull);
-                motorLeft2.SetSpeed(carSpeedFull);
+
+                var carSpeedFullWithLeftCorrection = (int)Math.Round(carSpeedFull * leftCorrectionFaktor);
+                motorLeft1.SetSpeed(carSpeedFullWithLeftCorrection);
+                motorLeft2.SetSpeed(carSpeedFullWithLeftCorrection);
                 motorRight1.SetSpeed(carSpeedSlow);
                 motorRight2.SetSpeed(carSpeedSlow);
             }
@@ -350,9 +355,10 @@ namespace robot.sl.CarControl
                     motorRight1.Run(MotorAction.BACKWARD);
                     motorRight2.Run(MotorAction.BACKWARD);
                 }
-                
-                motorLeft1.SetSpeed(carSpeedFull);
-                motorLeft2.SetSpeed(carSpeedFull);
+
+                var carSpeedFullWithLeftCorrection = (int)Math.Round(carSpeedFull * leftCorrectionFaktor);
+                motorLeft1.SetSpeed(carSpeedFullWithLeftCorrection);
+                motorLeft2.SetSpeed(carSpeedFullWithLeftCorrection);
                 motorRight1.SetSpeed(carSpeedFull);
                 motorRight2.SetSpeed(carSpeedFull);
             }
