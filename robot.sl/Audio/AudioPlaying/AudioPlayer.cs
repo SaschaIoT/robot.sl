@@ -42,7 +42,7 @@ namespace robot.sl.Audio.AudioPlaying
             
             var sound = _fileInputs[key];
             sound.OutgoingGain = gain;
-            sound.Seek(TimeSpan.Zero);
+            sound.Reset();
             sound.Start();
 
             if(cancellationToken.HasValue == false)
