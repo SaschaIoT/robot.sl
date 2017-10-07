@@ -6,7 +6,7 @@ namespace robot.sl.Helper
 {
     public static class Logger
     {
-        public const string FILE_NAME = "debug.txt";
+        public const string FILE_NAME = "log.txt";
         const string LOG_ENTRY_BEGIN = "[Log Entry Begin]";
         const string LOG_ENTRY_END = "[Log Entry End]";
         const int LOG_FILE_MAX_LENGTH = 250000;
@@ -35,6 +35,15 @@ namespace robot.sl.Helper
                 await FileIO.WriteTextAsync(logFile, logEntry);
             }
             catch (Exception) { }
+        }
+
+        public static async Task Delete()
+        {
+            var logFile = await ApplicationData.Current.LocalFolder.TryGetItemAsync(FILE_NAME);
+            if (logFile != null)
+            {
+                await logFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
+            }
         }
     }
 }
