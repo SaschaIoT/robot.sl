@@ -252,18 +252,24 @@ namespace robot.sl.Web
                 await SystemController.Restart();
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
-            //Get debug file
-            else if (request.Url.StartsWith("/debug", StringComparison.OrdinalIgnoreCase))
+            //Get log file
+            else if (request.Url.StartsWith("/log", StringComparison.OrdinalIgnoreCase))
             {
-                var debugFile = await ApplicationData.Current.LocalFolder.TryGetItemAsync(Logger.FILE_NAME);
-                if (debugFile != null)
+                var logFile = await ApplicationData.Current.LocalFolder.TryGetItemAsync(Logger.FILE_NAME);
+                if (logFile != null)
                 {
                     HttpServerResponse.WriteResponseFileFromLocalFolder(Logger.FILE_NAME, HttpContentType.Text, outputStream);
                 }
                 else
                 {
-                    HttpServerResponse.WriteResponseText("Debug file is empty", outputStream);
+                    HttpServerResponse.WriteResponseText("Log file is empty", outputStream);
                 }
+            }
+            //Delete log file
+            else if (request.Url.StartsWith("/deletelog", StringComparison.OrdinalIgnoreCase))
+            {
+                await Logger.Delete();
+                HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Get camera frame
             else if (request.Url.StartsWith("/videoframe", StringComparison.OrdinalIgnoreCase))
