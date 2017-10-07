@@ -96,9 +96,9 @@ namespace robot.sl.Devices
 
                 if (!videoDeviceController.BacklightCompensation.TrySetValue(videoDeviceController.BacklightCompensation.Capabilities.Max))
                 {
-                    throw new RobotSlException("Could not set min backlight compensation to camera.");
+                    throw new RobotSlException("Could not set max backlight compensation to camera.");
                 }
-
+                
                 if (!videoDeviceController.Exposure.TrySetAuto(true))
                 {
                     throw new RobotSlException("Could not set auto exposure to camera.");
