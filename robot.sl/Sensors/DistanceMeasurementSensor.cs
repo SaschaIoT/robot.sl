@@ -3,7 +3,9 @@ using robot.sl.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Windows.Devices.Gpio;
 using Windows.Devices.I2c;
 
 namespace robot.sl.Sensors
@@ -20,15 +22,20 @@ namespace robot.sl.Sensors
         }
 
         private I2cDevice _distanceMeasurementSensor;
+        private GpioPin _pin;
 
         public async Task Initialize(int i2cAddress)
         {
             var settings = new I2cConnectionSettings(i2cAddress);
             settings.BusSpeed = I2cBusSpeed.FastMode;
             settings.SharingMode = I2cSharingMode.Shared;
-
+            
             var controller = await I2cController.GetDefaultAsync();
             _distanceMeasurementSensor = controller.GetDevice(settings);
+
+            var gpioController = GpioController.GetDefault();
+            _pin = gpioController.OpenPin(1);
+            _pin.SetDriveMode(GpioPinDriveMode.Input);
         }
 
         public void ChangeI2cAddress()
@@ -85,8 +92,11 @@ namespace robot.sl.Sensors
                     _distanceMeasurementSensor.Write(new byte[] { 0x51 });
                 });
 
-                //Wait device measured
-                await Task.Delay(150);
+                //Wait device measured started
+                await Task.Delay(40);
+
+                //Wait device measurement has finished and I2C is ready
+                await WaitDistanceMeasurementSensorI2CIsReady();
 
                 Synchronous.Call(() =>
                 {
@@ -104,6 +114,14 @@ namespace robot.sl.Sensors
             }
 
             return measurement;
+        }
+
+        private async Task WaitDistanceMeasurementSensorI2CIsReady()
+        {
+            while(_pin.Read() != GpioPinValue.Low)
+            {
+                await Task.Delay(5);
+            }
         }
     }
 }

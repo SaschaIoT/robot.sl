@@ -1,14 +1,11 @@
-﻿using Microsoft.IoT.Lightning.Providers;
-using robot.sl.Audio;
+﻿using robot.sl.Audio;
 using robot.sl.Audio.AudioPlaying;
 using robot.sl.CarControl;
 using robot.sl.Devices;
 using robot.sl.Helper;
 using robot.sl.Sensors;
 using robot.sl.Web;
-using System;
 using System.Threading.Tasks;
-using Windows.Devices;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -63,16 +60,7 @@ namespace robot.sl
 
             await SystemController.SetDefaultCaptureDevice(HEADSET_CAPTURE_DEVICE);
             await SystemController.SetDefaultCaptureDeviceVolume(HEADSET_AUDIO_CAPTURE_VOLUME);
-
-            if (LightningProvider.IsLightningEnabled)
-            {
-                LowLevelDevicesController.DefaultProvider = LightningProvider.GetAggregateProvider();
-            }
-            else
-            {
-                throw new Exception("Lightning drivers not enabled. Please enable Lightning drivers.");
-            }
-
+            
             _camera = new Camera();
             await _camera.Initialize();
             
