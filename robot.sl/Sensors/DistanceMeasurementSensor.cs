@@ -93,7 +93,7 @@ namespace robot.sl.Sensors
                 });
 
                 //Wait device measured started
-                await Task.Delay(40);
+                await Task.Delay(70);
 
                 //Wait device measurement has finished and I2C is ready
                 await WaitDistanceMeasurementSensorI2CIsReady();
