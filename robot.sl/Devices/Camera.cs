@@ -194,13 +194,6 @@ namespace robot.sl.Devices
 
         public void Start()
         {
-            //If debugger is attached you can't get frames from the camera, because the BitmapEncoder
-            //has a bug and not dispose correctly. This results in an System.OutOfMemoryException
-            if (Debugger.IsAttached)
-            {
-                return;
-            }
-
             for (int workerNumber = 0; workerNumber < GET_FRAME_WORKER_COUNT; workerNumber++)
             {
                 Task.Factory.StartNew(() =>
