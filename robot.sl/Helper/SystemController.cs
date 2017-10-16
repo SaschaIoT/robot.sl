@@ -65,7 +65,7 @@ namespace robot.sl.Helper
                 await _camera.Stop();
                 await _gamepadController.Stop();
                 await _speechRecognation.Stop();
-                await _automaticDrive.Stop();
+                await _automaticDrive.Stop(false);
                 _servoController.Stop();
                 _motorController.Stop();
                 await _automaticSpeakController.Stop();
