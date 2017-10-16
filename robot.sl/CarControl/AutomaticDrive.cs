@@ -98,6 +98,11 @@ namespace robot.sl.CarControl
 
         public async Task Stop()
         {
+            await Stop(true);
+        }
+
+        public async Task Stop(bool speak)
+        {
             if (_isStopped)
             {
                 return;
@@ -118,8 +123,9 @@ namespace robot.sl.CarControl
             }
 
             _isStopping = false;
-            
-            await AudioPlayerController.Play(AudioName.StopAutomaticDrive);
+
+            if (speak)
+                await AudioPlayerController.Play(AudioName.StopAutomaticDrive);
         }
 
         public async Task StartStopToggle()
