@@ -60,7 +60,7 @@ function UpdateLatency(startTime, error) {
             latencyStatusColor.classList.remove("latency-good");
 
             var averageRequestTimesCorrected = averageRequestTimes.toString();
-            if (averageRequestTimesCorrected > 2000)
+            if (averageRequestTimes > 2000)
             {
                 averageRequestTimesCorrected = ">2000";
             }

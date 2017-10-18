@@ -69,7 +69,7 @@ function KeepAliveGetVideoFrames() {
         }
 
         if (frameTime !== undefined) {
-            UpdateLatency(duration, true);
+            UpdateLatency(frameTime, true);
         } else {
             UpdateLatency(2001, true);
         } 
