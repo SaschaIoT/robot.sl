@@ -2,7 +2,7 @@
 
 namespace robot.sl.Helper
 {
-    public static class Synchronous
+    public static class I2CSynchronous
     {
         private static volatile object _lock = new object();
 

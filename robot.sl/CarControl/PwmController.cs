@@ -35,7 +35,7 @@ namespace robot.sl.CarControl
 
         public void Reset()
         {
-            Synchronous.Call(() =>
+            I2CSynchronous.Call(() =>
             {
                 _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, 0x0 }); // reset the device
             });
@@ -51,7 +51,7 @@ namespace robot.sl.CarControl
         /// <param name="off">the tick (between 0..4095) when the signal should change from high to low</param>
         public void SetPwm(byte channel, ushort on, ushort off)
         {
-            Synchronous.Call(() =>
+            I2CSynchronous.Call(() =>
             {
                 _pwmDevice.Write(new byte[] { (byte)(Registers.LED0_ON_L + 4 * channel), (byte)(on & 0xFF) });
                 _pwmDevice.Write(new byte[] { (byte)(Registers.LED0_ON_H + 4 * channel), (byte)(on >> 8) });
@@ -62,7 +62,7 @@ namespace robot.sl.CarControl
 
         public void SetAllPwm(ushort on, ushort off)
         {
-            Synchronous.Call(() =>
+            I2CSynchronous.Call(() =>
             {
                 _pwmDevice.Write(new byte[] { (byte)Registers.ALL_LED_ON_L, (byte)(on & 0xFF) });
                 _pwmDevice.Write(new byte[] { (byte)Registers.ALL_LED_ON_H, (byte)(on >> 8) });
@@ -90,7 +90,7 @@ namespace robot.sl.CarControl
 
             byte prescale = (byte)Math.Floor(prescaleval + 0.5f);
 
-            Synchronous.Call(() =>
+            I2CSynchronous.Call(() =>
             {
                 var readBuffer = new byte[1];
                 _pwmDevice.WriteRead(new byte[] { (byte)Registers.MODE1 }, readBuffer);
