@@ -135,7 +135,7 @@
     <Compile Include="Sensors\AccelerometerGyroscopeSensor.cs" />
     <Compile Include="Sensors\DistanceMeasurementSensor.cs" />
     <Compile Include="Sensors\SpeedSensor.cs" />
-    <Compile Include="Helper\SynchronousHelper.cs" />
+    <Compile Include="Helper\I2CSynchronousHelper.cs" />
     <Compile Include="Web\HttpContentType.cs" />
     <Compile Include="Web\HttpServer.cs" />
     <Compile Include="Web\HttpServerRequest.cs" />

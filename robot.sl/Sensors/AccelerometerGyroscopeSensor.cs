@@ -50,7 +50,7 @@ namespace robot.sl.Sensors
             var controller = await I2cController.GetDefaultAsync();
             _accelerometer = controller.GetDevice(settings);
 
-            Synchronous.Call(() =>
+            I2CSynchronous.Call(() =>
             {
                 //Enable all axes with normal mode
                 _accelerometer.Write(new byte[] { REGISTER_POWER_MANAGEMENT_1, 0 }); //Wake up device
@@ -59,7 +59,7 @@ namespace robot.sl.Sensors
 
             await Task.Delay(20);
 
-            Synchronous.Call(() =>
+            I2CSynchronous.Call(() =>
             {
                 _accelerometer.Write(new byte[] { REGISTER_POWER_MANAGEMENT_1, 1 }); //Set clock source to gyro x
                 _accelerometer.Write(new byte[] { REGISTER_GYROSCOPE_CONFIG, 0 }); //+/- 250 degrees sec
@@ -157,7 +157,7 @@ namespace robot.sl.Sensors
             var data = new byte[14]; //6 bytes equals 2 bytes * 3 axes
             var readAddress = new byte[] { REGISTER_ACCELEROMETER_X }; //0x80 for autoincrement, read from register x all three axis
 
-            Synchronous.Call(() =>
+            I2CSynchronous.Call(() =>
             {
                 _accelerometer.WriteRead(readAddress, data);
             });

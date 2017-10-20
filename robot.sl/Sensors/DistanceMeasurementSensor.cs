@@ -3,7 +3,6 @@ using robot.sl.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Gpio;
 using Windows.Devices.I2c;
@@ -45,7 +44,7 @@ namespace robot.sl.Sensors
             //"Adafruit 16-Channel PWM/Servo HAT for Raspberry Pi" are not the same, but it conflicting because the
             //"Adafruit 16-Channel PWM/Servo HAT for Raspberry Pi" has a bug.
 
-            Synchronous.Call(() =>
+            I2CSynchronous.Call(() =>
             {
                 _distanceMeasurementSensor.Write(new byte[] { 0xe0, 0xAA, 0xA5, 0x71 }); //0x71 is the 8 bit address of the I2c device
             });
@@ -86,7 +85,7 @@ namespace robot.sl.Sensors
             {
                 byte[] range_highLowByte = new byte[2];
 
-                Synchronous.Call(() =>
+                I2CSynchronous.Call(() =>
                 {
                     //Call device measurement
                     _distanceMeasurementSensor.Write(new byte[] { 0x51 });
@@ -98,7 +97,7 @@ namespace robot.sl.Sensors
                 //Wait device measurement has finished and I2C is ready
                 await WaitDistanceMeasurementSensorI2CIsReady();
 
-                Synchronous.Call(() =>
+                I2CSynchronous.Call(() =>
                 {
                     //Read measurement
                     _distanceMeasurementSensor.WriteRead(new byte[] { 0xe1 }, range_highLowByte);

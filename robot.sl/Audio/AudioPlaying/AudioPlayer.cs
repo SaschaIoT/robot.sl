@@ -1,4 +1,5 @@
-﻿using System;
+﻿using robot.sl.Helper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -35,20 +36,38 @@ namespace robot.sl.Audio.AudioPlaying
 
         public async Task Play(string key, double gain, CancellationToken? cancellationToken)
         {
-            foreach (var soundeNode in _fileInputs.Select(fi => fi.Value))
-            {
-                soundeNode.Stop();
-            }
-            
-            var sound = _fileInputs[key];
-            sound.OutgoingGain = gain;
-            sound.Reset();
-            sound.Start();
+            await Play(key, gain, cancellationToken, 0);
+        }
 
-            if(cancellationToken.HasValue == false)
-                await Task.Delay(sound.Duration);
-            else
-                await Task.Delay(sound.Duration, cancellationToken.Value);
+        private async Task Play(string key, double gain, CancellationToken? cancellationToken, int retries)
+        {
+            try
+            {
+                foreach (var soundeNode in _fileInputs.Select(fi => fi.Value))
+                {
+                    soundeNode.Stop();
+                }
+
+                var sound = _fileInputs[key];
+                sound.OutgoingGain = gain;
+                sound.Reset();
+                sound.Start();
+                
+                if (cancellationToken.HasValue == false)
+                    await Task.Delay(sound.Duration);
+                else
+                    await Task.Delay(sound.Duration, cancellationToken.Value);
+            }
+            catch (Exception exception)
+            {
+                //Catch exception: The callee is currently not accepting further input. (Exception from HRESULT: 0xC00D36B5)
+                await Logger.Write($"{nameof(AudioPlayer)}, {nameof(Play)}: ", exception);
+                
+                if (retries == 10)
+                    throw;
+
+                await Play(key, gain, cancellationToken, ++retries);
+            }
         }
 
         private async Task CreateAudioGraphAsync(bool isHeadset)
