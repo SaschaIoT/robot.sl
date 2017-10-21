@@ -165,8 +165,6 @@ namespace robot.sl.Audio.AudioPlaying
             await AddAudioFile(AudioName.TurnToLongLeft, "Mir ist schwindelig, dreh doch mal wieder nach rechts.");
             //TurnToLongRight
             await AddAudioFile(AudioName.TurnToLongRight, "Mir ist schwindelig, dreh doch mal wieder nach links.");
-
-           
         }
     }
 }
