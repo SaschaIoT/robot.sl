@@ -29,7 +29,7 @@ namespace robot.sl.Devices
         private volatile int _stoppedWorkerCount = GET_FRAME_WORKER_COUNT;
 
         //Get video frame workers
-        private const int GET_FRAME_WORKER_COUNT = 6;
+        private const int GET_FRAME_WORKER_COUNT = 4;
         private long _frameDuration = 0;
         private volatile object _getFrameLock = new object();
         private volatile Stopwatch _lastFrame = new Stopwatch();
