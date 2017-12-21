@@ -21,7 +21,9 @@ namespace robot.sl.Audio
         private MotorController _motorController;
         private ServoController _servoController;
         private AutomaticDrive _automaticDrive;
-        
+
+        private ManualResetEvent _threadWaiter = new ManualResetEvent(false);
+
         public async Task Initialze(MotorController motorController,
                                     ServoController servoController,
                                     AutomaticDrive automaticDrive)
@@ -44,24 +46,29 @@ namespace robot.sl.Audio
 
         public void Start()
         {
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() =>
             {
-                _speechRecognizer.ContinuousRecognitionSession.StartAsync().AsTask().Wait();
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-            .AsAsyncAction()
-            .AsTask()
-            .ContinueWith((t) =>
-            {
-                Logger.Write(nameof(SpeechRecognition), t.Exception).Wait();
-                SystemController.ShutdownApplication(true).Wait();
+                try
+                {
+                    _speechRecognizer.ContinuousRecognitionSession.StartAsync().AsTask().Wait();
 
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                    _threadWaiter.WaitOne();
+                }
+                catch (Exception exception)
+                {
+                    Logger.Write(nameof(SpeechRecognition), exception).Wait();
+                    SystemController.ShutdownApplication(true).Wait();
+                }
+            });
+            thread.Priority = ThreadPriority.Highest;
+            thread.Start();
         }
 
         public async Task Stop()
         {
             StopInternal();
             await _speechRecognizer.ContinuousRecognitionSession.StopAsync();
+            _threadWaiter.Set();
         }
 
         private void StopInternal()

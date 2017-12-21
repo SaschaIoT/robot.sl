@@ -73,18 +73,19 @@ namespace robot.sl.Sensors
 
         public void Start()
         {
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() =>
             {
-                StartInternal();
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-            .AsAsyncAction()
-            .AsTask()
-            .ContinueWith((t) =>
-            {
-                Logger.Write(nameof(AccelerometerGyroscopeSensor), t.Exception).Wait();
-                SystemController.ShutdownApplication(true).Wait();
-
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                try
+                {
+                    StartInternal();
+                }
+                catch (Exception exception)
+                {
+                    Logger.Write(nameof(AccelerometerGyroscopeSensor), exception).Wait();
+                    SystemController.ShutdownApplication(true).Wait();
+                }
+            });
+            thread.Start();
         }
 
         private void StartInternal()

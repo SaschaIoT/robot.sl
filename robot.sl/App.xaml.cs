@@ -37,7 +37,7 @@ namespace robot.sl
             catch (Exception) { }
         }
 
-        private void AppUnhandeledException(object sender, UnhandledExceptionEventArgs eventArgs)
+        private void AppUnhandeledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs eventArgs)
         {
             try
             {

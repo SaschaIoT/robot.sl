@@ -64,32 +64,36 @@ namespace robot.sl.Devices
         private void GamepadAdded(object sender, Gamepad gamepad)
         {
             _gamepad = gamepad;
-            
-            Task.Factory.StartNew(() =>
-            {
-                StartGamepadReading(gamepad).Wait();
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-            .AsAsyncAction()
-            .AsTask()
-            .ContinueWith((t) =>
-            {
-                Logger.Write($"{nameof(Gamepad)}, {nameof(StartGamepadReading)}: ", t.Exception).Wait();
-                SystemController.ShutdownApplication(true).Wait();
 
-            }, TaskContinuationOptions.OnlyOnFaulted);
-
-            Task.Factory.StartNew(() =>
+            var threadGamepad = new Thread(() =>
             {
-                StartGamepadVibration(gamepad).Wait();
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-            .AsAsyncAction()
-            .AsTask()
-            .ContinueWith((t) =>
-            {
-                Logger.Write($"{nameof(Gamepad)}, {nameof(StartGamepadVibration)}: ", t.Exception).Wait();
-                SystemController.ShutdownApplication(true).Wait();
+                try
+                {
+                    StartGamepadReading(gamepad).Wait();
+                }
+                catch (Exception exception)
+                {
+                    Logger.Write($"{nameof(Gamepad)}, {nameof(StartGamepadReading)}: ", exception).Wait();
+                    SystemController.ShutdownApplication(true).Wait();
+                }
+            });
+            threadGamepad.Priority = ThreadPriority.Highest;
+            threadGamepad.Start();
 
-            }, TaskContinuationOptions.OnlyOnFaulted);
+            var threadGamepadVibration = new Thread(() =>
+            {
+                try
+                {
+                    StartGamepadVibration(gamepad).Wait();
+                }
+                catch (Exception exception)
+                {
+                    Logger.Write($"{nameof(Gamepad)}, {nameof(StartGamepadVibration)}: ", exception).Wait();
+                    SystemController.ShutdownApplication(true).Wait();
+                }
+            });
+            threadGamepadVibration.Priority = ThreadPriority.Highest;
+            threadGamepadVibration.Start();
         }
 
         private async void GamepadRemoved(object sender, Gamepad gamepad)

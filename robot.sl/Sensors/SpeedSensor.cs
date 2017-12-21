@@ -43,18 +43,20 @@ namespace robot.sl.Sensors
 
         public static void Start()
         {
-            Task.Factory.StartNew(async() =>
+            var thread = new Thread(() =>
             {
-                await StartInternal();
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Current)
-            .AsAsyncAction()
-            .AsTask()
-            .ContinueWith((t) =>
-            {
-                Logger.Write(nameof(SpeedSensor), t.Exception).Wait();
-                SystemController.ShutdownApplication(true).Wait();
-
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                try
+                {
+                    StartInternal().Wait();
+                }
+                catch (Exception exception)
+                {
+                    Logger.Write(nameof(SpeedSensor), exception).Wait();
+                    SystemController.ShutdownApplication(true).Wait();
+                }
+            });
+            thread.Priority = ThreadPriority.Lowest;
+            thread.Start();
         }
 
         private static async Task StartInternal()
