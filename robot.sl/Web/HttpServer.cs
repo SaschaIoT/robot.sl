@@ -17,33 +17,39 @@ namespace robot.sl.Web
     public class HttpServerController
     {
         private HttpServer _httpServer;
+        private ManualResetEvent _threadWaiter = new ManualResetEvent(false);
 
         public HttpServerController(MotorController motorController,
                                     ServoController servoController,
                                     AutomaticDrive automaticDrive,
                                     Camera camera)
         {
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() =>
             {
-                _httpServer = new HttpServer(motorController,
-                                             servoController,
-                                             automaticDrive,
-                                             camera);
-                _httpServer.Start();
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-            .AsAsyncAction()
-            .AsTask()
-            .ContinueWith((t) =>
-            {
-                Logger.Write(nameof(HttpServerController), t.Exception).Wait();
-                SystemController.ShutdownApplication(true).Wait();
+                try
+                {
+                    _httpServer = new HttpServer(motorController,
+                                                 servoController,
+                                                 automaticDrive,
+                                                 camera);
+                    _httpServer.Start();
 
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                    _threadWaiter.WaitOne();
+                }
+                catch (Exception exception)
+                {
+                    Logger.Write(nameof(HttpServerController), exception).Wait();
+                    SystemController.ShutdownApplication(true).Wait();
+                }
+            });
+            thread.Priority = ThreadPriority.Highest;
+            thread.Start();
         }
 
         public void Stop()
         {
             _httpServer.Stop();
+            _threadWaiter.Set();
         }
     }
 

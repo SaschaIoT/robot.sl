@@ -15,7 +15,9 @@ namespace robot.sl.CarControl
         private MotorController _motorController;
         private ServoController _servoController;
         private DistanceMeasurementSensor _distanceMeasurementSensor = null;
-        
+
+        private ManualResetEvent _threadWaiter = new ManualResetEvent(false);
+
         public bool IsRunning
         {
             get
@@ -64,18 +66,21 @@ namespace robot.sl.CarControl
 
         public void Start()
         {
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() =>
             {
-                StartInternal().Wait();
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-            .AsAsyncAction()
-            .AsTask()
-            .ContinueWith((t) =>
-            {
-                Logger.Write(nameof(AutomaticDrive), t.Exception).Wait();
-                SystemController.ShutdownApplication(true).Wait();
+                try
+                {
+                    StartInternal().Wait();
 
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                    _threadWaiter.WaitOne();
+                }
+                catch (Exception exception)
+                {
+                    Logger.Write(nameof(AutomaticDrive), exception).Wait();
+                    SystemController.ShutdownApplication(true).Wait();
+                }
+            });
+            thread.Start();
         }
 
         private async Task StartInternal()
@@ -121,6 +126,8 @@ namespace robot.sl.CarControl
             {
                 await Task.Delay(10);
             }
+
+            _threadWaiter.Set();
 
             _isStopping = false;
 

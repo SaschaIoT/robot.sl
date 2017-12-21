@@ -46,7 +46,7 @@ namespace robot.sl.Devices
 
         private const double IMAGE_QUALITY_PERCENT = 0.6d;
         private BitmapPropertySet _imageQuality;
-
+        
         public async Task Initialize()
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAndAwaitAsync(CoreDispatcherPriority.Normal, async () =>
@@ -98,7 +98,7 @@ namespace robot.sl.Devices
                 {
                     throw new RobotSlException("Could not set max backlight compensation to camera.");
                 }
-                
+
                 if (!videoDeviceController.Exposure.TrySetAuto(true))
                 {
                     throw new RobotSlException("Could not set auto exposure to camera.");
@@ -196,19 +196,20 @@ namespace robot.sl.Devices
         {
             for (int workerNumber = 0; workerNumber < GET_FRAME_WORKER_COUNT; workerNumber++)
             {
-                Task.Factory.StartNew(() =>
+                var thread = new Thread(() =>
                 {
-                    ProcessFrames();
-
-                }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-                .AsAsyncAction()
-                .AsTask()
-                .ContinueWith((t) =>
-                {
-                    Logger.Write(nameof(Camera), t.Exception).Wait();
-                    SystemController.ShutdownApplication(true).Wait();
-
-                }, TaskContinuationOptions.OnlyOnFaulted);
+                    try
+                    {
+                        ProcessFrames();
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Write(nameof(Camera), exception).Wait();
+                        SystemController.ShutdownApplication(true).Wait();
+                    }
+                });
+                thread.Priority = ThreadPriority.Highest;
+                thread.Start();
             }
         }
 
