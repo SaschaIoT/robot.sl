@@ -229,7 +229,7 @@ document.body.addEventListener('touchmove', function (event) {
 
     preventDefaults(event);
 
-}, true);
+}, false);
 
 document.body.addEventListener('touchstart', function (event) {
 
@@ -237,7 +237,7 @@ document.body.addEventListener('touchstart', function (event) {
 
     preventDefaults(event);
 
-}, true);
+}, false);
 
 document.addEventListener('touchend', function (e) {
 
