@@ -294,7 +294,7 @@ document.body.addEventListener('mousemove', function (e) {
             }, 200);
         }
     }
-}, true);
+}, false);
 
 document.body.addEventListener("click", function (e) {
 
@@ -309,8 +309,8 @@ document.body.addEventListener("click", function (e) {
         document.body.requestPointerLock();
     }
 
-}, true);
+}, false);
 
-document.addEventListener('pointerlockchange', PointerLockChanged, true);
-document.addEventListener('mozpointerlockchange', PointerLockChanged, true);
-document.addEventListener('webkitpointerlockchange', PointerLockChanged, true);
+document.addEventListener('pointerlockchange', PointerLockChanged, false);
+document.addEventListener('mozpointerlockchange', PointerLockChanged, false);
+document.addEventListener('webkitpointerlockchange', PointerLockChanged, false);
