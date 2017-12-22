@@ -12,6 +12,140 @@ var directionLefRightKeyIsMoving = false;
 var leftKeyDown = false;
 var rightKeyDown = false;
 
+var mousemoveXPositive;
+var mousemoveXNegative;
+var mousemoveYNegative;
+var mousemoveYPositive;
+
+var mouseSennsitivy = 50;
+
+var entryCoordinatesLastMoveX = 0;
+var entryCoordinatesLastMoveY = 0;
+var entryCoordinates = { x: 0, y: 0 };
+
+var speedControlLeftRightMouseActionLast = new Date();
+var speedControlLeftRightMouseActionLastMilliseconds = 0;
+
+function SendCarControlCommand() {
+
+    var speedControlLeftRight = 0;
+    if (speeControlLeftRight_LastKeyOrMouse) {
+
+        speedControlLeftRight = speedControlLeftRightMouseActionLastMilliseconds;
+        if (speedControlLeftRight > 500) {
+            speedControlLeftRight = 500;
+        } else if (speedControlLeftRight < 0) {
+            speedControlLeftRight = 0;
+        }
+
+        //Dynamic speed, equals to mouse speed
+        speedControlLeftRight = 1 - (speedControlLeftRight / 500);
+
+        speedControlLeftRight = Math.round(speedControlLeftRight * 100) / 100;
+
+        //Min Speed
+        if (speedControlLeftRight < 0.65) {
+            speedControlLeftRight = 0.65;
+        }
+
+    } else {
+        speedControlLeftRight = 1;
+    }
+
+    var carControlCommand = {
+        directionControlUp: directionControlUpCurrent,
+        directionControlLeft: directionControlLeftCurrent,
+        directionControlRight: directionControlRightCurrent,
+        directionControlDown: directionControlDownCurrent,
+        speedControlForward: speedControlForwardCurrent,
+        speedControlBackward: speedControlBackwardCurrent,
+        speedControlLeftRight: speedControlLeftRight
+    };
+
+    webSocketHelper.waitUntilWebsocketReady(function () {
+        webSocketCarControlCommand.send(JSON.stringify({ command: "CarControlCommand", parameter: carControlCommand }));
+    }, webSocketCarControlCommand, 0);
+}
+
+function Stop() {
+    directionControlUpCurrent = false;
+    directionControlLeftCurrent = false;
+    directionControlRightCurrent = false;
+    directionControlDownCurrent = false;
+    speedControlForwardCurrent = false;
+    speedControlBackwardCurrent = false;
+    speedControlLeftRightMouseActionLastMilliseconds = 0;
+    leftKeyDown = false;
+    rightKeyDown = false;
+    speeControlLeftRight_LastKeyOrMouse = false;
+}
+
+function PointerLockChanged() {
+    if (!(document.pointerLockElement === document.body ||
+        document.mozPointerLockElement === document.body ||
+        document.webkitPointerLockElement === document.body)) {
+
+        Stop();
+    }
+}
+
+window.onblur = function () {
+    Stop();
+};
+
+var webSocketCarControlCommand;
+var carControlCommandTime;
+
+function GetCarControlCommand() {
+
+    webSocketCarControlCommand = new WebSocket('ws://192.168.0.101:80/Controller');
+
+    webSocketCarControlCommand.onopen = function () {
+        SendCarControlCommand();
+    };
+
+    webSocketCarControlCommand.onmessage = function () {
+
+        setTimeout(function () {
+            SendCarControlCommand();
+        }, 40);
+
+        carControlCommandTime = new Date().getTime();
+    };
+}
+
+function KeepAliveCarControlCommand() {
+
+    var duration = 0;
+    if (carControlCommandTime !== undefined) {
+        duration = new Date().getTime() - carControlCommandTime
+    }
+
+    if (carControlCommandTime !== undefined
+        && duration <= requestTimeout) {
+
+        setTimeout(function () {
+            KeepAliveCarControlCommand();
+        }, 50);
+    } else {
+
+        if (webSocketCarControlCommand !== undefined) {
+            try {
+                webSocketCarControlCommand.close();
+            } catch (e) { }
+        }
+
+        GetCarControlCommand();
+
+        setTimeout(function () {
+            KeepAliveCarControlCommand();
+        }, 4000);
+    }
+}
+
+KeepAliveCarControlCommand();
+
+//Event listener
 document.body.onkeydown = function (event) {
 
     if (document.pointerLockElement === document.body ||
@@ -61,20 +195,6 @@ document.body.onkeyup = function (event) {
         }
     }
 }
-
-var mousemoveXPositive;
-var mousemoveXNegative;
-var mousemoveYNegative;
-var mousemoveYPositive;
-
-var mouseSennsitivy = 50;
-
-var entryCoordinatesLastMoveX = 0;
-var entryCoordinatesLastMoveY = 0;
-var entryCoordinates = { x: 0, y: 0 };
-
-var speedControlLeftRightMouseActionLast = new Date();
-var speedControlLeftRightMouseActionLastMilliseconds = 0;
 
 document.body.addEventListener('mousemove', function (e) {
 
@@ -174,142 +294,23 @@ document.body.addEventListener('mousemove', function (e) {
             }, 200);
         }
     }
-}, false);
+}, true);
 
 document.body.addEventListener("click", function (e) {
 
     if (!(document.pointerLockElement === document.body ||
-          document.mozPointerLockElement === document.body ||
-          document.webkitPointerLockElement === document.body)) {
+        document.mozPointerLockElement === document.body ||
+        document.webkitPointerLockElement === document.body)) {
 
         document.body.requestPointerLock = document.body.requestPointerLock ||
-                document.body.mozRequestPointerLock ||
-                document.body.webkitRequestPointerLock;
+            document.body.mozRequestPointerLock ||
+            document.body.webkitRequestPointerLock;
 
         document.body.requestPointerLock();
     }
 
-}, false);
+}, true);
 
-function SendCarControlCommand() {
-
-    var speedControlLeftRight = 0;
-    if (speeControlLeftRight_LastKeyOrMouse) {
-
-        speedControlLeftRight = speedControlLeftRightMouseActionLastMilliseconds;
-        if (speedControlLeftRight > 500) {
-            speedControlLeftRight = 500;
-        } else if (speedControlLeftRight < 0) {
-            speedControlLeftRight = 0;
-        }
-
-        //Dynamic speed, equals to mouse speed
-        speedControlLeftRight = 1 - (speedControlLeftRight / 500);
-
-        speedControlLeftRight = Math.round(speedControlLeftRight * 100) / 100;
-
-        //Min Speed
-        if (speedControlLeftRight < 0.65) {
-            speedControlLeftRight = 0.65;
-        }
-
-    } else {
-        speedControlLeftRight = 1;
-    }
-
-    var carControlCommand = {
-        directionControlUp: directionControlUpCurrent,
-        directionControlLeft: directionControlLeftCurrent,
-        directionControlRight: directionControlRightCurrent,
-        directionControlDown: directionControlDownCurrent,
-        speedControlForward: speedControlForwardCurrent,
-        speedControlBackward: speedControlBackwardCurrent,
-        speedControlLeftRight: speedControlLeftRight
-    };
-
-    webSocketHelper.waitUntilWebsocketReady(function () {
-        webSocketCarControlCommand.send(JSON.stringify({ command: "CarControlCommand", parameter: carControlCommand }));
-    }, webSocketCarControlCommand, 0);
-}
-
-function Stop() {
-    directionControlUpCurrent = false;
-    directionControlLeftCurrent = false;
-    directionControlRightCurrent = false;
-    directionControlDownCurrent = false;
-    speedControlForwardCurrent = false;
-    speedControlBackwardCurrent = false;
-    speedControlLeftRightMouseActionLastMilliseconds = 0;
-    leftKeyDown = false;
-    rightKeyDown = false;
-    speeControlLeftRight_LastKeyOrMouse = false;
-}
-
-document.addEventListener('pointerlockchange', PointerLockChanged, false);
-document.addEventListener('mozpointerlockchange', PointerLockChanged, false);
-document.addEventListener('webkitpointerlockchange', PointerLockChanged, false);
-
-function PointerLockChanged() {
-    if (!(document.pointerLockElement === document.body ||
-        document.mozPointerLockElement === document.body ||
-        document.webkitPointerLockElement === document.body)) {
-
-        Stop();
-    }
-}
-
-window.onblur = function () {
-    Stop();
-};
-
-var webSocketCarControlCommand;
-var carControlCommandTime;
-
-function GetCarControlCommand() {
-
-    webSocketCarControlCommand = new WebSocket('ws://192.168.0.101:80/Controller');
-
-    webSocketCarControlCommand.onopen = function () {
-        SendCarControlCommand();
-    };
-
-    webSocketCarControlCommand.onmessage = function () {
-
-        setTimeout(function () {
-            SendCarControlCommand();
-        }, 40);
-
-        carControlCommandTime = new Date().getTime();
-    };
-}
-
-function KeepAliveCarControlCommand() {
-
-    var duration = 0;
-    if (carControlCommandTime !== undefined) {
-        duration = new Date().getTime() - carControlCommandTime
-    }
-
-    if (carControlCommandTime !== undefined
-        && duration <= requestTimeout) {
-
-        setTimeout(function () {
-            KeepAliveCarControlCommand();
-        }, 50);
-    } else {
-
-        if (webSocketCarControlCommand !== undefined) {
-            try {
-                webSocketCarControlCommand.close();
-            } catch (e) { }
-        }
-
-        GetCarControlCommand();
-
-        setTimeout(function () {
-            KeepAliveCarControlCommand();
-        }, 4000);
-    }
-}
-
-KeepAliveCarControlCommand();
+document.addEventListener('pointerlockchange', PointerLockChanged, true);
+document.addEventListener('mozpointerlockchange', PointerLockChanged, true);
+document.addEventListener('webkitpointerlockchange', PointerLockChanged, true);

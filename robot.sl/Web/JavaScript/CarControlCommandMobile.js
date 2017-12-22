@@ -1,22 +1,6 @@
-﻿document.body.addEventListener('touchmove', function (event) {
-
-    workTouches(event.touches);
-
-    preventDefaults(event);
-
-}, true);
-
-document.body.addEventListener('touchstart', function (event) {
-
-    workTouches(event.touches);
-
-    preventDefaults(event);
-
-}, true);
-
-function workRemoveTouches(touches) {
-    for (var touchtId = 0; touchtId < touches.length; touchtId++) {
-        var myLocation = touches.item(touchtId);
+﻿function workRemoveTouches(touches) {
+    for (var touchId = 0; touchId < touches.length; touchId++) {
+        var myLocation = touches.item(touchId);
         var element = document.elementFromPoint(myLocation.clientX, myLocation.clientY);
 
         if (element.id === directionControlUp.id) {
@@ -68,9 +52,9 @@ var speedControlBackward = document.getElementById("speed-control-backward");
 function workTouches(touches) {
     var touchedElemnts = new Array();
 
-    for (var touchtId = 0; touchtId < touches.length; touchtId++) {
+    for (var touchId = 0; touchId < touches.length; touchId++) {
 
-        var myLocation = touches.item(touchtId);
+        var myLocation = touches.item(touchId);
         var element = document.elementFromPoint(myLocation.clientX, myLocation.clientY);
 
         if (element !== undefined && element.id !== undefined) {
@@ -156,16 +140,6 @@ function arrayContains(value, array) {
     return (array.indexOf(value) > -1);
 }
 
-document.addEventListener('touchend', function (e) {
-    workRemoveTouches(e.changedTouches);
-    preventDefaults(e);
-}, false);
-
-document.addEventListener('touchcancel', function (e) {
-    workRemoveTouches(e.changedTouches);
-    preventDefaults(e);
-}, false);
-
 function preventDefaults(e) {
     e = e || window.event;
     var target = e.target || e.srcElement;
@@ -195,15 +169,6 @@ function SendCarControlCommand() {
         webSocketCarControlCommand.send(JSON.stringify({ command: "CarControlCommand", parameter: carControlCommand }));
     }, webSocketCarControlCommand, 0);
 }
-
-window.onblur = function () {
-    directionControlUpCurrent = false;
-    directionControlLeftCurrent = false;
-    directionControlRightCurrent = false;
-    directionControlDownCurrent = false;
-    speedControlForwardCurrent = false;
-    speedControlBackwardCurrent = false;
-};
 
 var webSocketCarControlCommand;
 var carControlCommandTime;
@@ -256,3 +221,43 @@ function KeepAliveCarControlCommand() {
 }
 
 KeepAliveCarControlCommand();
+
+//Event listener
+document.body.addEventListener('touchmove', function (event) {
+
+    workTouches(event.touches);
+
+    preventDefaults(event);
+
+}, true);
+
+document.body.addEventListener('touchstart', function (event) {
+
+    workTouches(event.touches);
+
+    preventDefaults(event);
+
+}, true);
+
+document.addEventListener('touchend', function (e) {
+
+    workRemoveTouches(e.changedTouches);
+    preventDefaults(e);
+
+}, false);
+
+document.addEventListener('touchcancel', function (e) {
+
+    workRemoveTouches(e.changedTouches);
+    preventDefaults(e);
+
+}, false);
+
+window.onblur = function () {
+    directionControlUpCurrent = false;
+    directionControlLeftCurrent = false;
+    directionControlRightCurrent = false;
+    directionControlDownCurrent = false;
+    speedControlForwardCurrent = false;
+    speedControlBackwardCurrent = false;
+};
