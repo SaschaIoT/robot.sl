@@ -5,11 +5,7 @@ using robot.sl.Devices;
 using robot.sl.Sensors;
 using robot.sl.Web;
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Core;
-using Windows.System;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 
 namespace robot.sl.Helper
@@ -59,6 +55,11 @@ namespace robot.sl.Helper
 
         public static async Task StopAll()
         {
+            if (!_initialized)
+            {
+                return;
+            }
+
             var stopTask = Task.Run(async () =>
             {
                 _httpServerController.Stop();
@@ -165,10 +166,7 @@ namespace robot.sl.Helper
             }
             catch (Exception) { }
 
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                {
-                    Application.Current.Exit();
-                });
+            Application.Current.Exit();
         }
     }
 }

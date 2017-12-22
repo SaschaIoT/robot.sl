@@ -111,7 +111,7 @@ namespace robot.sl
             {
                 await Logger.Write($"{nameof(MainPage)}, {nameof(Initialze)}: ", exception);
 
-                SystemController.ShutdownApplication(false).Wait();
+                SystemController.ShutdownApplication(true).Wait();
             }
         }
     }
