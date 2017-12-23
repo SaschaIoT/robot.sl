@@ -1,41 +1,4 @@
-﻿function workRemoveTouches(touches) {
-    for (var touchId = 0; touchId < touches.length; touchId++) {
-        var myLocation = touches.item(touchId);
-        var element = document.elementFromPoint(myLocation.clientX, myLocation.clientY);
-
-        if (element.id === directionControlUp.id) {
-            directionControlUp.classList.remove("up-arrow-hover");
-            directionControlUpCurrent = false;
-        }
-
-        if (element.id === directionControlLeft.id) {
-            directionControlLeft.classList.remove("left-arrow-hover");
-            directionControlLeftCurrent = false;
-        }
-
-        if (element.id === directionControlRight.id) {
-            directionControlRight.classList.remove("right-arrow-hover");
-            directionControlRightCurrent = false;
-        }
-
-        if (element.id === directionControlDown.id) {
-            directionControlDown.classList.remove("down-arrow-hover");
-            directionControlDownCurrent = false;
-        }
-
-        if (element.id === speedControlForward.id) {
-            speedControlForward.classList.remove("up-arrow-hover");
-            speedControlForwardCurrent = false;
-        }
-
-        if (element.id === speedControlBackward.id) {
-            speedControlBackward.classList.remove("down-arrow-hover");
-            speedControlBackwardCurrent = false;
-        }
-    }
-}
-
-var directionControlUpCurrent = false;
+﻿var directionControlUpCurrent = false;
 var directionControlLeftCurrent = false;
 var directionControlRightCurrent = false;
 var directionControlDownCurrent = false;
@@ -49,88 +12,88 @@ var directionControlDown = document.getElementById("direction-control-down");
 var speedControlForward = document.getElementById("speed-control-forward");
 var speedControlBackward = document.getElementById("speed-control-backward");
 
-function workTouches(touches) {
-    var touchedElemnts = new Array();
-
+function processTouches(touches, isTouchmove) {
+    var touchedElements = new Array();
+    
     for (var touchId = 0; touchId < touches.length; touchId++) {
 
-        var myLocation = touches.item(touchId);
-        var element = document.elementFromPoint(myLocation.clientX, myLocation.clientY);
+        var touch = touches.item(touchId);
 
-        if (element !== undefined && element.id !== undefined) {
+        var element;
+        if (isTouchmove === true) {
+            element = document.elementFromPoint(touch.clientX, touch.clientY);
+        }
+        else {
+            element = touch.target;
+        }
 
-            if (element.id === directionControlUp.id) {
+        if (element === undefined || element === null)
+            continue;
 
-                touchedElemnts.push(directionControlUp.id);
-                directionControlUp.classList.add("up-arrow-hover");
-                directionControlUpCurrent = true;
+        if (element.id === directionControlUp.id) {
+            
+            touchedElements.push(directionControlUp.id);
+            directionControlUp.classList.add("up-arrow-hover");
+            directionControlUpCurrent = true;
 
-            }
+        } else if (element.id === directionControlLeft.id) {
 
-            if (element.id === directionControlLeft.id) {
+            touchedElements.push(directionControlLeft.id);
+            directionControlLeft.classList.add("left-arrow-hover");
+            directionControlLeftCurrent = true;
 
-                touchedElemnts.push(directionControlLeft.id);
-                directionControlLeft.classList.add("left-arrow-hover");
-                directionControlLeftCurrent = true;
-            }
+        } else if (element.id === directionControlRight.id) {
 
-            if (element.id === directionControlRight.id) {
+            touchedElements.push(directionControlRight.id);
+            directionControlRight.classList.add("right-arrow-hover");
+            directionControlRightCurrent = true;
 
-                touchedElemnts.push(directionControlRight.id);
-                directionControlRight.classList.add("right-arrow-hover");
-                directionControlRightCurrent = true;
-            }
+        } else if (element.id === directionControlDown.id) {
 
-            if (element.id === directionControlDown.id) {
+            touchedElements.push(directionControlDown.id);
+            directionControlDown.classList.add("down-arrow-hover");
+            directionControlDownCurrent = true;
 
-                touchedElemnts.push(directionControlDown.id);
-                directionControlDown.classList.add("down-arrow-hover");
-                directionControlDownCurrent = true;
-            }
+        } else if (element.id === speedControlForward.id) {
 
-            if (element.id === speedControlForward.id) {
+            touchedElements.push(speedControlForward.id);
+            speedControlForward.classList.add("up-arrow-hover");
+            speedControlForwardCurrent = true;
 
-                touchedElemnts.push(speedControlForward.id);
-                speedControlForward.classList.add("up-arrow-hover");
-                speedControlForwardCurrent = true;
+        } else if (element.id === speedControlBackward.id) {
 
-            }
-
-            if (element.id === speedControlBackward.id) {
-
-                touchedElemnts.push(speedControlBackward.id);
-                speedControlBackward.classList.add("down-arrow-hover");
-                speedControlBackwardCurrent = true;
-            }
+            touchedElements.push(speedControlBackward.id);
+            speedControlBackward.classList.add("down-arrow-hover");
+            speedControlBackwardCurrent = true;
         }
     }
 
-    if (!arrayContains("direction-control-up", touchedElemnts)) {
+    if (!arrayContains("direction-control-up", touchedElements)) {
         directionControlUp.classList.remove("up-arrow-hover");
         directionControlUpCurrent = false;
     }
 
-    if (!arrayContains("direction-control-left", touchedElemnts)) {
+    if (!arrayContains("direction-control-left", touchedElements)) {
         directionControlLeft.classList.remove("left-arrow-hover");
         directionControlLeftCurrent = false;
     }
 
-    if (!arrayContains("direction-control-right", touchedElemnts)) {
+    if (!arrayContains("direction-control-right", touchedElements)) {
         directionControlRight.classList.remove("right-arrow-hover");
         directionControlRightCurrent = false;
     }
 
-    if (!arrayContains("direction-control-down", touchedElemnts)) {
+    if (!arrayContains("direction-control-down", touchedElements)) {
         directionControlDown.classList.remove("down-arrow-hover");
         directionControlDownCurrent = false;
     }
 
-    if (!arrayContains("speed-control-forward", touchedElemnts)) {
+    if (!arrayContains("speed-control-forward", touchedElements)) {
         speedControlForward.classList.remove("up-arrow-hover");
         speedControlForwardCurrent = false;
     }
 
-    if (!arrayContains("speed-control-backward", touchedElemnts)) {
+    if (!arrayContains("speed-control-backward", touchedElements)) {
         speedControlBackward.classList.remove("down-arrow-hover");
         speedControlBackwardCurrent = false;
     }
@@ -164,7 +127,7 @@ function SendCarControlCommand() {
         speedControlBackward: speedControlBackwardCurrent,
         speedControlLeftRight: 1
     };
-    
+
     webSocketHelper.waitUntilWebsocketReady(function () {
         webSocketCarControlCommand.send(JSON.stringify({ command: "CarControlCommand", parameter: carControlCommand }));
     }, webSocketCarControlCommand, 0);
@@ -223,32 +186,29 @@ function KeepAliveCarControlCommand() {
 KeepAliveCarControlCommand();
 
 //Event listener
-document.body.addEventListener('touchmove', function (event) {
+document.addEventListener('touchmove', function (event) {
 
-    workTouches(event.touches);
-
-    preventDefaults(event);
+    processTouches(event.touches, true);
 
 }, false);
 
-document.body.addEventListener('touchstart', function (event) {
+document.addEventListener('touchstart', function (event) {
 
-    workTouches(event.touches);
-
+    processTouches(event.touches, false);
     preventDefaults(event);
 
 }, false);
 
 document.addEventListener('touchend', function (e) {
 
-    workRemoveTouches(e.changedTouches);
+    processTouches(e.touches, false);
     preventDefaults(e);
 
 }, false);
 
 document.addEventListener('touchcancel', function (e) {
 
-    workRemoveTouches(e.changedTouches);
+    processTouches(e.touches, false);
     preventDefaults(e);
 
 }, false);

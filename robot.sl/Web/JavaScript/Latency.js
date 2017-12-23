@@ -9,7 +9,7 @@ function UpdateLatency(startTime, error) {
         error: error
     });
 
-    if (requestTimes.length >= 4) {
+    if (requestTimes.length >= 15) {
         requestTimes = requestTimes.slice(1);
     }
 
