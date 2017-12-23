@@ -1,4 +1,9 @@
-﻿body {
+﻿html {
+    width: 100%;
+    height: 100%;
+}
+
+body {
     margin: 0px;
     width: 100%;
     height: 100%;
@@ -6,11 +11,17 @@
     color: white;
 }
 
-.left-arrow {
+.center-arrow {
     width: 64px;
+    height: 64px
+}
+
+.left-arrow {
+    width: 96px;
     height: 64px;
     background-repeat: no-repeat;
     background-image: url("../Images/arrow-left@64x64.png");
+    background-position: right;
 }
 
 .left-arrow-hover {
@@ -18,10 +29,11 @@
 }
 
 .right-arrow {
-    width: 64px;
+    width: 96px;
     height: 64px;
     background-repeat: no-repeat;
     background-image: url("../Images/arrow-right@64x64.png");
+    background-position: left;
 }
 
 .right-arrow-hover {
@@ -69,16 +81,6 @@
 
 #direction-control-down {
     width: 256px;
-    background-position: center;
-}
-
-#direction-control-left {
-    width: 128px;
-    background-position: center;
-}
-
-#direction-control-right {
-    width: 128px;
     background-position: center;
 }
 
