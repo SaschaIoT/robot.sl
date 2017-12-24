@@ -12,9 +12,6 @@ namespace robot.sl.Helper
 {
     public static class SystemController
     {
-        private const string SERVICE_USERNAME = "TechnicalServiceUser";
-        private const string SERVICE_USER_PASSWORD = "stWiFIH23";
-
         //Dependency objects
         private static AccelerometerGyroscopeSensor _accelerometerSensor;
         private static AutomaticSpeakController _automaticSpeakController;

@@ -18,7 +18,6 @@ namespace robot.sl.Audio.AudioPlaying
         private AudioGraph _graph;
         private Dictionary<string, AudioFileInputNode> _fileInputs = new Dictionary<string, AudioFileInputNode>();
         private AudioDeviceOutputNode _deviceOutput;
-        private const string HEADSET_NAME = "logitech";
 
         public async Task Initialize(bool isHeadset)
         {
@@ -75,7 +74,7 @@ namespace robot.sl.Audio.AudioPlaying
             var settings = new AudioGraphSettings(AudioRenderCategory.Communications);
             settings.EncodingProperties = AudioEncodingProperties.CreatePcm(96000, 1, 24);
             var devices = await DeviceInformation.FindAllAsync(MediaDevice.GetAudioRenderSelector());
-            settings.PrimaryRenderDevice = devices.First(d => (isHeadset ? (d.Name ?? string.Empty).ToLower().Contains(HEADSET_NAME) : !(d.Name ?? string.Empty).ToLower().Contains(HEADSET_NAME)));
+            settings.PrimaryRenderDevice = devices.First(d => (isHeadset ? (d.Name ?? string.Empty).ToLower().Contains(DeviceNameHelper.HeadsetRenderDevice.ToLower()) : !(d.Name ?? string.Empty).ToLower().Contains(DeviceNameHelper.HeadsetRenderDevice.ToLower())));
             var result = await AudioGraph.CreateAsync(settings);
             _graph = result.Graph;
             var deviceOutputNodeResult = await _graph.CreateDeviceOutputNodeAsync();

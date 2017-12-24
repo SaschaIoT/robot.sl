@@ -120,6 +120,7 @@
     <Compile Include="Devices\Gamepad.cs" />
     <Compile Include="Devices\GamepadButtonDown.cs" />
     <Compile Include="Exceptions\RobotSlException.cs" />
+    <Compile Include="Helper\DeviceNameHelper.cs" />
     <Compile Include="Helper\DeviceController.cs" />
     <Compile Include="Helper\ServoHelper.cs" />
     <Compile Include="Helper\AudioDeviceController.cs" />
@@ -151,7 +152,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Audio\SpeechRecognizerGrammer.xml" />
-    <Content Include="CmdWrapper.exe" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

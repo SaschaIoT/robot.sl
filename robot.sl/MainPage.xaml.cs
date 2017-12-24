@@ -35,19 +35,20 @@ namespace robot.sl
         private const int HEADSET_AUDIO_RENDER_VOLUME = 70;
         private const int SPEAKER_AUDIO_RENDER_VOLUME = 70;
         private const int HEADSET_AUDIO_CAPTURE_VOLUME = 50;
-        private const string HEADSET_RENDER_DEVICE = "Logitech G933";
-        private const string SPEAKER_RENDER_DEVICE = "SPDIF";
-        private const string HEADSET_CAPTURE_DEVICE = "Logitech G933";
 
         public MainPage()
         {
             InitializeComponent();
-
+            
             Loaded += PageLoaded;
         }
 
         private async void PageLoaded(object sender, RoutedEventArgs eventArgs)
         {
+            await UsbReadyController.ExecuteCommand("restart @USB\\VID_045E\"&\"PID_02E6\\190824");
+
+            await UsbReadyController.EnsureUsbDevicesReady();
+
             await Initialze();
         }
 
@@ -55,13 +56,13 @@ namespace robot.sl
         {
             try
             {
-                await SystemController.SetDefaultRenderDevice(SPEAKER_RENDER_DEVICE);
+                await SystemController.SetDefaultRenderDevice(DeviceNameHelper.SpeakerRenderDevice);
                 await SystemController.SetDefaultRenderDeviceVolume(SPEAKER_AUDIO_RENDER_VOLUME);
 
-                await SystemController.SetDefaultRenderDevice(HEADSET_RENDER_DEVICE);
+                await SystemController.SetDefaultRenderDevice(DeviceNameHelper.HeadsetRenderDevice);
                 await SystemController.SetDefaultRenderDeviceVolume(HEADSET_AUDIO_RENDER_VOLUME);
 
-                await SystemController.SetDefaultCaptureDevice(HEADSET_CAPTURE_DEVICE);
+                await SystemController.SetDefaultCaptureDevice(DeviceNameHelper.HeadsetCaptureDevice);
                 await SystemController.SetDefaultCaptureDeviceVolume(HEADSET_AUDIO_CAPTURE_VOLUME);
 
                 _camera = new Camera();
@@ -111,7 +112,15 @@ namespace robot.sl
             {
                 await Logger.Write($"{nameof(MainPage)}, {nameof(Initialze)}: ", exception);
 
-                SystemController.ShutdownApplication(true).Wait();
+                try
+                {
+                    await AudioPlayerController.PlayAndWaitAsync(AudioName.AppError);
+                    await AudioPlayerController.PlayAndWaitAsync(AudioName.Restart);
+                }
+                catch (Exception) { }
+
+                await Task.Delay(TimeSpan.FromSeconds(20));
+                await DeviceController.RestartDevice();
             }
         }
     }
