@@ -9,21 +9,28 @@ function UpdateLatency(startTime, error) {
         error: error
     });
 
-    if (requestTimes.length >= 15) {
+    if (requestTimes.length >= 16) {
         requestTimes = requestTimes.slice(1);
     }
 
+    var requestTimesConnectionLost;
+    if (requestTimes.length >= 15) {
+        requestTimesConnectionLost = requestTimes.slice(12);
+    } else {
+        requestTimesConnectionLost = requestTimes;
+    }
+
     var connectionLost = true;
-    for (var clIndex = 0; clIndex < requestTimes.length; clIndex++) {
-        if (requestTimes[clIndex].error === false) {
+    for (var index = 0; index < requestTimesConnectionLost.length; index++) {
+        if (requestTimesConnectionLost[index].error === false) {
             connectionLost = false;
             break;
         }
     }
 
     var requestTimesSum = 0;
-    for (var rtsIndex = 0; rtsIndex < requestTimes.length; rtsIndex++) {
-        requestTimesSum += requestTimes[rtsIndex].duration;
+    for (var index = 0; index < requestTimes.length; index++) {
+        requestTimesSum += requestTimes[index].duration;
     }
 
     var averageRequestTimes = Math.round(requestTimesSum / requestTimes.length);
