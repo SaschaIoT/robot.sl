@@ -10,13 +10,8 @@ using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
-
 namespace robot.sl
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class MainPage : Page
     {
         private AccelerometerGyroscopeSensor _accelerometerSensor;
@@ -107,14 +102,7 @@ namespace robot.sl
             catch (Exception exception)
             {
                 await Logger.Write($"{nameof(MainPage)}, {nameof(Initialze)}: ", exception);
-
-                try
-                {
-                    await AudioPlayerController.PlayAndWaitAsync(AudioName.AppError);
-                    await AudioPlayerController.PlayAndWaitAsync(AudioName.Restart);
-                }
-                catch (Exception) { }
-
+                
                 await Task.Delay(TimeSpan.FromSeconds(20));
                 await DeviceController.RestartDevice();
             }
