@@ -45,10 +45,6 @@ namespace robot.sl
 
         private async void PageLoaded(object sender, RoutedEventArgs eventArgs)
         {
-            await UsbReadyController.ExecuteCommand("restart @USB\\VID_045E\"&\"PID_02E6\\190824");
-
-            await UsbReadyController.EnsureUsbDevicesReady();
-
             await Initialze();
         }
 
