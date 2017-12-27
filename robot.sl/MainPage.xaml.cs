@@ -102,9 +102,8 @@ namespace robot.sl
             catch (Exception exception)
             {
                 await Logger.Write($"{nameof(MainPage)}, {nameof(Initialze)}: ", exception);
-                
-                await Task.Delay(TimeSpan.FromSeconds(20));
-                await DeviceController.RestartDevice();
+
+                await SystemController.ShutdownApplication(true, false);
             }
         }
     }
