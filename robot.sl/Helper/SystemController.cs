@@ -148,6 +148,11 @@ namespace robot.sl.Helper
 
         public static async Task ShutdownApplication(bool unhandeledException)
         {
+            await ShutdownApplication(unhandeledException, true);
+        }
+
+        public static async Task ShutdownApplication(bool unhandeledException, bool stopAll)
+        {
             if (unhandeledException)
             {
                 try
@@ -159,7 +164,8 @@ namespace robot.sl.Helper
 
             try
             {
-                await StopAll();
+                if(stopAll)
+                    await StopAll();
             }
             catch (Exception) { }
 
