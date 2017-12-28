@@ -74,7 +74,7 @@ namespace robot.sl.Audio.AudioPlaying
             var settings = new AudioGraphSettings(AudioRenderCategory.Communications);
             settings.EncodingProperties = AudioEncodingProperties.CreatePcm(96000, 1, 24);
             var devices = await DeviceInformation.FindAllAsync(MediaDevice.GetAudioRenderSelector());
-            settings.PrimaryRenderDevice = devices.First(d => (isHeadset ? (d.Name ?? string.Empty).ToLower().Contains(DeviceNameHelper.HeadsetRenderDevice.ToLower()) : !(d.Name ?? string.Empty).ToLower().Contains(DeviceNameHelper.HeadsetRenderDevice.ToLower())));
+            settings.PrimaryRenderDevice = devices.First(d => (isHeadset ? (d.Name ?? string.Empty).ToLower().Contains(DeviceNameHelper.HeadsetRenderDevice.ToLower()) : (d.Name ?? string.Empty).ToLower().Contains(DeviceNameHelper.SpeakerRenderDevice.ToLower())));
             var result = await AudioGraph.CreateAsync(settings);
             _graph = result.Graph;
             var deviceOutputNodeResult = await _graph.CreateDeviceOutputNodeAsync();
