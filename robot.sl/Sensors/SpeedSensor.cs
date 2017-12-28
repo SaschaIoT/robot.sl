@@ -43,20 +43,21 @@ namespace robot.sl.Sensors
 
         public static void Start()
         {
-            var thread = new Thread(() =>
+            Task.Factory.StartNew(() =>
             {
-                try
-                {
-                    StartInternal().Wait();
-                }
-                catch (Exception exception)
-                {
-                    Logger.Write(nameof(SpeedSensor), exception).Wait();
-                    SystemController.ShutdownApplication(true).Wait();
-                }
-            });
-            thread.Priority = ThreadPriority.Lowest;
-            thread.Start();
+
+                StartInternal().Wait();
+
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Current)
+             .AsAsyncAction()
+             .AsTask()
+             .ContinueWith((t) =>
+             {
+
+                 Logger.Write(nameof(SpeedSensor), t.Exception).Wait();
+                 SystemController.ShutdownApplication(true).Wait();
+
+             }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         private static async Task StartInternal()
@@ -74,7 +75,7 @@ namespace robot.sl.Sensors
 
             while (!_isStopping)
             {
-                if(stopWatch.ElapsedMilliseconds >= 70)
+                if (stopWatch.ElapsedMilliseconds >= 70)
                 {
                     stopWatch.Reset();
                     Counter(); //Counter(null);

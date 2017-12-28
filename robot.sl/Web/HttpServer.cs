@@ -24,26 +24,27 @@ namespace robot.sl.Web
                                     AutomaticDrive automaticDrive,
                                     Camera camera)
         {
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    _httpServer = new HttpServer(motorController,
-                                                 servoController,
-                                                 automaticDrive,
-                                                 camera);
-                    _httpServer.Start();
 
-                    _threadWaiter.WaitOne();
-                }
-                catch (Exception exception)
-                {
-                    Logger.Write(nameof(HttpServerController), exception).Wait();
-                    SystemController.ShutdownApplication(true).Wait();
-                }
-            });
-            thread.Priority = ThreadPriority.Highest;
-            thread.Start();
+            Task.Factory.StartNew(() =>
+            {
+
+                _httpServer = new HttpServer(motorController,
+                                             servoController,
+                                             automaticDrive,
+                                             camera);
+                _httpServer.Start();
+                _threadWaiter.WaitOne();
+
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+             .AsAsyncAction()
+             .AsTask()
+             .ContinueWith((t) =>
+             {
+
+                 Logger.Write(nameof(HttpServerController), t.Exception).Wait();
+                 SystemController.ShutdownApplication(true).Wait();
+
+             }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         public void Stop()
@@ -109,10 +110,10 @@ namespace robot.sl.Web
             try
             {
                 var socket = eventArgs.Socket;
-                
+
                 //Read request
                 var request = await ReadRequest(socket);
-                
+
                 //Write Response
                 await WriteResponse(request, socket);
 

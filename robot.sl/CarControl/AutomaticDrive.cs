@@ -66,21 +66,21 @@ namespace robot.sl.CarControl
 
         public void Start()
         {
-            var thread = new Thread(() =>
+            Task.Factory.StartNew(() =>
             {
-                try
-                {
-                    StartInternal().Wait();
 
-                    _threadWaiter.WaitOne();
-                }
-                catch (Exception exception)
-                {
-                    Logger.Write(nameof(AutomaticDrive), exception).Wait();
-                    SystemController.ShutdownApplication(true).Wait();
-                }
-            });
-            thread.Start();
+                StartInternal().Wait();
+                _threadWaiter.WaitOne();
+
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+             .AsAsyncAction()
+             .AsTask()
+             .ContinueWith((t) =>
+             {
+                 Logger.Write(nameof(AutomaticDrive), t.Exception).Wait();
+                 SystemController.ShutdownApplication(true).Wait();
+
+             }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         private async Task StartInternal()
@@ -235,7 +235,7 @@ namespace robot.sl.CarControl
             };
 
             _motorController.MoveCar(null, carMoveCommandEnd);
-            
+
             Driving = null;
 
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
@@ -358,7 +358,7 @@ namespace robot.sl.CarControl
                 _motorController.MoveCar(null, carMoveCommand);
 
                 Driving = null;
-                
+
                 await AudioPlayerController.PlayAndWaitAsync(AudioName.AutomatischesFahrenFesthaengen, cancellationToken);
 
                 await TurnBackward(1000, cancellationToken);

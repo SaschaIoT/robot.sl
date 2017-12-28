@@ -47,7 +47,7 @@ namespace robot.sl.Devices
                                  AutomaticDrive automaticDrive,
                                  AccelerometerGyroscopeSensor acceleratorSensor)
         {
-            if(_shutdown)
+            if (_shutdown)
             {
                 return;
             }
@@ -65,35 +65,37 @@ namespace robot.sl.Devices
         {
             _gamepad = gamepad;
 
-            var threadGamepad = new Thread(() =>
+            Task.Factory.StartNew(() =>
             {
-                try
-                {
-                    StartGamepadReading(gamepad).Wait();
-                }
-                catch (Exception exception)
-                {
-                    Logger.Write($"{nameof(Gamepad)}, {nameof(StartGamepadReading)}: ", exception).Wait();
-                    SystemController.ShutdownApplication(true).Wait();
-                }
-            });
-            threadGamepad.Priority = ThreadPriority.Highest;
-            threadGamepad.Start();
 
-            var threadGamepadVibration = new Thread(() =>
+                StartGamepadReading(gamepad).Wait();
+
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+            .AsAsyncAction()
+             .AsTask()
+             .ContinueWith((t) =>
+             {
+
+                 Logger.Write($"{nameof(Gamepad)}, {nameof(StartGamepadReading)}: ", t.Exception).Wait();
+                 SystemController.ShutdownApplication(true).Wait();
+
+             }, TaskContinuationOptions.OnlyOnFaulted);
+
+            Task.Factory.StartNew(() =>
             {
-                try
-                {
-                    StartGamepadVibration(gamepad).Wait();
-                }
-                catch (Exception exception)
-                {
-                    Logger.Write($"{nameof(Gamepad)}, {nameof(StartGamepadVibration)}: ", exception).Wait();
-                    SystemController.ShutdownApplication(true).Wait();
-                }
-            });
-            threadGamepadVibration.Priority = ThreadPriority.Highest;
-            threadGamepadVibration.Start();
+
+                StartGamepadVibration(gamepad).Wait();
+
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+             .AsAsyncAction()
+             .AsTask()
+             .ContinueWith((t) =>
+             {
+
+                 Logger.Write($"{nameof(Gamepad)}, {nameof(StartGamepadVibration)}: ", t.Exception).Wait();
+                 SystemController.ShutdownApplication(true).Wait();
+
+             }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         private async void GamepadRemoved(object sender, Gamepad gamepad)
@@ -182,7 +184,7 @@ namespace robot.sl.Devices
                     && !carControlCommand.DirectionControlDown))
                 {
                     _carStopped = false;
-                    
+
                     _motorController.MoveCar(null, carMoveCommand);
                     _servoController.MoveServo(carControlCommand);
                 }
@@ -282,7 +284,7 @@ namespace robot.sl.Devices
 
             _isGamepadReadingStopped = true;
         }
-        
+
         private async Task StartGamepadVibration(Gamepad gamepad)
         {
             _isGamepadVibrationStopped = false;
