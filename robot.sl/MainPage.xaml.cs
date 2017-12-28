@@ -28,7 +28,7 @@ namespace robot.sl
         private const int I2C_ADDRESS_SERVO = 56;
 
         private const int HEADSET_AUDIO_RENDER_VOLUME = 70;
-        private const int SPEAKER_AUDIO_RENDER_VOLUME = 70;
+        private const int SPEAKER_AUDIO_RENDER_VOLUME = 80;
         private const int HEADSET_AUDIO_CAPTURE_VOLUME = 50;
 
         public MainPage()
