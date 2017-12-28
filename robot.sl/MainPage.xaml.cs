@@ -103,7 +103,8 @@ namespace robot.sl
             {
                 await Logger.Write($"{nameof(MainPage)}, {nameof(Initialze)}: ", exception);
 
-                await SystemController.ShutdownApplication(true, false);
+                await Task.Delay(TimeSpan.FromSeconds(20));
+                await DeviceController.RestartDevice();
             }
         }
     }
