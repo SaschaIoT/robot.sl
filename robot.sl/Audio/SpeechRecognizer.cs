@@ -46,22 +46,22 @@ namespace robot.sl.Audio
 
         public void Start()
         {
-            var thread = new Thread(() =>
+            Task.Factory.StartNew(() =>
             {
-                try
-                {
-                    _speechRecognizer.ContinuousRecognitionSession.StartAsync().AsTask().Wait();
 
-                    _threadWaiter.WaitOne();
-                }
-                catch (Exception exception)
-                {
-                    Logger.Write(nameof(SpeechRecognition), exception).Wait();
-                    SystemController.ShutdownApplication(true).Wait();
-                }
-            });
-            thread.Priority = ThreadPriority.Highest;
-            thread.Start();
+                _speechRecognizer.ContinuousRecognitionSession.StartAsync().AsTask().Wait();
+                _threadWaiter.WaitOne();
+
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+             .AsAsyncAction()
+             .AsTask()
+             .ContinueWith((t) =>
+             {
+
+                 Logger.Write(nameof(SpeechRecognition), t.Exception).Wait();
+                 SystemController.ShutdownApplication(true).Wait();
+
+             }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         public async Task Stop()
@@ -74,7 +74,7 @@ namespace robot.sl.Audio
         private void StopInternal()
         {
             _isStopped = true;
-            
+
             _motorController.MoveCar(null, new CarMoveCommand
             {
                 Speed = 0
@@ -87,7 +87,7 @@ namespace robot.sl.Audio
 
         private async void ContinuousRecognitionSession_Completed(SpeechContinuousRecognitionSession speechContinousRecognationSession, SpeechContinuousRecognitionCompletedEventArgs speechContinuousRecognationCompletedEventArgs)
         {
-            if(_isStopped)
+            if (_isStopped)
             {
                 return;
             }
