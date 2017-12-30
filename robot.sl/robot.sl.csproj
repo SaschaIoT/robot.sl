@@ -137,6 +137,7 @@
     <Compile Include="Sensors\DistanceMeasurementSensor.cs" />
     <Compile Include="Sensors\SpeedSensor.cs" />
     <Compile Include="Helper\I2CSynchronousHelper.cs" />
+    <Compile Include="Sensors\UltrasonicMeasureList.cs" />
     <Compile Include="Web\HttpContentType.cs" />
     <Compile Include="Web\HttpServer.cs" />
     <Compile Include="Web\HttpServerRequest.cs" />

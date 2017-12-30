@@ -57,6 +57,10 @@ namespace robot.sl.Audio.AudioPlaying
                 else
                     await Task.Delay(sound.Duration, cancellationToken.Value);
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception exception)
             {
                 //Catch exception: The callee is currently not accepting further input. (Exception from HRESULT: 0xC00D36B5)
