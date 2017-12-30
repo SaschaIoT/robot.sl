@@ -1,126 +1,203 @@
-﻿using robot.sl.Exceptions;
-using robot.sl.Helper;
+﻿using robot.sl.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using Windows.Devices.Enumeration;
 using Windows.Devices.Gpio;
-using Windows.Devices.I2c;
+using Windows.Devices.SerialCommunication;
+using Windows.Storage.Streams;
 
 namespace robot.sl.Sensors
 {
-    /// <summary>
-    /// Ultrasonic distance sensor: I2CXL-MaxSonar- EZ MB1202
-    /// </summary>
     public class DistanceMeasurementSensor
     {
-        public class Measurement
+        private SerialDevice _serialPort = null;
+        private DataReader _dataReader = null;
+        private GpioPin _startStopPin = null;
+        public UltrasonicMeasureList UltrasonicMeasurements = new UltrasonicMeasureList();
+
+        private volatile bool _isStopped = true;
+        private volatile bool _isStopping = false;
+
+        const int READ_SERIAL_TIMEOUT_MILLISECONDS = 600;
+        const int MAX_READ_COUNT = 3;
+        const string SERIAL_DEVICE_NAME = "uart2";
+        const int SERIAL_DEVICE_GPIO_PIN = 1;
+        const int MEASURMENTS_COUNT = 2;
+        const int MEASUREMENT_LENGTH = 7;
+        const string MEASUREMENT_END_CHARACTER = "\r";
+
+        public async Task Initialize()
         {
-            public int DistanceInCm { get; set; }
-            public bool Error { get; set; }
-        }
-
-        private I2cDevice _distanceMeasurementSensor;
-        private GpioPin _pin;
-
-        public async Task Initialize(int i2cAddress)
-        {
-            var settings = new I2cConnectionSettings(i2cAddress);
-            settings.BusSpeed = I2cBusSpeed.FastMode;
-            settings.SharingMode = I2cSharingMode.Shared;
-            
-            var controller = await I2cController.GetDefaultAsync();
-            _distanceMeasurementSensor = controller.GetDevice(settings);
-
             var gpioController = GpioController.GetDefault();
-            _pin = gpioController.OpenPin(1);
-            _pin.SetDriveMode(GpioPinDriveMode.Input);
+            _startStopPin = gpioController.OpenPin(SERIAL_DEVICE_GPIO_PIN);
+            _startStopPin.SetDriveMode(GpioPinDriveMode.Output);
+            _startStopPin.Write(GpioPinValue.Low);
+
+            var serialDeviceSelector = SerialDevice.GetDeviceSelector();
+            var serialDevices = (await DeviceInformation.FindAllAsync(serialDeviceSelector)).ToList();
+
+            _serialPort = await SerialDevice.FromIdAsync(serialDevices.First(sd => sd.Id.ToLower().Contains(SERIAL_DEVICE_NAME)).Id);
+            _serialPort.ReadTimeout = TimeSpan.Zero;
+            _serialPort.BaudRate = 9600;
+            _serialPort.Parity = SerialParity.None;
+            _serialPort.StopBits = SerialStopBitCount.One;
+            _serialPort.DataBits = 8;
+
+            _dataReader = new DataReader(_serialPort.InputStream);
+            _dataReader.InputStreamOptions = InputStreamOptions.Partial;
         }
 
-        public void ChangeI2cAddress()
+        public async Task<int> GetDistanceInMillimeters()
         {
-            //Change the I2c Address of "I2CXL-MaxSonar- EZ MB1202" because his adrees is conflicting with the adress of
-            //"Adafruit 16-Channel PWM/Servo HAT for Raspberry Pi". The addresses of "I2CXL-MaxSonar- EZ MB1202" and
-            //"Adafruit 16-Channel PWM/Servo HAT for Raspberry Pi" are not the same, but it conflicting because the
-            //"Adafruit 16-Channel PWM/Servo HAT for Raspberry Pi" has a bug.
+            var last = UltrasonicMeasurements.GetLast();
 
-            I2CSynchronous.Call(() =>
+            while (last == null)
             {
-                _distanceMeasurementSensor.Write(new byte[] { 0xe0, 0xAA, 0xA5, 0x71 }); //0x71 is the 8 bit address of the I2c device
-            });
+                await Task.Delay(20);
+                last = UltrasonicMeasurements.GetLast();
+            }
+
+            var oldId = last.Id;
+
+            await Task.Delay(MEASURMENTS_COUNT * 100);
+
+            var current = UltrasonicMeasurements.GetLast();
+            while (current.Id == oldId)
+            {
+                await Task.Delay(20);
+                current = UltrasonicMeasurements.GetLast();
+            }
+
+            return current.DistanceInMillimeter;
         }
 
-        public async Task<int> ReadDistanceInCm(int countMesaurements)
+        public void Start()
         {
-            var measurements = new List<int>();
-            var errorCount = 0;
-            for (int measurementNumber = 0; measurementNumber < countMesaurements; measurementNumber++)
+            if (!_isStopped)
             {
-                var measurement = await ReadDistanceInCm();
+                return;
+            }
 
-                if (measurement.Error == false)
-                {
-                    measurements.Add(measurement.DistanceInCm);
-                }
-                else
-                {
-                    errorCount++;
-                    measurementNumber--;
+            _isStopped = false;
 
-                    if (errorCount == 5)
+            Measure();
+        }
+
+        public async void Measure()
+        {
+            _startStopPin.Write(GpioPinValue.High);
+
+            while (!_isStopping)
+            {
+                var ultrasonicMeasure = new Measurement();
+
+                try
+                {
+                    var readCount = 0;
+                    var readString = await ReadString(MEASUREMENT_LENGTH * MEASURMENTS_COUNT);
+                    var measurementMatches = Regex.Matches(readString, "R[0-9]{4}\r");
+
+                    while (measurementMatches.Count < MEASURMENTS_COUNT)
                     {
-                        throw new RobotSlException($"{nameof(DistanceMeasurementSensor)}, {nameof(ReadDistanceInCm)}: Exception: Distance measurement fails for than 5 times.");
+                        readString += await ReadString(MEASUREMENT_LENGTH);
+                        measurementMatches = Regex.Matches(readString, "R[0-9]{4}\r");
+
+                        readCount++;
+
+                        if (readCount >= (MAX_READ_COUNT * MEASURMENTS_COUNT))
+                        {
+                            await Logger.Write($"{nameof(DistanceMeasurementSensor)}, {nameof(Measure)}: To many measurements. Maximum read count reached.");
+                            SystemController.ShutdownApplication(true).Wait();
+                        }
                     }
+
+                    ultrasonicMeasure.DistanceInMillimeter = GetAverageDistance(measurementMatches);
+                }
+                catch (TaskCanceledException)
+                {
+                    await Logger.Write($"{nameof(DistanceMeasurementSensor)}, {nameof(Measure)}: Not receiving data from distance measurement sensor.");
+                    SystemController.ShutdownApplication(true).Wait();
+                }
+
+                UltrasonicMeasurements.Add(ultrasonicMeasure);
+                UltrasonicMeasurements.RemoveFirst();
+            }
+
+            _startStopPin.Write(GpioPinValue.Low);
+
+            _isStopped = true;
+        }
+
+        public async Task Stop()
+        {
+            if (_isStopped)
+            {
+                return;
+            }
+
+            _isStopping = true;
+
+            while (!_isStopped)
+            {
+                await Task.Delay(10);
+            }
+
+            _isStopping = false;
+        }
+
+        private async Task<string> ReadString(uint count)
+        {
+            var readBytes = await ReadBytes(count);
+            var readString = Encoding.ASCII.GetString(readBytes) ?? string.Empty;
+
+            return readString;
+        }
+
+        private async Task<byte[]> ReadBytes(uint count)
+        {
+            var readBytes = new List<byte>().ToArray();
+
+            var source = new CancellationTokenSource();
+            var bytesReadTask = _dataReader.LoadAsync(count).AsTask(source.Token);
+            source.CancelAfter(READ_SERIAL_TIMEOUT_MILLISECONDS * MEASURMENTS_COUNT);
+
+            var bytesRead = await bytesReadTask;
+            if (bytesRead > 0)
+            {
+                readBytes = new byte[bytesRead];
+                _dataReader.ReadBytes(readBytes);
+            }
+
+            return readBytes;
+        }
+
+        private int GetAverageDistance(MatchCollection distanceRawMatches)
+        {
+            var distance = 0;
+            var distances = new List<int>();
+
+            foreach (var distanceRawMatch in distanceRawMatches.Cast<Match>().Select(match => match.Value).ToList())
+            {
+                var distanceRaw = distanceRawMatch ?? string.Empty;
+
+                if (int.TryParse(distanceRaw.Substring(1).Replace(MEASUREMENT_END_CHARACTER, string.Empty), out distance))
+                {
+                    distances.Add(distance);
                 }
             }
 
-            return measurements.Min();
+            return Convert.ToInt32(distances.Average());
         }
+    }
 
-        public async Task<Measurement> ReadDistanceInCm()
-        {
-            var measurement = new Measurement();
-
-            try
-            {
-                byte[] range_highLowByte = new byte[2];
-
-                I2CSynchronous.Call(() =>
-                {
-                    //Call device measurement
-                    _distanceMeasurementSensor.Write(new byte[] { 0x51 });
-                });
-
-                //Wait device measured started
-                await Task.Delay(70);
-
-                //Wait device measurement has finished and I2C is ready
-                await WaitDistanceMeasurementSensorI2CIsReady();
-
-                I2CSynchronous.Call(() =>
-                {
-                    //Read measurement
-                    _distanceMeasurementSensor.WriteRead(new byte[] { 0xe1 }, range_highLowByte);
-                });
-
-                measurement.DistanceInCm = (range_highLowByte[0] * 256) + range_highLowByte[1];
-            }
-            catch (Exception exception)
-            {
-                measurement.Error = true;
-
-                await Logger.Write($"{nameof(DistanceMeasurementSensor)}, {nameof(ReadDistanceInCm)}: ", exception);
-            }
-
-            return measurement;
-        }
-
-        private async Task WaitDistanceMeasurementSensorI2CIsReady()
-        {
-            while(_pin.Read() != GpioPinValue.Low)
-            {
-                await Task.Delay(5);
-            }
-        }
+    public class Measurement
+    {
+        public Guid Id { get; } = Guid.NewGuid();
+        public int DistanceInMillimeter { get; set; }
     }
 }

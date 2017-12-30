@@ -24,9 +24,7 @@ namespace robot.sl
         private HttpServerController _httpServerController;
         private GamepadController _gamepadController;
         private SpeechRecognition _speechRecognation;
-
-        private const int I2C_ADDRESS_SERVO = 56;
-
+        
         private const int HEADSET_AUDIO_RENDER_VOLUME = 70;
         private const int SPEAKER_AUDIO_RENDER_VOLUME = 80;
         private const int HEADSET_AUDIO_CAPTURE_VOLUME = 50;
@@ -79,7 +77,7 @@ namespace robot.sl
                 await _servoController.Initialize();
 
                 _distanceMeasurementSensor = new DistanceMeasurementSensor();
-                await _distanceMeasurementSensor.Initialize(I2C_ADDRESS_SERVO);
+                await _distanceMeasurementSensor.Initialize();
 
                 _automaticDrive = new AutomaticDrive(_motorController, _servoController, _distanceMeasurementSensor);
 

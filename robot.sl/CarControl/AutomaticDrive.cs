@@ -9,7 +9,7 @@ namespace robot.sl.CarControl
 {
     public class AutomaticDrive
     {
-        private const int MIN_DETECTION_CM = 40;
+        private const int MIN_DETECTION_MILLIMETERS = 350;
 
         //Dependeny objects
         private MotorController _motorController;
@@ -90,6 +90,8 @@ namespace robot.sl.CarControl
                 return;
             }
 
+            _distanceMeasurementSensor.Start();
+
             _isStopped = false;
 
             Driving = null;
@@ -130,6 +132,8 @@ namespace robot.sl.CarControl
             _threadWaiter.Set();
 
             _isStopping = false;
+
+            await _distanceMeasurementSensor.Stop();
 
             if (speak)
                 await AudioPlayerController.Play(AudioName.StopAutomaticDrive);
@@ -194,28 +198,28 @@ namespace robot.sl.CarControl
                             if (_isStopping)
                                 break;
 
-                            await TurnLeft(700, cancellationToken, true);
+                            await TurnLeft(700, cancellationToken);
                         }
                         else if (freeDirection == FreeDirection.LeftMiddle)
                         {
                             if (_isStopping)
                                 break;
 
-                            await TurnLeft(350, cancellationToken, false);
+                            await TurnLeft(350, cancellationToken);
                         }
                         else if (freeDirection == FreeDirection.Right)
                         {
                             if (_isStopping)
                                 break;
 
-                            await TurnRight(700, cancellationToken, true);
+                            await TurnRight(700, cancellationToken);
                         }
                         else if (freeDirection == FreeDirection.RightMiddle)
                         {
                             if (_isStopping)
                                 break;
 
-                            await TurnRight(350, cancellationToken, false);
+                            await TurnRight(350, cancellationToken);
                         }
                         else if (freeDirection == FreeDirection.None)
                         {
@@ -244,7 +248,7 @@ namespace robot.sl.CarControl
             _isStopped = true;
         }
 
-        private async Task TurnRight(int milliseconds, CancellationToken cancellationToken, bool checkHang)
+        private async Task TurnRight(int milliseconds, CancellationToken cancellationToken)
         {
             var carMoveCommand = new CarMoveCommand
             {
@@ -255,12 +259,7 @@ namespace robot.sl.CarControl
             _motorController.MoveCar(null, carMoveCommand);
 
             await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
-
-            if (checkHang)
-            {
-                await CheckHang(cancellationToken);
-            }
-
+            
             carMoveCommand = new CarMoveCommand
             {
                 Speed = 0
@@ -295,7 +294,7 @@ namespace robot.sl.CarControl
             Driving = null;
         }
 
-        private async Task TurnLeft(int milliseconds, CancellationToken cancellationToken, bool checkHang)
+        private async Task TurnLeft(int milliseconds, CancellationToken cancellationToken)
         {
             var carMoveCommand = new CarMoveCommand
             {
@@ -306,12 +305,7 @@ namespace robot.sl.CarControl
             _motorController.MoveCar(null, carMoveCommand);
 
             await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
-
-            if (checkHang)
-            {
-                await CheckHang(cancellationToken);
-            }
-
+            
             carMoveCommand = new CarMoveCommand
             {
                 Speed = 0
@@ -362,7 +356,7 @@ namespace robot.sl.CarControl
                 await AudioPlayerController.PlayAndWaitAsync(AudioName.AutomatischesFahrenFesthaengen, cancellationToken);
 
                 await TurnBackward(1000, cancellationToken);
-                await TurnLeft(700, cancellationToken, false);
+                await TurnLeft(700, cancellationToken);
 
                 carMoveCommand = new CarMoveCommand
                 {
@@ -381,9 +375,9 @@ namespace robot.sl.CarControl
                 await Task.Delay(1000, cancellationToken);
             }
 
-            var currentDistance = await _distanceMeasurementSensor.ReadDistanceInCm(3);
+            var currentDistance = await _distanceMeasurementSensor.GetDistanceInMillimeters();
 
-            if (currentDistance > MIN_DETECTION_CM)
+            if (currentDistance > MIN_DETECTION_MILLIMETERS)
             {
                 _isForward = true;
                 return FreeDirection.Forward;
@@ -403,9 +397,9 @@ namespace robot.sl.CarControl
             //Left
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
             await Task.Delay(500, cancellationToken);
-            currentDistance = await _distanceMeasurementSensor.ReadDistanceInCm(3);
+            currentDistance = await _distanceMeasurementSensor.GetDistanceInMillimeters();
 
-            if (currentDistance > MIN_DETECTION_CM)
+            if (currentDistance > MIN_DETECTION_MILLIMETERS)
             {
                 return FreeDirection.Left;
             }
@@ -413,9 +407,9 @@ namespace robot.sl.CarControl
             //LeftMiddle
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeftMiddle);
             await Task.Delay(250, cancellationToken);
-            currentDistance = await _distanceMeasurementSensor.ReadDistanceInCm(3);
+            currentDistance = await _distanceMeasurementSensor.GetDistanceInMillimeters();
 
-            if (currentDistance > MIN_DETECTION_CM)
+            if (currentDistance > MIN_DETECTION_MILLIMETERS)
             {
                 return FreeDirection.LeftMiddle;
             }
@@ -423,9 +417,9 @@ namespace robot.sl.CarControl
             //RightMiddle
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalRightMiddle);
             await Task.Delay(250, cancellationToken);
-            currentDistance = await _distanceMeasurementSensor.ReadDistanceInCm(3);
+            currentDistance = await _distanceMeasurementSensor.GetDistanceInMillimeters();
 
-            if (currentDistance > MIN_DETECTION_CM)
+            if (currentDistance > MIN_DETECTION_MILLIMETERS)
             {
                 return FreeDirection.RightMiddle;
             }
@@ -433,9 +427,9 @@ namespace robot.sl.CarControl
             //Right
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalRight);
             await Task.Delay(250, cancellationToken);
-            currentDistance = await _distanceMeasurementSensor.ReadDistanceInCm(3);
+            currentDistance = await _distanceMeasurementSensor.GetDistanceInMillimeters();
 
-            if (currentDistance > MIN_DETECTION_CM)
+            if (currentDistance > MIN_DETECTION_MILLIMETERS)
             {
                 return FreeDirection.Right;
             }
