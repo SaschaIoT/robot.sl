@@ -27,7 +27,7 @@ namespace robot.sl.CarControl
             }
         }
 
-        private const double SPEED = 0.4;
+        private const double SPEED = 0.5;
 
         private bool _isForward = true;
 
