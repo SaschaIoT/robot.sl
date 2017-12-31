@@ -13,6 +13,9 @@ using Windows.Storage.Streams;
 
 namespace robot.sl.Sensors
 {
+    /// <summary>
+    /// Ultrasonic distance sensor: Maxbotix MB1013 HRLV-MaxSonar-EZ
+    /// </summary>
     public class DistanceMeasurementSensor
     {
         private SerialDevice _serialPort = null;
@@ -23,11 +26,11 @@ namespace robot.sl.Sensors
         private volatile bool _isStopped = true;
         private volatile bool _isStopping = false;
 
-        const int READ_SERIAL_TIMEOUT_MILLISECONDS = 600;
-        const int MAX_READ_COUNT = 3;
+        const int READ_SERIAL_TIMEOUT_MILLISECONDS = 1500;
+        const int MAX_READ_COUNT = 5;
         const string SERIAL_DEVICE_NAME = "uart2";
         const int SERIAL_DEVICE_GPIO_PIN = 1;
-        const int MEASURMENTS_COUNT = 2;
+        const int MEASURMENTS_COUNT = 1;
         const int MEASUREMENT_LENGTH = 7;
         const string MEASUREMENT_END_CHARACTER = "\r";
 
