@@ -10,6 +10,7 @@ namespace robot.sl.CarControl
     public class AutomaticDrive
     {
         private const int MIN_DETECTION_MILLIMETERS = 350;
+        private ForwardDirection _forwardDirection = ForwardDirection.LeftMiddle;
 
         //Dependeny objects
         private MotorController _motorController;
@@ -26,7 +27,7 @@ namespace robot.sl.CarControl
             }
         }
 
-        private const double SPEED = 0.6;
+        private const double SPEED = 0.4;
 
         private bool _isForward = true;
 
@@ -259,7 +260,7 @@ namespace robot.sl.CarControl
             _motorController.MoveCar(null, carMoveCommand);
 
             await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
-            
+
             carMoveCommand = new CarMoveCommand
             {
                 Speed = 0
@@ -305,7 +306,7 @@ namespace robot.sl.CarControl
             _motorController.MoveCar(null, carMoveCommand);
 
             await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
-            
+
             carMoveCommand = new CarMoveCommand
             {
                 Speed = 0
@@ -369,10 +370,43 @@ namespace robot.sl.CarControl
 
         private async Task<FreeDirection> GetFreeDirection(CancellationToken cancellationToken)
         {
-            if (!_isForward)
+            if (_isForward == false)
             {
+                _forwardDirection = ForwardDirection.ForwardThenRightMiddle;
+
                 _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalMiddle);
                 await Task.Delay(1000, cancellationToken);
+            }
+            else
+            {
+                if (_forwardDirection == ForwardDirection.LeftMiddle)
+                {
+                    _forwardDirection = ForwardDirection.ForwardThenRightMiddle;
+
+                    _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeftMiddle);
+                    await Task.Delay(250, cancellationToken);
+                }
+                else if (_forwardDirection == ForwardDirection.ForwardThenLeftMiddle)
+                {
+                    _forwardDirection = ForwardDirection.LeftMiddle;
+
+                    _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalMiddle);
+                    await Task.Delay(250, cancellationToken);
+                }
+                else if (_forwardDirection == ForwardDirection.ForwardThenRightMiddle)
+                {
+                    _forwardDirection = ForwardDirection.RightMiddle;
+
+                    _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalMiddle);
+                    await Task.Delay(250, cancellationToken);
+                }
+                else if (_forwardDirection == ForwardDirection.RightMiddle)
+                {
+                    _forwardDirection = ForwardDirection.ForwardThenLeftMiddle;
+
+                    _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalRightMiddle);
+                    await Task.Delay(250, cancellationToken);
+                }
             }
 
             var currentDistance = await _distanceMeasurementSensor.GetDistanceInMillimeters();
@@ -394,9 +428,15 @@ namespace robot.sl.CarControl
 
             Driving = null;
 
+            var timeLeft = 500;
+            if (_forwardDirection == ForwardDirection.LeftMiddle)
+                timeLeft = 250;
+            else if (_forwardDirection == ForwardDirection.RightMiddle)
+                timeLeft = 750;
+
             //Left
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
-            await Task.Delay(500, cancellationToken);
+            await Task.Delay(timeLeft, cancellationToken);
             currentDistance = await _distanceMeasurementSensor.GetDistanceInMillimeters();
 
             if (currentDistance > MIN_DETECTION_MILLIMETERS)
@@ -436,5 +476,13 @@ namespace robot.sl.CarControl
 
             return FreeDirection.None;
         }
+    }
+
+    public enum ForwardDirection
+    {
+        ForwardThenLeftMiddle = 0,
+        ForwardThenRightMiddle = 1,
+        LeftMiddle = 2,
+        RightMiddle = 3
     }
 }
