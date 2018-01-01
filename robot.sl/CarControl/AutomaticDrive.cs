@@ -9,7 +9,7 @@ namespace robot.sl.CarControl
 {
     public class AutomaticDrive
     {
-        private const int MIN_DETECTION_MILLIMETERS = 350;
+        private const int MIN_DETECTION_MILLIMETERS = 400;
         private ForwardDirection _forwardDirection = ForwardDirection.LeftMiddle;
 
         //Dependeny objects

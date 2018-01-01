@@ -20,7 +20,7 @@ namespace robot.sl.Sensors
         {
             get
             {
-                return RoundsPerMinute >= 3;
+                return RoundsPerMinute >= 1;
             }
         }
         private static int _downsUps = 0;
