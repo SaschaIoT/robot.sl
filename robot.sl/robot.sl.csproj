@@ -211,6 +211,8 @@
     <Content Include="Web\Images\setting-icon%4030x30.png" />
     <Content Include="Web\Images\tachometer%4024x24.png" />
     <Content Include="Web\JavaScript\FullScreenAPI.js" />
+    <Content Include="Web\JavaScript\PreloadImagesDesktop.js" />
+    <Content Include="Web\JavaScript\PreloadImagesMobile.js" />
     <Content Include="Web\JavaScript\ServerVideoFrameRate.js" />
     <Content Include="Web\JavaScript\Camera.js" />
     <Content Include="Web\JavaScript\CarControlCommandDesktop.js" />

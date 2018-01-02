@@ -256,19 +256,10 @@ a {
     font-family: Verdana, Geneva, sans-serif;
     font-size: 30px;
     color: rgb(204, 40, 40);
-    background-image: url("../Images/latency-lost@64x64.png");
-    background-repeat: no-repeat;
-    background-position: right center;
 }
 
 .latency-lost-hide {
     display: none;
-}
-
-/* Preload images */
-body:after {
-    display: none;
-    content: url("../Images/setting-icon@30x30.png") url("../Images/arrow-left@64x64.png") url("../Images/arrow-left-pressed@64x64.png") url("../Images/arrow-right@64x64.png") url("../Images/arrow-right-pressed@64x64.png") url("../Images/arrow-up@64x64.png") url("../Images/arrow-up-pressed@64x64.png") url("../Images/arrow-bottom@64x64.png") url("../Images/arrow-bottom-pressed@64x64.png") url("../Images/automatic-drive@64x64.png") url("../Images/automatic-drive-active@64x64.png") url("../Images/fullscreen@64x64.png") url("../Images/fullscreen-active@64x64.png") url("../Images/latency@24x24.png") url("../Images/latency-lost@64x64.png") url("../Images/tachometer@24x24.png") url(../Images/audio_volume_high@24x24.png) url(../Images/audio_volume_mute@24x24.png) url(../Images/close@24x24.png) url(../Images/reload@24x24.png);
 }
 
 .speed-color {
@@ -416,4 +407,8 @@ body:after {
 
 .setting-menu-container {
     z-index: 50;
+}
+
+.latency-lost-image {
+    vertical-align: middle;
 }

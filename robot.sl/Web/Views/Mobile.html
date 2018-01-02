@@ -25,12 +25,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <title>robot.sl</title>
 
+    <script src="http://192.168.0.101/JavaScript/PreloadImagesMobile.js"></script>
     <link rel="stylesheet" href="http://192.168.0.101/Styles/Mobile.css">
 </head>
 <body oncontextmenu="return false;">
     <img id="streamWebCam" src="">
     <div id="latencyLost" class="latency-lost latency-lost-hide">
-        Keine Verbindung
+        <span>Keine Verbindung </span><img src="http://192.168.0.101/Images/latency-lost@64x64.png" class="latency-lost-image" />
     </div>
     <div id="latency-status-color" class="latency">
         <div class="latency-image"></div>
