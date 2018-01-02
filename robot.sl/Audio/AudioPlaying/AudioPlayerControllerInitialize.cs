@@ -65,6 +65,10 @@ namespace robot.sl.Audio.AudioPlaying
             await AddAudioFile(AudioName.LeichtLinks, "Leicht Links");
             //Leicht Rechts
             await AddAudioFile(AudioName.LeichtRechts, "Leicht Rechts");
+            //Ganz leicht Links
+            await AddAudioFile(AudioName.GanzLeichtLinks, "Ganz leicht Links");
+            //Ganz leicht Rechts
+            await AddAudioFile(AudioName.GanzLeichtRechts, "Ganz leicht Rechts");
             //Langsam
             await AddAudioFile(AudioName.Langsam, "Langsam");
             //Normal
@@ -73,8 +77,8 @@ namespace robot.sl.Audio.AudioPlaying
             await AddAudioFile(AudioName.Schnell, "Schnell");
             //Tanzen
             await AddAudioFile(AudioName.Tanzen, "Tanzen");
-            var steuerungsbefehle = "Folgende Steuerungsbefehle sind möglich: Vor, Zurück, Links, Rechts, Stop, Wenden, Leicht Links, Leicht Rechts, Langsam, Normal, Schnell, Tanzen, Kamera hoch, Kamera leicht hoch, Kamera runter, Kamera leicht runter, Aktivire automatisches Fahren und Deaktivire automatisches Fahren, ";
-            var systembefehle = "Folgende Systembefehle sind möglich: Befehl, Steuerungsbefehle, Systembefehle, Aktivire Lautsprecher, Deaktivire Lautsprecher, Aktivire Headset Lautsprecher, Deaktivire Headset Lautsprecher, Aktivire Fahrzeug Lautsprecher, Deaktivere Fahrzeug Lautsprecher, Lautsprecher und Sound Modus, Aktivire Sound Modus und Deaktivire Sound Modus";
+            var steuerungsbefehle = "Folgende Steuerungsbefehle sind möglich: vor, zurück, links, rechts, stop, wenden, leicht links, leicht rechts, ganz leicht links, ganz leicht rechts, langsam, normal, schnell, Tanzen, Kamera hoch, Kamera runter, Kamera leicht hoch, Kamera leicht runter, Aktiviere automatisches Fahren und deaktiviere automatisches Fahren, ";
+            var systembefehle = "Folgende Systembefehle sind möglich: Befehl, Steuerungsbefehle, Systembefehle, aktiviere Lautsprecher, deaktiviere Lautsprecher, aktiviere Headset Lautsprecher, deaktiviere Headset Lautsprecher, aktiviere Fahrzeug Lautsprecher, deaktiviere Fahrzeug Lautsprecher, aktiviere Sound Modus und deaktiviere Sound Modus";
             //Befehl
             await AddAudioFile(AudioName.Befehl, steuerungsbefehle + systembefehle);
             //Steuerungsbefehle
