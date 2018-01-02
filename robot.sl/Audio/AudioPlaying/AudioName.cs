@@ -11,6 +11,8 @@
         Wenden,
         LeichtLinks,
         LeichtRechts,
+        GanzLeichtLinks,
+        GanzLeichtRechts,
         Langsam,
         Normal,
         Schnell,

@@ -237,6 +237,28 @@ namespace robot.sl.Audio
                     case "Lautsprecher und Sound Modus":
                         await AudioPlayerController.PlaySpeakerOnOffSoundMode();
                         break;
+                    case "Ganz leicht links":
+                        await AudioPlayerController.Play(AudioName.GanzLeichtLinks);
+                        _motorController.MoveCar(null, new CarMoveCommand
+                        {
+                            LeftCircle = true,
+                            ForwardBackward = _recognationForwardBackward,
+                            Speed = 1
+                        });
+                        await Task.Delay(TimeSpan.FromMilliseconds(175));
+                        RecognationForwardBackwardStop();
+                        break;
+                    case "Ganz leicht rechts":
+                        await AudioPlayerController.Play(AudioName.GanzLeichtRechts);
+                        _motorController.MoveCar(null, new CarMoveCommand
+                        {
+                            RightCircle = true,
+                            ForwardBackward = _recognationForwardBackward,
+                            Speed = 1
+                        });
+                        await Task.Delay(TimeSpan.FromMilliseconds(175));
+                        RecognationForwardBackwardStop();
+                        break;
                 }
 
                 if (recognation != "Starte Dich neu"
