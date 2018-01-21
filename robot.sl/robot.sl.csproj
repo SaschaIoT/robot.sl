@@ -134,7 +134,8 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sensors\AccelerometerGyroscopeSensor.cs" />
-    <Compile Include="Sensors\DistanceMeasurementSensor.cs" />
+    <Compile Include="Sensors\DistanceSensorLaser.cs" />
+    <Compile Include="Sensors\DistanceSensorUltrasonic.cs" />
     <Compile Include="Sensors\SpeedSensor.cs" />
     <Compile Include="Helper\I2CSynchronousHelper.cs" />
     <Compile Include="Sensors\UltrasonicMeasureList.cs" />

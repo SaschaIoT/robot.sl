@@ -24,32 +24,32 @@ namespace robot.sl.Audio.AudioPlaying
             _stopped = true;
         }
 
-        public static async Task Play(AudioName AudioPlayerAudioName, double? headsetGain, double? speakerGain)
+        public static async Task PlayAsync(AudioName AudioPlayerAudioName, double? headsetGain, double? speakerGain)
         {
-            await Play(AudioPlayerAudioName, headsetGain, speakerGain, false, null);
+            await PlayAsync(AudioPlayerAudioName, headsetGain, speakerGain, false, null);
         }
         
         public static async Task PlayAndWaitAsync(AudioName AudioPlayerAudioName, double? headsetGain, double? speakerGain)
         {
-            await Play(AudioPlayerAudioName, headsetGain, speakerGain, true, null);
+            await PlayAsync(AudioPlayerAudioName, headsetGain, speakerGain, true, null);
         }
 
-        public static async Task Play(AudioName AudioPlayerAudioName)
+        public static async Task PlayAsync(AudioName AudioPlayerAudioName)
         {
-            await Play(AudioPlayerAudioName, null, null, false, null);
+            await PlayAsync(AudioPlayerAudioName, null, null, false, null);
         }
 
         public static async Task PlayAndWaitAsync(AudioName AudioPlayerAudioName, CancellationToken cancellationToken)
         {
-            await Play(AudioPlayerAudioName, null, null, true, cancellationToken);
+            await PlayAsync(AudioPlayerAudioName, null, null, true, cancellationToken);
         }
 
         public static async Task PlayAndWaitAsync(AudioName AudioPlayerAudioName)
         {
-            await Play(AudioPlayerAudioName, null, null, true, null);
+            await PlayAsync(AudioPlayerAudioName, null, null, true, null);
         }
         
-        private static async Task Play(AudioName audioName, double? headsetGain, double? speakerGain, bool wait, CancellationToken? cancellationToken)
+        private static async Task PlayAsync(AudioName audioName, double? headsetGain, double? speakerGain, bool wait, CancellationToken? cancellationToken)
         {
             var speakerOnOff = GetSpeakerOnOff(audioName);
 
@@ -66,8 +66,8 @@ namespace robot.sl.Audio.AudioPlaying
             if (speakerOnOff.CarSpeakerOn
                 && speakerOnOff.HeadsetSpeakerOn)
             {
-                var headsetSpeaker = _headsetSpeaker.Play(EnumHelper.GetName(audioName), headsetGain.Value, cancellationToken);
-                var carSpeaker = _carSpeaker.Play(EnumHelper.GetName(audioName), speakerGain.Value, cancellationToken);
+                var headsetSpeaker = _headsetSpeaker.PlayAsync(EnumHelper.GetName(audioName), headsetGain.Value, cancellationToken);
+                var carSpeaker = _carSpeaker.PlayAsync(EnumHelper.GetName(audioName), speakerGain.Value, cancellationToken);
 
                 if (wait)
                 {
@@ -76,7 +76,7 @@ namespace robot.sl.Audio.AudioPlaying
             }
             else if (speakerOnOff.CarSpeakerOn)
             {
-                var carSpeaker = _carSpeaker.Play(EnumHelper.GetName(audioName), speakerGain.Value, cancellationToken);
+                var carSpeaker = _carSpeaker.PlayAsync(EnumHelper.GetName(audioName), speakerGain.Value, cancellationToken);
 
                 if (wait)
                 {
@@ -85,7 +85,7 @@ namespace robot.sl.Audio.AudioPlaying
             }
             else if (speakerOnOff.HeadsetSpeakerOn)
             {
-                var headesetSpeaker = _headsetSpeaker.Play(EnumHelper.GetName(audioName), headsetGain.Value, cancellationToken);
+                var headesetSpeaker = _headsetSpeaker.PlayAsync(EnumHelper.GetName(audioName), headsetGain.Value, cancellationToken);
 
                 if (wait)
                 {

@@ -27,7 +27,7 @@ namespace robot.sl.Helper
 
         public static IFormatProvider Culture { get; private set; }
 
-        public static void Initialize(AccelerometerGyroscopeSensor accelerometerSensor,
+        public static void InitializeAsync(AccelerometerGyroscopeSensor accelerometerSensor,
                                       AutomaticSpeakController automaticSpeakController,
                                       MotorController motorController,
                                       ServoController servoController,
@@ -50,7 +50,7 @@ namespace robot.sl.Helper
             _initialized = true;
         }
 
-        public static async Task StopAll()
+        public static async Task StopAllAsync()
         {
             if (!_initialized)
             {
@@ -60,16 +60,16 @@ namespace robot.sl.Helper
             var stopTask = Task.Run(async () =>
             {
                 _httpServerController.Stop();
-                await _camera.Stop();
-                await _gamepadController.Stop();
-                await _speechRecognation.Stop();
-                await _automaticDrive.Stop(false);
+                await _camera.StopAsync();
+                await _gamepadController.StopAsync();
+                await _speechRecognation.StopAsync();
+                await _automaticDrive.StopAsync(false);
                 _servoController.Stop();
                 _motorController.Stop();
-                await _automaticSpeakController.Stop();
-                await _accelerometerSensor.Stop();
+                await _automaticSpeakController.StopAsync();
+                await _accelerometerSensor.StopAsync();
                 AudioPlayerController.Stop();
-                await SpeedSensor.Stop();
+                await SpeedSensor.StopAsync();
 
                 ShutdownMotorsServos();
             });
@@ -78,7 +78,7 @@ namespace robot.sl.Helper
 
             if (timeoutTask == await Task.WhenAny(stopTask, timeoutTask))
             {
-                await Logger.Write($"{nameof(SystemController)}, {nameof(StopAll)}: Could not completely stop application before closing.");
+                await Logger.WriteAsync($"{nameof(SystemController)}, {nameof(StopAllAsync)}: Could not completely stop application before closing.");
             }
         }
 
@@ -99,59 +99,59 @@ namespace robot.sl.Helper
             _motorController.GetMotor(4).Run(MotorAction.RELEASE);
         }
 
-        public static async Task Shutdown()
+        public static async Task ShutdownAsync()
         {
             if (!_initialized)
             {
                 return;
             }
 
-            var stopAll = StopAll();
+            var stopAll = StopAllAsync();
             var shutdownSound = AudioPlayerController.PlayAndWaitAsync(AudioName.Shutdown);
 
             await Task.WhenAll(new[] { stopAll, shutdownSound });
 
-            await DeviceController.ShutdownDevice();
+            await DeviceController.ShutdownDeviceAsync();
         }
 
-        public static async Task Restart()
+        public static async Task RestartAsync()
         {
             if (!_initialized)
             {
                 return;
             }
 
-            await StopAll();
+            await StopAllAsync();
             await AudioPlayerController.PlayAndWaitAsync(AudioName.Restart);
-            await DeviceController.RestartDevice();
+            await DeviceController.RestartDeviceAsync();
         }
 
-        public static async Task SetDefaultRenderDeviceVolume(int volume)
+        public static async Task SetDefaultRenderDeviceVolumeAsync(int volume)
         {
-            await AudioDeviceController.SetDefaultRenderDeviceVolume(volume);
+            await AudioDeviceController.SetDefaultRenderDeviceVolumeAsync(volume);
         }
 
-        public static async Task SetDefaultCaptureDeviceVolume(int volume)
+        public static async Task SetDefaultCaptureDeviceVolumeAsync(int volume)
         {
-            await AudioDeviceController.SetDefaultCaptureDeviceVolume(volume);
+            await AudioDeviceController.SetDefaultCaptureDeviceVolumeAsync(volume);
         }
 
-        public static async Task SetDefaultRenderDevice(string renderDeviceName)
+        public static async Task SetDefaultRenderDeviceAsync(string renderDeviceName)
         {
-            await AudioDeviceController.SetDefaultRenderDevice(renderDeviceName);
+            await AudioDeviceController.SetDefaultRenderDeviceAsync(renderDeviceName);
         }
 
-        public static async Task SetDefaultCaptureDevice(string captureDeviceName)
+        public static async Task SetDefaultCaptureDeviceAsync(string captureDeviceName)
         {
-            await AudioDeviceController.SetDefaultCaptureDevice(captureDeviceName);
+            await AudioDeviceController.SetDefaultCaptureDeviceAsync(captureDeviceName);
         }
 
-        public static async Task ShutdownApplication(bool unhandeledException)
+        public static async Task ShutdownApplicationAsync(bool unhandeledException)
         {
-            await ShutdownApplication(unhandeledException, true);
+            await ShutdownApplicationAsync(unhandeledException, true);
         }
 
-        public static async Task ShutdownApplication(bool unhandeledException, bool stopAll)
+        public static async Task ShutdownApplicationAsync(bool unhandeledException, bool stopAll)
         {
             if (unhandeledException)
             {
@@ -165,7 +165,7 @@ namespace robot.sl.Helper
             try
             {
                 if(stopAll)
-                    await StopAll();
+                    await StopAllAsync();
             }
             catch (Exception) { }
 

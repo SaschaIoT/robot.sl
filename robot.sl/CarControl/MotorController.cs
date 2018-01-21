@@ -127,7 +127,7 @@ namespace robot.sl.CarControl
             };
 
             PwmController = new PwmController(i2cAddress);
-            await PwmController.Initialize();
+            await PwmController.InitializeAsync();
             PwmController.SetDesiredFrequency(_frequency);
 
             MoveCar(null, new CarMoveCommand

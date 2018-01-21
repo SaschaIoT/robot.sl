@@ -32,7 +32,7 @@ namespace robot.sl
         {
             try
             {
-                SystemController.StopAll().Wait();
+                SystemController.StopAllAsync().Wait();
             }
             catch (Exception) { }
         }
@@ -41,14 +41,14 @@ namespace robot.sl
         {
             try
             {
-                var task = Task.Run(async () => await Logger.Write(nameof(App), eventArgs.Exception));
+                var task = Task.Run(async () => await Logger.WriteAsync(nameof(App), eventArgs.Exception));
                 task.Wait();
             }
             catch (Exception) { }
 
             try
             {
-                var task = Task.Run(async () => await SystemController.StopAll());
+                var task = Task.Run(async () => await SystemController.StopAllAsync());
                 task.Wait();
             }
             catch (Exception) { }

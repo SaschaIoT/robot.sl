@@ -19,10 +19,10 @@ namespace robot.sl.CarControl
             _isStopped = true;
         }
 
-        public async Task Initialize()
+        public async Task InitializeAsync()
         {
             PwmController = new PwmController(0x41);
-            await PwmController.Initialize();
+            await PwmController.InitializeAsync();
             PwmController.SetDesiredFrequency(50);
 
             PwmController.SetPwm(Servo.CameraHorizontal, 0, ServoPositions.CameraHorizontalMiddle);

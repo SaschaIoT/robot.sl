@@ -32,7 +32,7 @@ namespace robot.sl.Web
                                              servoController,
                                              automaticDrive,
                                              camera);
-                _httpServer.Start();
+                _httpServer.StartAsync();
                 _threadWaiter.WaitOne();
 
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
@@ -41,8 +41,8 @@ namespace robot.sl.Web
              .ContinueWith((t) =>
              {
 
-                 Logger.Write(nameof(HttpServerController), t.Exception).Wait();
-                 SystemController.ShutdownApplication(true).Wait();
+                 Logger.WriteAsync(nameof(HttpServerController), t.Exception).Wait();
+                 SystemController.ShutdownApplicationAsync(true).Wait();
 
              }, TaskContinuationOptions.OnlyOnFaulted);
         }
@@ -95,7 +95,7 @@ namespace robot.sl.Web
             _isStopped = true;
         }
 
-        public async void Start()
+        public async void StartAsync()
         {
             await _listener.BindServiceNameAsync(80.ToString());
         }
@@ -112,10 +112,10 @@ namespace robot.sl.Web
                 var socket = eventArgs.Socket;
 
                 //Read request
-                var request = await ReadRequest(socket);
+                var request = await ReadRequestAsync(socket);
 
                 //Write Response
-                await WriteResponse(request, socket);
+                await WriteResponseAsync(request, socket);
 
                 socket.InputStream.Dispose();
                 socket.OutputStream.Dispose();
@@ -125,7 +125,7 @@ namespace robot.sl.Web
             catch (Exception) { }
         }
 
-        private async Task<HttpServerRequest> ReadRequest(StreamSocket socket)
+        private async Task<HttpServerRequest> ReadRequestAsync(StreamSocket socket)
         {
             var request = string.Empty;
             var error = false;
@@ -152,7 +152,7 @@ namespace robot.sl.Web
             return new HttpServerRequest(request, error);
         }
 
-        private async Task WriteResponse(HttpServerRequest request, StreamSocket socket)
+        private async Task WriteResponseAsync(HttpServerRequest request, StreamSocket socket)
         {
             var outputStream = socket.OutputStream;
 
@@ -193,7 +193,7 @@ namespace robot.sl.Web
                 }
                 else
                 {
-                    await _automaticDrive.Stop();
+                    await _automaticDrive.StopAsync();
                 }
 
                 HttpServerResponse.WriteResponseOk(outputStream);
@@ -202,61 +202,61 @@ namespace robot.sl.Web
             //Set all speaker on
             else if (request.Url.StartsWith("/speakeronoff?on=true", StringComparison.OrdinalIgnoreCase))
             {
-                await AudioPlayerController.SetAllSpeakerOnOff(true);
+                await AudioPlayerController.SetAllSpeakerOnOffAsync(true);
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Set all speaker off
             else if (request.Url.StartsWith("/speakeronoff?on=false", StringComparison.OrdinalIgnoreCase))
             {
-                await AudioPlayerController.SetAllSpeakerOnOff(false);
+                await AudioPlayerController.SetAllSpeakerOnOffAsync(false);
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Set car speaker on
             else if (request.Url.StartsWith("/carspeakeronoff?on=true", StringComparison.OrdinalIgnoreCase))
             {
-                await AudioPlayerController.SetCarSpeakerOnOff(true);
+                await AudioPlayerController.SetCarSpeakerOnOffAsync(true);
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Set car speaker off
             else if (request.Url.StartsWith("/carspeakeronoff?on=false", StringComparison.OrdinalIgnoreCase))
             {
-                await AudioPlayerController.SetCarSpeakerOnOff(false);
+                await AudioPlayerController.SetCarSpeakerOnOffAsync(false);
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Set headset speaker on
             else if (request.Url.StartsWith("/headsetspeakeronoff?on=true", StringComparison.OrdinalIgnoreCase))
             {
-                await AudioPlayerController.SetHeadsetSpeakerOnOff(true);
+                await AudioPlayerController.SetHeadsetSpeakerOnOffAsync(true);
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Set headset speaker off
             else if (request.Url.StartsWith("/headsetspeakeronoff?on=false", StringComparison.OrdinalIgnoreCase))
             {
-                await AudioPlayerController.SetHeadsetSpeakerOnOff(false);
+                await AudioPlayerController.SetHeadsetSpeakerOnOffAsync(false);
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Set sound mode on
             else if (request.Url.StartsWith("/soundmodeonoff?on=true", StringComparison.OrdinalIgnoreCase))
             {
-                await AudioPlayerController.SetSoundModeOnOff(true);
+                await AudioPlayerController.SetSoundModeOnOffAsync(true);
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Set sound mode off
             else if (request.Url.StartsWith("/soundmodeonoff?on=false", StringComparison.OrdinalIgnoreCase))
             {
-                await AudioPlayerController.SetSoundModeOnOff(false);
+                await AudioPlayerController.SetSoundModeOnOffAsync(false);
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Shutdown Windows
             else if (request.Url.StartsWith("/ausschalten", StringComparison.OrdinalIgnoreCase))
             {
-                await SystemController.Shutdown();
+                await SystemController.ShutdownAsync();
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Restart Windows
             else if (request.Url.StartsWith("/neustarten", StringComparison.OrdinalIgnoreCase))
             {
-                await SystemController.Restart();
+                await SystemController.RestartAsync();
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Get log file
@@ -275,7 +275,7 @@ namespace robot.sl.Web
             //Delete log file
             else if (request.Url.StartsWith("/deletelog", StringComparison.OrdinalIgnoreCase))
             {
-                await Logger.Delete();
+                await Logger.DeleteAsync();
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
             //Get camera frame
@@ -284,7 +284,7 @@ namespace robot.sl.Web
                 if (_camera.Frame != null)
                 {
                     var webSocket = new WebSocket(socket, request, _camera, _motorController, _servoController, _automaticDrive);
-                    await webSocket.Start();
+                    await webSocket.StartAsync();
                 }
                 else
                 {
@@ -295,7 +295,7 @@ namespace robot.sl.Web
             else if (request.Url.StartsWith("/controller", StringComparison.OrdinalIgnoreCase))
             {
                 var webSocket = new WebSocket(socket, request, _camera, _motorController, _servoController, _automaticDrive);
-                await webSocket.Start();
+                await webSocket.StartAsync();
             }
             //Get desktop html view
             else if (request.Url.StartsWith("/desktop", StringComparison.OrdinalIgnoreCase))

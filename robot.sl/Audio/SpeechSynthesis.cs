@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Media.Playback;
 using Windows.Media.SpeechSynthesis;
 
 namespace robot.sl.Audio
@@ -19,7 +18,7 @@ namespace robot.sl.Audio
             _speechSynthesizer.Voice = info;
         }
 
-        public static async Task<SpeechSynthesisStream> SpeakAsStream(string speechText)
+        public static async Task<SpeechSynthesisStream> SpeakAsStreamAsync(string speechText)
         {
             var speechStream = await _speechSynthesizer.SynthesizeTextToStreamAsync(speechText);
             return speechStream;

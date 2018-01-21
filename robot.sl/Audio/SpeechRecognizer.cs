@@ -24,7 +24,7 @@ namespace robot.sl.Audio
 
         private ManualResetEvent _threadWaiter = new ManualResetEvent(false);
 
-        public async Task Initialze(MotorController motorController,
+        public async Task InitialzeAsync(MotorController motorController,
                                     ServoController servoController,
                                     AutomaticDrive automaticDrive)
         {
@@ -58,13 +58,13 @@ namespace robot.sl.Audio
              .ContinueWith((t) =>
              {
 
-                 Logger.Write(nameof(SpeechRecognition), t.Exception).Wait();
-                 SystemController.ShutdownApplication(true).Wait();
+                 Logger.WriteAsync(nameof(SpeechRecognition), t.Exception).Wait();
+                 SystemController.ShutdownApplicationAsync(true).Wait();
 
              }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        public async Task Stop()
+        public async Task StopAsync()
         {
             StopInternal();
             await _speechRecognizer.ContinuousRecognitionSession.StopAsync();
@@ -92,7 +92,7 @@ namespace robot.sl.Audio
                 return;
             }
 
-            await Logger.Write($"SpeechRecognizer ContinousRecognationSession completed {speechContinuousRecognationCompletedEventArgs.Status}");
+            await Logger.WriteAsync($"SpeechRecognizer ContinousRecognationSession completed {speechContinuousRecognationCompletedEventArgs.Status}");
             await _speechRecognizer.ContinuousRecognitionSession.StartAsync();
         }
     }
