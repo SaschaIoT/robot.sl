@@ -18,16 +18,22 @@ namespace robot.sl
         private AutomaticSpeakController _automaticSpeakController;
         private MotorController _motorController;
         private ServoController _servoController;
-        private DistanceMeasurementSensor _distanceMeasurementSensor;
+        private DistanceSensorUltrasonic _distanceSensorUltrasonic;
         private AutomaticDrive _automaticDrive;
         private Camera _camera;
         private HttpServerController _httpServerController;
         private GamepadController _gamepadController;
         private SpeechRecognition _speechRecognation;
-        
+        private DistanceSensorLaser _distanceSensorLaserDown;
+        private DistanceSensorLaser _distanceSensorLaserUp;
+
         private const int HEADSET_AUDIO_RENDER_VOLUME = 70;
         private const int SPEAKER_AUDIO_RENDER_VOLUME = 80;
         private const int HEADSET_AUDIO_CAPTURE_VOLUME = 50;
+
+        private const int DISTANCE_SENSOR_LASER_UP_SHDN_PIN = 2;
+        private const int DISTANCE_SENSOR_LASER_DEFAULT_DEVICE_ADDRESS = 0x29;
+        private const int DISTANCE_SENSOR_LASER_DOWN_DEVICE_ADDRESS = 0x30;
 
         public MainPage()
         {
@@ -38,34 +44,47 @@ namespace robot.sl
 
         private async void PageLoaded(object sender, RoutedEventArgs eventArgs)
         {
-            await Initialze();
+            await InitialzeAsync();
         }
 
-        private async Task Initialze()
+        private async Task InitialzeAsync()
         {
             try
             {
-                await SystemController.SetDefaultRenderDevice(DeviceNameHelper.SpeakerRenderDevice);
-                await SystemController.SetDefaultRenderDeviceVolume(SPEAKER_AUDIO_RENDER_VOLUME);
+                _distanceSensorLaserUp = new DistanceSensorLaser();
+                await _distanceSensorLaserUp.SetDevicePowerAsync(false, DISTANCE_SENSOR_LASER_UP_SHDN_PIN);
 
-                await SystemController.SetDefaultRenderDevice(DeviceNameHelper.HeadsetRenderDevice);
-                await SystemController.SetDefaultRenderDeviceVolume(HEADSET_AUDIO_RENDER_VOLUME);
+                _distanceSensorLaserDown = new DistanceSensorLaser();
+                await _distanceSensorLaserDown.InitializeAsync(DISTANCE_SENSOR_LASER_DEFAULT_DEVICE_ADDRESS, DISTANCE_SENSOR_LASER_DOWN_DEVICE_ADDRESS);
+                _distanceSensorLaserDown.SetDeviceAddress(DISTANCE_SENSOR_LASER_DOWN_DEVICE_ADDRESS);
+                await _distanceSensorLaserDown.InitializeAsync(DISTANCE_SENSOR_LASER_DOWN_DEVICE_ADDRESS);
+                _distanceSensorLaserDown.Configure();
 
-                await SystemController.SetDefaultCaptureDevice(DeviceNameHelper.HeadsetCaptureDevice);
-                await SystemController.SetDefaultCaptureDeviceVolume(HEADSET_AUDIO_CAPTURE_VOLUME);
+                await _distanceSensorLaserUp.SetDevicePowerAsync(true, DISTANCE_SENSOR_LASER_UP_SHDN_PIN);
+                await _distanceSensorLaserUp.InitializeAsync();
+                _distanceSensorLaserUp.Configure();
+                
+                await SystemController.SetDefaultRenderDeviceAsync(DeviceNameHelper.SpeakerRenderDevice);
+                await SystemController.SetDefaultRenderDeviceVolumeAsync(SPEAKER_AUDIO_RENDER_VOLUME);
+
+                await SystemController.SetDefaultRenderDeviceAsync(DeviceNameHelper.HeadsetRenderDevice);
+                await SystemController.SetDefaultRenderDeviceVolumeAsync(HEADSET_AUDIO_RENDER_VOLUME);
+
+                await SystemController.SetDefaultCaptureDeviceAsync(DeviceNameHelper.HeadsetCaptureDevice);
+                await SystemController.SetDefaultCaptureDeviceVolumeAsync(HEADSET_AUDIO_CAPTURE_VOLUME);
 
                 _camera = new Camera();
-                await _camera.Initialize();
+                await _camera.InitializeAsync();
 
                 SpeedSensor.Initialize();
                 SpeedSensor.Start();
 
                 SpeechSynthesis.Initialze();
 
-                await AudioPlayerController.Initialize();
+                await AudioPlayerController.InitializeAsync();
 
                 _accelerometerSensor = new AccelerometerGyroscopeSensor();
-                await _accelerometerSensor.Initialize();
+                await _accelerometerSensor.InitializeAsync();
                 _accelerometerSensor.Start();
 
                 _automaticSpeakController = new AutomaticSpeakController(_accelerometerSensor);
@@ -74,15 +93,15 @@ namespace robot.sl
                 await _motorController.Initialize(_automaticSpeakController);
 
                 _servoController = new ServoController();
-                await _servoController.Initialize();
+                await _servoController.InitializeAsync();
 
-                _distanceMeasurementSensor = new DistanceMeasurementSensor();
-                await _distanceMeasurementSensor.Initialize();
+                _distanceSensorUltrasonic = new DistanceSensorUltrasonic();
+                await _distanceSensorUltrasonic.InitializeAsync();
 
-                _automaticDrive = new AutomaticDrive(_motorController, _servoController, _distanceMeasurementSensor);
+                _automaticDrive = new AutomaticDrive(_motorController, _servoController, _distanceSensorUltrasonic, _distanceSensorLaserUp, _distanceSensorLaserDown);
 
                 _speechRecognation = new SpeechRecognition();
-                await _speechRecognation.Initialze(_motorController, _servoController, _automaticDrive);
+                await _speechRecognation.InitialzeAsync(_motorController, _servoController, _automaticDrive);
                 _speechRecognation.Start();
 
                 _gamepadController = new GamepadController(_motorController, _servoController, _automaticDrive, _accelerometerSensor);
@@ -91,7 +110,7 @@ namespace robot.sl
 
                 _httpServerController = new HttpServerController(_motorController, _servoController, _automaticDrive, _camera);
 
-                SystemController.Initialize(_accelerometerSensor, _automaticSpeakController, _motorController, _servoController, _automaticDrive, _camera, _httpServerController, _speechRecognation, _gamepadController);
+                SystemController.InitializeAsync(_accelerometerSensor, _automaticSpeakController, _motorController, _servoController, _automaticDrive, _camera, _httpServerController, _speechRecognation, _gamepadController);
 
                 await AudioPlayerController.PlayAndWaitAsync(AudioName.Welcome);
 
@@ -99,10 +118,10 @@ namespace robot.sl
             }
             catch (Exception exception)
             {
-                await Logger.Write($"{nameof(MainPage)}, {nameof(Initialze)}: ", exception);
+                await Logger.WriteAsync($"{nameof(MainPage)}, {nameof(InitialzeAsync)}: ", exception);
 
                 await Task.Delay(TimeSpan.FromSeconds(20));
-                await DeviceController.RestartDevice();
+                await DeviceController.RestartDeviceAsync();
             }
         }
     }

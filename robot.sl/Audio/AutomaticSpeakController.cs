@@ -25,7 +25,7 @@ namespace robot.sl.Audio
             _accelerometer = accelerometer;
         }
 
-        public async Task Stop()
+        public async Task StopAsync()
         {
             _stopping = true;
 
@@ -42,7 +42,7 @@ namespace robot.sl.Audio
             Task.Factory.StartNew(() =>
             {
 
-                StartInternal().Wait();
+                StartInternalAsync().Wait();
 
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
              .AsAsyncAction()
@@ -50,13 +50,13 @@ namespace robot.sl.Audio
              .ContinueWith((t) =>
              {
 
-                 Logger.Write(nameof(AutomaticSpeakController), t.Exception).Wait();
-                 SystemController.ShutdownApplication(true).Wait();
+                 Logger.WriteAsync(nameof(AutomaticSpeakController), t.Exception).Wait();
+                 SystemController.ShutdownApplicationAsync(true).Wait();
 
              }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        private async Task StartInternal()
+        private async Task StartInternalAsync()
         {
             _isStopped = false;
             var random = new Random();

@@ -23,7 +23,7 @@ namespace robot.sl.CarControl
             _baseAddress = baseAddress;
         }
 
-        public async Task Initialize()
+        public async Task InitializeAsync()
         {
             var settings = new I2cConnectionSettings(_baseAddress) { BusSpeed = I2cBusSpeed.FastMode, SharingMode = I2cSharingMode.Shared };
 

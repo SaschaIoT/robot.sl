@@ -47,7 +47,7 @@ namespace robot.sl.Devices
         private const double IMAGE_QUALITY_PERCENT = 0.6d;
         private BitmapPropertySet _imageQuality;
 
-        public async Task Initialize()
+        public async Task InitializeAsync()
         {
             await CoreApplication.MainView.CoreWindow.Dispatcher.RunAndAwaitAsync(CoreDispatcherPriority.Normal, async () =>
             {
@@ -62,15 +62,15 @@ namespace robot.sl.Devices
 
                 _mediaCapture.Failed += async (MediaCapture mediaCapture, MediaCaptureFailedEventArgs args) =>
                 {
-                    await Logger.Write($"Camera Failed Event: {args.Code}, {args.Message}");
+                    await Logger.WriteAsync($"Camera Failed Event: {args.Code}, {args.Message}");
 
                     if (args.Code == 2147942414
                        || args.Code == 3222093442
                        || args.Code == 3222093474)
                     {
-                        await Logger.Write($"Reinitialize camera.");
+                        await Logger.WriteAsync($"Reinitialize camera.");
 
-                        await Initialize();
+                        await InitializeAsync();
                     }
                 };
 
@@ -185,7 +185,7 @@ namespace robot.sl.Devices
                 catch (ObjectDisposedException) { }
                 catch (Exception exception)
                 {
-                    Logger.Write(nameof(Camera), exception).Wait();
+                    Logger.WriteAsync(nameof(Camera), exception).Wait();
                 }
             }
 
@@ -207,14 +207,14 @@ namespace robot.sl.Devices
                  .ContinueWith((t) =>
                  {
 
-                     Logger.Write(nameof(Camera), t.Exception).Wait();
-                     SystemController.ShutdownApplication(true).Wait();
+                     Logger.WriteAsync(nameof(Camera), t.Exception).Wait();
+                     SystemController.ShutdownApplicationAsync(true).Wait();
 
                  }, TaskContinuationOptions.OnlyOnFaulted);
             }
         }
 
-        public async Task Stop()
+        public async Task StopAsync()
         {
             _isStopping = true;
 

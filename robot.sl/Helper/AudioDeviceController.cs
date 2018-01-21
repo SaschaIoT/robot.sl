@@ -17,29 +17,29 @@ namespace robot.sl.Helper
             public string Result { get; set; }
         }
 
-        public static async Task SetDefaultRenderDeviceVolume(int volume)
+        public static async Task SetDefaultRenderDeviceVolumeAsync(int volume)
         {
-            await ExecuteCommand($"r {volume}");
+            await ExecuteCommandAsync($"r {volume}");
         }
 
-        public static async Task SetDefaultCaptureDeviceVolume(int volume)
+        public static async Task SetDefaultCaptureDeviceVolumeAsync(int volume)
         {
-            await ExecuteCommand($"c {volume}");
+            await ExecuteCommandAsync($"c {volume}");
         }
 
-        public static async Task SetDefaultRenderDevice(string renderDeviceName)
+        public static async Task SetDefaultRenderDeviceAsync(string renderDeviceName)
         {
-            await SetDefaultDevice(renderDeviceName, true);
+            await SetDefaultDeviceAsync(renderDeviceName, true);
         }
 
-        public static async Task SetDefaultCaptureDevice(string captureDeviceName)
+        public static async Task SetDefaultCaptureDeviceAsync(string captureDeviceName)
         {
-            await SetDefaultDevice(captureDeviceName, false);
+            await SetDefaultDeviceAsync(captureDeviceName, false);
         }
 
-        private static async Task SetDefaultDevice(string deviceName, bool setRenderCaptureDevice)
+        private static async Task SetDefaultDeviceAsync(string deviceName, bool setRenderCaptureDevice)
         {
-            var renderCaptureDevicesResult = await ExecuteCommand("l");
+            var renderCaptureDevicesResult = await ExecuteCommandAsync("l");
 
             if (renderCaptureDevicesResult.Error)
                 return;
@@ -56,7 +56,7 @@ namespace robot.sl.Helper
                         || (!setRenderCaptureDevice && properties[1].ToLower().Contains("c")))
                     && properties[2].ToLower().Contains(deviceName.ToLower()))
                 {
-                    var setDefaultDeviceResult = await ExecuteCommand($"d {properties[3]}");
+                    var setDefaultDeviceResult = await ExecuteCommandAsync($"d {properties[3]}");
 
                     if (setDefaultDeviceResult.Error)
                         return;
@@ -64,7 +64,7 @@ namespace robot.sl.Helper
             }
         }
 
-        private static async Task<CommandResult> ExecuteCommand(string command)
+        private static async Task<CommandResult> ExecuteCommandAsync(string command)
         {
             var commandResult = new CommandResult();
 
@@ -91,7 +91,7 @@ namespace robot.sl.Helper
             {
                 commandResult.Error = true;
 
-                await Logger.Write("Error executing IoTCoreAudioControlTool.exe command.");
+                await Logger.WriteAsync("Error executing IoTCoreAudioControlTool.exe command.");
             }
 
             return commandResult;

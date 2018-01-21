@@ -56,33 +56,33 @@ namespace robot.sl.Web
             _automaticDrive = automaticDrive;
         }
 
-        public async Task Start()
+        public async Task StartAsync()
         {
-            if(await CheckWebSocketVersionSupport())
+            if(await CheckWebSocketVersionSupportAsync())
             {
-                await ReadFrames();
+                await ReadFramesAsync();
             }
         }
 
 
-        private async Task<bool> CheckWebSocketVersionSupport()
+        private async Task<bool> CheckWebSocketVersionSupportAsync()
         {
             var webSocketVersion = new Regex("Sec-WebSocket-Version:(.*)", RegexOptions.IgnoreCase).Match(_httpServerRequest.Request).Groups[1].Value.Trim();
             if(webSocketVersion != "13")
             {
-                await WriteUpgradeRequired();
+                await WriteUpgradeRequiredAsync();
 
                 return false;
             }
             else
             {
-                await WriteHandshake();
+                await WriteHandshakeAsync();
 
                 return true;
             }
         }
 
-        private async Task WriteUpgradeRequired()
+        private async Task WriteUpgradeRequiredAsync()
         {
             var response = Encoding.UTF8.GetBytes("HTTP/1.1 426 Upgrade Required" + Environment.NewLine
                 + "Connection: Upgrade" + Environment.NewLine
@@ -94,7 +94,7 @@ namespace robot.sl.Web
             await _outputStream.FlushAsync();
         }
 
-        private async Task WriteHandshake()
+        private async Task WriteHandshakeAsync()
         {
             var response = Encoding.UTF8.GetBytes("HTTP/1.1 101 Switching Protocols" + Environment.NewLine
                 + "Connection: Upgrade" + Environment.NewLine
@@ -112,7 +112,7 @@ namespace robot.sl.Web
             await _outputStream.FlushAsync();
         }
 
-        private async Task ProcessFrame(string frameContent)
+        private async Task ProcessFrameAsync(string frameContent)
         {
             var content = JsonObject.Parse(frameContent);
             var command = content["command"].GetString();
@@ -122,7 +122,7 @@ namespace robot.sl.Web
                 case "VideoFrame":
 
                     var cameraFrame = _camera.Frame.ToArray();
-                    await WriteFrame(cameraFrame, OpCode.Binary);
+                    await WriteFrameAsync(cameraFrame, OpCode.Binary);
 
                     break;
                 case "CarControlCommand":
@@ -154,7 +154,7 @@ namespace robot.sl.Web
                             { "command", JsonValue.CreateStringValue("CarControlCommand") }
                         };
 
-                    await WriteFrame(carControlCommandResponse.Stringify());
+                    await WriteFrameAsync(carControlCommandResponse.Stringify());
 
                     break;
                 case "Speed":
@@ -170,7 +170,7 @@ namespace robot.sl.Web
                             }
                         };
 
-                    await WriteFrame(speed.Stringify());
+                    await WriteFrameAsync(speed.Stringify());
 
                     break;
                 case "State":
@@ -188,7 +188,7 @@ namespace robot.sl.Web
                             }
                         };
 
-                    await WriteFrame(state.Stringify());
+                    await WriteFrameAsync(state.Stringify());
 
                     break;
                 //Commet in for server side frame rate measurement
@@ -210,13 +210,13 @@ namespace robot.sl.Web
             }
         }
 
-        private async Task WriteFrame(string data)
+        private async Task WriteFrameAsync(string data)
         {
             var dataBytes = Encoding.UTF8.GetBytes(data);
-            await WriteFrame(dataBytes, OpCode.Text);
+            await WriteFrameAsync(dataBytes, OpCode.Text);
         }
 
-        private async Task WriteFrame(byte[] data, OpCode opCode)
+        private async Task WriteFrameAsync(byte[] data, OpCode opCode)
         {
             byte[] header = new byte[2];
 
@@ -266,7 +266,7 @@ namespace robot.sl.Web
             await _outputStream.FlushAsync();
         }
 
-        private async Task ReadFrames()
+        private async Task ReadFramesAsync()
         {
             var data = new byte[BUFFER_SIZE];
             var buffer = data.AsBuffer();
@@ -362,7 +362,7 @@ namespace robot.sl.Web
 
                     if (opCode == OpCode.Text)
                     {
-                        await ProcessFrame(Encoding.UTF8.GetString(decoded, 0, decoded.Length));
+                        await ProcessFrameAsync(Encoding.UTF8.GetString(decoded, 0, decoded.Length));
                     }
                 }
             }
@@ -388,11 +388,11 @@ namespace robot.sl.Web
                 _servoController.MoveServo(carControlCommand);
                 _moveCarLastAction = now;
 
-                Task.Run(async () => { await CarControlCommandTimeout(now); });
+                Task.Run(async () => { await CarControlCommandTimeoutAsync(now); });
             }
         }
 
-        private async Task CarControlCommandTimeout(DateTime carControlCommand)
+        private async Task CarControlCommandTimeoutAsync(DateTime carControlCommand)
         {
             await Task.Delay(MOVE_CAR_ACTION_TIMEOUT_MILLISECONDS);
 

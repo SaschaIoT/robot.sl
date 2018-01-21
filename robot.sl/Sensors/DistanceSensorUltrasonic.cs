@@ -14,14 +14,15 @@ using Windows.Storage.Streams;
 namespace robot.sl.Sensors
 {
     /// <summary>
-    /// Ultrasonic distance sensor: Maxbotix MB1013 HRLV-MaxSonar-EZ
+    /// Distance sensor ultrasonic: Maxbotix MB1013 HRLV-MaxSonar-EZ
     /// </summary>
-    public class DistanceMeasurementSensor
+    public class DistanceSensorUltrasonic
     {
         private SerialDevice _serialPort = null;
         private DataReader _dataReader = null;
         private GpioPin _startStopPin = null;
         public UltrasonicMeasureList UltrasonicMeasurements = new UltrasonicMeasureList();
+        private List<int> _readings = new List<int>();
 
         private volatile bool _isStopped = true;
         private volatile bool _isStopping = false;
@@ -34,7 +35,7 @@ namespace robot.sl.Sensors
         const int MEASUREMENT_LENGTH = 7;
         const string MEASUREMENT_END_CHARACTER = "\r";
 
-        public async Task Initialize()
+        public async Task InitializeAsync()
         {
             var gpioController = GpioController.GetDefault();
             _startStopPin = gpioController.OpenPin(SERIAL_DEVICE_GPIO_PIN);
@@ -53,30 +54,6 @@ namespace robot.sl.Sensors
 
             _dataReader = new DataReader(_serialPort.InputStream);
             _dataReader.InputStreamOptions = InputStreamOptions.Partial;
-        }
-
-        public async Task<int> GetDistanceInMillimeters()
-        {
-            var last = UltrasonicMeasurements.GetLast();
-
-            while (last == null)
-            {
-                await Task.Delay(20);
-                last = UltrasonicMeasurements.GetLast();
-            }
-
-            var oldId = last.Id;
-
-            await Task.Delay(MEASURMENTS_COUNT * 100);
-
-            var current = UltrasonicMeasurements.GetLast();
-            while (current.Id == oldId)
-            {
-                await Task.Delay(20);
-                current = UltrasonicMeasurements.GetLast();
-            }
-
-            return current.DistanceInMillimeter;
         }
 
         public void Start()
@@ -102,29 +79,29 @@ namespace robot.sl.Sensors
                 try
                 {
                     var readCount = 0;
-                    var readString = await ReadString(MEASUREMENT_LENGTH * MEASURMENTS_COUNT);
+                    var readString = await ReadStringAsync(MEASUREMENT_LENGTH * MEASURMENTS_COUNT);
                     var measurementMatches = Regex.Matches(readString, "R[0-9]{4}\r");
 
                     while (measurementMatches.Count < MEASURMENTS_COUNT)
                     {
-                        readString += await ReadString(MEASUREMENT_LENGTH);
+                        readString += await ReadStringAsync(MEASUREMENT_LENGTH);
                         measurementMatches = Regex.Matches(readString, "R[0-9]{4}\r");
 
                         readCount++;
 
                         if (readCount >= (MAX_READ_COUNT * MEASURMENTS_COUNT))
                         {
-                            await Logger.Write($"{nameof(DistanceMeasurementSensor)}, {nameof(Measure)}: To many measurements. Maximum read count reached.");
-                            SystemController.ShutdownApplication(true).Wait();
+                            await Logger.WriteAsync($"{nameof(DistanceSensorUltrasonic)}, {nameof(Measure)}: To many measurements. Maximum read count reached.");
+                            SystemController.ShutdownApplicationAsync(true).Wait();
                         }
                     }
 
-                    ultrasonicMeasure.DistanceInMillimeter = GetAverageDistance(measurementMatches);
+                    ultrasonicMeasure.DistanceInMillimeter = ConvertToDistance(measurementMatches);
                 }
                 catch (TaskCanceledException)
                 {
-                    await Logger.Write($"{nameof(DistanceMeasurementSensor)}, {nameof(Measure)}: Not receiving data from distance measurement sensor.");
-                    SystemController.ShutdownApplication(true).Wait();
+                    await Logger.WriteAsync($"{nameof(DistanceSensorUltrasonic)}, {nameof(Measure)}: Not receiving data from distance measurement sensor.");
+                    SystemController.ShutdownApplicationAsync(true).Wait();
                 }
 
                 UltrasonicMeasurements.Add(ultrasonicMeasure);
@@ -136,7 +113,7 @@ namespace robot.sl.Sensors
             _isStopped = true;
         }
 
-        public async Task Stop()
+        public async Task StopAsync()
         {
             if (_isStopped)
             {
@@ -153,15 +130,15 @@ namespace robot.sl.Sensors
             _isStopping = false;
         }
 
-        private async Task<string> ReadString(uint count)
+        private async Task<string> ReadStringAsync(uint count)
         {
-            var readBytes = await ReadBytes(count);
+            var readBytes = await ReadBytesAsync(count);
             var readString = Encoding.ASCII.GetString(readBytes) ?? string.Empty;
 
             return readString;
         }
 
-        private async Task<byte[]> ReadBytes(uint count)
+        private async Task<byte[]> ReadBytesAsync(uint count)
         {
             var readBytes = new List<byte>().ToArray();
 
@@ -179,7 +156,7 @@ namespace robot.sl.Sensors
             return readBytes;
         }
 
-        private int GetAverageDistance(MatchCollection distanceRawMatches)
+        private int ConvertToDistance(MatchCollection distanceRawMatches)
         {
             var distance = 0;
             var distances = new List<int>();
@@ -195,6 +172,75 @@ namespace robot.sl.Sensors
             }
 
             return Convert.ToInt32(distances.Average());
+        }
+
+        /// <summary>
+        /// Returns distance in millimeters
+        /// </summary>
+        /// <returns></returns>
+        public async Task<int> GetDistance()
+        {
+            var last = UltrasonicMeasurements.GetLast();
+
+            while (last == null)
+            {
+                await Task.Delay(20);
+                last = UltrasonicMeasurements.GetLast();
+            }
+
+            var oldId = last.Id;
+
+            await Task.Delay(MEASURMENTS_COUNT * 100);
+
+            var current = UltrasonicMeasurements.GetLast();
+            while (current.Id == oldId)
+            {
+                await Task.Delay(20);
+                current = UltrasonicMeasurements.GetLast();
+            }
+
+            return current.DistanceInMillimeter;
+        }
+
+        /// <summary>
+        /// Returns distance in millimeters filtered
+        /// </summary>
+        /// <param name="filteredMeasurement"></param>
+        /// <returns></returns>
+        public async Task<int> GetDistanceFiltered(bool filteredMeasurement = true)
+        {
+            var distance = 0;
+            if (filteredMeasurement == true)
+            {
+                if (_readings.Count >= 5)
+                {
+                    _readings.RemoveAt(0);
+                }
+                else
+                {
+                    while (_readings.Count < 5)
+                    {
+                        distance = await GetDistance();
+                        _readings.Add(distance);
+                    }
+                }
+
+                distance = await GetDistance();
+                _readings.Add(distance);
+
+                distance = Convert.ToInt32(_readings.Average());
+            }
+            else
+            {
+                distance = await GetDistance();
+            }
+
+            return distance;
+        }
+
+        public void ClearDistancesFiltered()
+        {
+            _readings.Clear();
         }
     }
 

@@ -19,7 +19,7 @@ namespace robot.sl.Audio.AudioPlaying
         private Dictionary<string, AudioFileInputNode> _fileInputs = new Dictionary<string, AudioFileInputNode>();
         private AudioDeviceOutputNode _deviceOutput;
 
-        public async Task Initialize(bool isHeadset)
+        public async Task InitializeAsync(bool isHeadset)
         {
             await CreateAudioGraphAsync(isHeadset);
         }
@@ -33,12 +33,12 @@ namespace robot.sl.Audio.AudioPlaying
             _fileInputs.Add(file.Name, fileInputNode);
         }
 
-        public async Task Play(string key, double gain, CancellationToken? cancellationToken)
+        public async Task PlayAsync(string key, double gain, CancellationToken? cancellationToken)
         {
-            await Play(key, gain, cancellationToken, 0);
+            await PlayAsync(key, gain, cancellationToken, 0);
         }
 
-        private async Task Play(string key, double gain, CancellationToken? cancellationToken, int retries)
+        private async Task PlayAsync(string key, double gain, CancellationToken? cancellationToken, int retries)
         {
             try
             {
@@ -64,12 +64,12 @@ namespace robot.sl.Audio.AudioPlaying
             catch (Exception exception)
             {
                 //Catch exception: The callee is currently not accepting further input. (Exception from HRESULT: 0xC00D36B5)
-                await Logger.Write($"{nameof(AudioPlayer)}, {nameof(Play)}: ", exception);
+                await Logger.WriteAsync($"{nameof(AudioPlayer)}, {nameof(PlayAsync)}: ", exception);
                 
                 if (retries == 10)
                     throw;
 
-                await Play(key, gain, cancellationToken, ++retries);
+                await PlayAsync(key, gain, cancellationToken, ++retries);
             }
         }
 

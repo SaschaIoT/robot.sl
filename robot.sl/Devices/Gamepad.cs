@@ -30,7 +30,7 @@ namespace robot.sl.Devices
         private AccelerometerGyroscopeSensor _acceleratorSensor;
         private AutomaticDrive _automaticDrive;
 
-        public async Task Stop()
+        public async Task StopAsync()
         {
             _gamepad = null;
 
@@ -68,7 +68,7 @@ namespace robot.sl.Devices
             Task.Factory.StartNew(() =>
             {
 
-                StartGamepadReading(gamepad).Wait();
+                StartGamepadReadingAsync(gamepad).Wait();
 
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
             .AsAsyncAction()
@@ -76,15 +76,15 @@ namespace robot.sl.Devices
              .ContinueWith((t) =>
              {
 
-                 Logger.Write($"{nameof(Gamepad)}, {nameof(StartGamepadReading)}: ", t.Exception).Wait();
-                 SystemController.ShutdownApplication(true).Wait();
+                 Logger.WriteAsync($"{nameof(Gamepad)}, {nameof(StartGamepadReadingAsync)}: ", t.Exception).Wait();
+                 SystemController.ShutdownApplicationAsync(true).Wait();
 
              }, TaskContinuationOptions.OnlyOnFaulted);
 
             Task.Factory.StartNew(() =>
             {
 
-                StartGamepadVibration(gamepad).Wait();
+                StartGamepadVibrationAsync(gamepad).Wait();
 
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
              .AsAsyncAction()
@@ -92,8 +92,8 @@ namespace robot.sl.Devices
              .ContinueWith((t) =>
              {
 
-                 Logger.Write($"{nameof(Gamepad)}, {nameof(StartGamepadVibration)}: ", t.Exception).Wait();
-                 SystemController.ShutdownApplication(true).Wait();
+                 Logger.WriteAsync($"{nameof(Gamepad)}, {nameof(StartGamepadVibrationAsync)}: ", t.Exception).Wait();
+                 SystemController.ShutdownApplicationAsync(true).Wait();
 
              }, TaskContinuationOptions.OnlyOnFaulted);
         }
@@ -113,7 +113,7 @@ namespace robot.sl.Devices
             _motorController.GetMotor(4).Run(MotorAction.RELEASE);
         }
 
-        private async Task StartGamepadReading(Gamepad gamepad)
+        private async Task StartGamepadReadingAsync(Gamepad gamepad)
         {
             _isGamepadReadingStopped = false;
 
@@ -205,11 +205,11 @@ namespace robot.sl.Devices
 
                     if (_gamepadShouldVibrate)
                     {
-                        await AudioPlayerController.Play(AudioName.GamepadVibrationOn);
+                        await AudioPlayerController.PlayAsync(AudioName.GamepadVibrationOn);
                     }
                     else
                     {
-                        await AudioPlayerController.Play(AudioName.GamepadVibrationOff);
+                        await AudioPlayerController.PlayAsync(AudioName.GamepadVibrationOff);
                     }
                 }
 
@@ -217,7 +217,7 @@ namespace robot.sl.Devices
                 var menuButtonResult = menuButton.UpdateGamepadButtonState(gamepadReading);
                 if (menuButtonResult.ButtonClicked)
                 {
-                    await _automaticDrive.StartStopToggle();
+                    await _automaticDrive.StartStopToggleAsync();
                 }
 
                 var dPadUpButtonResult = dPadUpButton.UpdateGamepadButtonState(gamepadReading, dPadUpNotClickableButtons);
@@ -228,13 +228,13 @@ namespace robot.sl.Devices
                 //All speaker on
                 if (dPadUpButtonResult.ButtonClicked)
                 {
-                    await AudioPlayerController.SetAllSpeakerOnOff(true);
+                    await AudioPlayerController.SetAllSpeakerOnOffAsync(true);
                 }
 
                 //All speaker off
                 if (dPadDownButtonResult.ButtonClicked)
                 {
-                    await AudioPlayerController.SetAllSpeakerOnOff(false);
+                    await AudioPlayerController.SetAllSpeakerOnOffAsync(false);
                 }
 
                 //Car speaker on/off toggle
@@ -260,7 +260,7 @@ namespace robot.sl.Devices
                 var bButtonResult = bButton.UpdateGamepadButtonState(gamepadReading);
                 if (bButtonResult.ButtonClicked)
                 {
-                    await AudioPlayerController.PlaySpeakerOnOffSoundMode();
+                    await AudioPlayerController.PlaySpeakerOnOffSoundModeAsync();
                 }
 
                 //Shutdown
@@ -268,7 +268,7 @@ namespace robot.sl.Devices
                 if (xRightShoulderButtonResult.ButtonClicked)
                 {
                     _isGamepadReadingStopped = true;
-                    await SystemController.Shutdown();
+                    await SystemController.ShutdownAsync();
                 }
 
                 //Restart
@@ -276,7 +276,7 @@ namespace robot.sl.Devices
                 if (aRightShoulderButtonResult.ButtonClicked)
                 {
                     _isGamepadReadingStopped = true;
-                    await SystemController.Restart();
+                    await SystemController.RestartAsync();
                 }
 
                 await Task.Delay(25);
@@ -285,7 +285,7 @@ namespace robot.sl.Devices
             _isGamepadReadingStopped = true;
         }
 
-        private async Task StartGamepadVibration(Gamepad gamepad)
+        private async Task StartGamepadVibrationAsync(Gamepad gamepad)
         {
             _isGamepadVibrationStopped = false;
 

@@ -20,7 +20,7 @@ namespace robot.sl.Sensors
         {
             get
             {
-                return RoundsPerMinute >= 1;
+                return RoundsPerMinute >= 3;
             }
         }
         private static int _downsUps = 0;
@@ -46,7 +46,7 @@ namespace robot.sl.Sensors
             Task.Factory.StartNew(() =>
             {
 
-                StartInternal().Wait();
+                StartInternalAsync().Wait();
 
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Current)
              .AsAsyncAction()
@@ -54,13 +54,13 @@ namespace robot.sl.Sensors
              .ContinueWith((t) =>
              {
 
-                 Logger.Write(nameof(SpeedSensor), t.Exception).Wait();
-                 SystemController.ShutdownApplication(true).Wait();
+                 Logger.WriteAsync(nameof(SpeedSensor), t.Exception).Wait();
+                 SystemController.ShutdownApplicationAsync(true).Wait();
 
              }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        private static async Task StartInternal()
+        private static async Task StartInternalAsync()
         {
             //_timer = new Timer(Counter, null, 0, 140);
 
@@ -109,7 +109,7 @@ namespace robot.sl.Sensors
             _isStopped = true;
         }
 
-        public static async Task Stop()
+        public static async Task StopAsync()
         {
             _isStopping = true;
 

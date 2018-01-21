@@ -11,12 +11,12 @@ namespace robot.sl.Helper
         const string LOG_ENTRY_END = "[Log Entry End]";
         const int LOG_FILE_MAX_LENGTH = 250000;
 
-        public static async Task Write(string message, Exception exception)
+        public static async Task WriteAsync(string message, Exception exception)
         {
-            await Write($"{message}: {exception}");
+            await WriteAsync($"{message}: {exception}");
         }
 
-        public static async Task Write(string message)
+        public static async Task WriteAsync(string message)
         {
             //Parallel file writing cause exception, prevent application from crashing
             try
@@ -37,7 +37,7 @@ namespace robot.sl.Helper
             catch (Exception) { }
         }
 
-        public static async Task Delete()
+        public static async Task DeleteAsync()
         {
             var logFile = await ApplicationData.Current.LocalFolder.TryGetItemAsync(FILE_NAME);
             if (logFile != null)

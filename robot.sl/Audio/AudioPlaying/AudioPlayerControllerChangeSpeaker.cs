@@ -4,17 +4,17 @@ namespace robot.sl.Audio.AudioPlaying
 {
     public static partial class AudioPlayerController
     {
-        public static async Task SetAllSpeakerOnOff(bool speakerOn)
+        public static async Task SetAllSpeakerOnOffAsync(bool speakerOn)
         {
             if (speakerOn)
             {
                 if (CarSpeakerOn && HeadsetSpeakerOn)
                 {
-                    await Play(AudioName.AllSpeakerAlreadyOn);
+                    await PlayAsync(AudioName.AllSpeakerAlreadyOn);
                 }
                 else
                 {
-                    await Play(AudioName.AllSpeakerOn);
+                    await PlayAsync(AudioName.AllSpeakerOn);
                 }
 
                 CarSpeakerOn = true;
@@ -24,11 +24,11 @@ namespace robot.sl.Audio.AudioPlaying
             {
                 if (!CarSpeakerOn && !HeadsetSpeakerOn)
                 {
-                    await Play(AudioName.AllSpeakerAlreadyOff);
+                    await PlayAsync(AudioName.AllSpeakerAlreadyOff);
                 }
                 else
                 {
-                    await Play(AudioName.AllSpeakerOff);
+                    await PlayAsync(AudioName.AllSpeakerOff);
                 }
 
                 CarSpeakerOn = false;
@@ -38,20 +38,20 @@ namespace robot.sl.Audio.AudioPlaying
 
         public static async Task SetCarSpeakerOnOffToggle()
         {
-            await SetCarSpeakerOnOff(!CarSpeakerOn);
+            await SetCarSpeakerOnOffAsync(!CarSpeakerOn);
         }
 
-        public static async Task SetCarSpeakerOnOff(bool carSpeakerOn)
+        public static async Task SetCarSpeakerOnOffAsync(bool carSpeakerOn)
         {
             if (carSpeakerOn)
             {
                 if (CarSpeakerOn)
                 {
-                    await Play(AudioName.CarSpeakerAlreadyOn);
+                    await PlayAsync(AudioName.CarSpeakerAlreadyOn);
                 }
                 else
                 {
-                    await Play(AudioName.CarSpeakerOn);
+                    await PlayAsync(AudioName.CarSpeakerOn);
                 }
 
                 CarSpeakerOn = true;
@@ -60,11 +60,11 @@ namespace robot.sl.Audio.AudioPlaying
             {
                 if (!CarSpeakerOn)
                 {
-                    await Play(AudioName.CarSpeakerAlreadyOff);
+                    await PlayAsync(AudioName.CarSpeakerAlreadyOff);
                 }
                 else
                 {
-                    await Play(AudioName.CarSpeakerOff);
+                    await PlayAsync(AudioName.CarSpeakerOff);
                 }
 
                 CarSpeakerOn = false;
@@ -73,20 +73,20 @@ namespace robot.sl.Audio.AudioPlaying
 
         public static async Task SetHeadsetSpeakerOnOffToggle()
         {
-            await SetHeadsetSpeakerOnOff(!HeadsetSpeakerOn);
+            await SetHeadsetSpeakerOnOffAsync(!HeadsetSpeakerOn);
         }
 
-        public static async Task SetHeadsetSpeakerOnOff(bool headsetSpeakerOn)
+        public static async Task SetHeadsetSpeakerOnOffAsync(bool headsetSpeakerOn)
         {
             if (headsetSpeakerOn)
             {
                 if (HeadsetSpeakerOn)
                 {
-                    await Play(AudioName.HeadsetSpeakerAlreadyOn);
+                    await PlayAsync(AudioName.HeadsetSpeakerAlreadyOn);
                 }
                 else
                 {
-                    await Play(AudioName.HeadsetSpeakerOn);
+                    await PlayAsync(AudioName.HeadsetSpeakerOn);
                 }
 
                 HeadsetSpeakerOn = true;
@@ -95,11 +95,11 @@ namespace robot.sl.Audio.AudioPlaying
             {
                 if (!HeadsetSpeakerOn)
                 {
-                    await Play(AudioName.HeadsetSpeakerAlreadyOff);
+                    await PlayAsync(AudioName.HeadsetSpeakerAlreadyOff);
                 }
                 else
                 {
-                    await Play(AudioName.HeadsetSpeakerOff);
+                    await PlayAsync(AudioName.HeadsetSpeakerOff);
                 }
 
                 HeadsetSpeakerOn = false;
@@ -108,20 +108,20 @@ namespace robot.sl.Audio.AudioPlaying
 
         public static async Task SetSoundModeOnOffToggle()
         {
-            await SetSoundModeOnOff(!SoundModeOn);
+            await SetSoundModeOnOffAsync(!SoundModeOn);
         }
 
-        public static async Task SetSoundModeOnOff(bool soundModeOn)
+        public static async Task SetSoundModeOnOffAsync(bool soundModeOn)
         {
             if (soundModeOn)
             {
                 if (SoundModeOn)
                 {
-                    await Play(AudioName.SoundModeAlreadyOn);
+                    await PlayAsync(AudioName.SoundModeAlreadyOn);
                 }
                 else
                 {
-                    await Play(AudioName.SoundModeOn);
+                    await PlayAsync(AudioName.SoundModeOn);
                 }
 
                 SoundModeOn = true;
@@ -130,39 +130,39 @@ namespace robot.sl.Audio.AudioPlaying
             {
                 if (!SoundModeOn)
                 {
-                    await Play(AudioName.SoundModusAlreadyOff);
+                    await PlayAsync(AudioName.SoundModusAlreadyOff);
                 }
                 else
                 {
-                    await Play(AudioName.SoundModusOff);
+                    await PlayAsync(AudioName.SoundModusOff);
                 }
 
                 SoundModeOn = false;
             }
         }
 
-        public static async Task PlaySpeakerOnOffSoundMode()
+        public static async Task PlaySpeakerOnOffSoundModeAsync()
         {
             if (CarSpeakerOn && HeadsetSpeakerOn)
             {
                 if (SoundModeOn)
                 {
-                    await Play(AudioName.AllSpeakerOnSoundModeOn);
+                    await PlayAsync(AudioName.AllSpeakerOnSoundModeOn);
                 }
                 else
                 {
-                    await Play(AudioName.AllSpeakerOnSoundModeOff);
+                    await PlayAsync(AudioName.AllSpeakerOnSoundModeOff);
                 }
             }
             else if (!CarSpeakerOn && !HeadsetSpeakerOn)
             {
                 if (SoundModeOn)
                 {
-                    await Play(AudioName.AllSpeakerOffSoundModeOn);
+                    await PlayAsync(AudioName.AllSpeakerOffSoundModeOn);
                 }
                 else
                 {
-                    await Play(AudioName.AllSpeakerOffSoundModeOff);
+                    await PlayAsync(AudioName.AllSpeakerOffSoundModeOff);
                 }
             }
             else
@@ -171,22 +171,22 @@ namespace robot.sl.Audio.AudioPlaying
                 {
                     if (CarSpeakerOn)
                     {
-                        await Play(AudioName.CarSpeakerOnHeadsetSpeakerOffSoundModeOn);
+                        await PlayAsync(AudioName.CarSpeakerOnHeadsetSpeakerOffSoundModeOn);
                     }
                     else if (HeadsetSpeakerOn)
                     {
-                        await Play(AudioName.CarSpeakerOffHeadsetSpeakerOnSoundModeOn);
+                        await PlayAsync(AudioName.CarSpeakerOffHeadsetSpeakerOnSoundModeOn);
                     }
                 }
                 else
                 {
                     if (CarSpeakerOn)
                     {
-                        await Play(AudioName.CarSpeakerOnHeadsetSpeakerOffSoundModeOff);
+                        await PlayAsync(AudioName.CarSpeakerOnHeadsetSpeakerOffSoundModeOff);
                     }
                     else if (HeadsetSpeakerOn)
                     {
-                        await Play(AudioName.CarSpeakerOffHeadsetSpeakerOnSoundModeOff);
+                        await PlayAsync(AudioName.CarSpeakerOffHeadsetSpeakerOnSoundModeOff);
                     }
                 }
             }

@@ -32,7 +32,7 @@ namespace robot.sl.Sensors
         private const byte REGISTER_ACCELEROMETER_CONFIG = 0x1C;
         private const byte REGISTER_ACCELEROMETER_X = 0x3B;
 
-        public async Task Stop()
+        public async Task StopAsync()
         {
             _isStopping = true;
 
@@ -44,9 +44,14 @@ namespace robot.sl.Sensors
             _isStopping = false;
         }
 
-        public async Task Initialize()
+        public async Task InitializeAsync()
         {
-            var settings = new I2cConnectionSettings(I2C_ADDRESS) { BusSpeed = I2cBusSpeed.StandardMode, SharingMode = I2cSharingMode.Shared };
+            var settings = new I2cConnectionSettings(I2C_ADDRESS)
+            {
+                BusSpeed = I2cBusSpeed.StandardMode,
+                SharingMode = I2cSharingMode.Shared
+            };
+
             var controller = await I2cController.GetDefaultAsync();
             _accelerometer = controller.GetDevice(settings);
 
@@ -84,8 +89,8 @@ namespace robot.sl.Sensors
              .ContinueWith((t) =>
              {
 
-                 Logger.Write(nameof(AccelerometerGyroscopeSensor), t.Exception).Wait();
-                 SystemController.ShutdownApplication(true).Wait();
+                 Logger.WriteAsync(nameof(AccelerometerGyroscopeSensor), t.Exception).Wait();
+                 SystemController.ShutdownApplicationAsync(true).Wait();
 
              }, TaskContinuationOptions.OnlyOnFaulted);
         }
@@ -106,7 +111,7 @@ namespace robot.sl.Sensors
                 }
                 catch (Exception exception)
                 {
-                    Logger.Write($"{nameof(AccelerometerGyroscopeSensor)}, {nameof(StartInternal)}", exception).Wait();
+                    Logger.WriteAsync($"{nameof(AccelerometerGyroscopeSensor)}, {nameof(StartInternal)}", exception).Wait();
 
                     Task.Delay(10).Wait();
                     continue;
