@@ -9,8 +9,7 @@ namespace robot.sl.CarControl
 {
     public class AutomaticDrive
     {
-        private const int DS_ULTRASONIC_MIN_RANGE_STRAIGHT_AWAY_MILLIMETERS = 350;
-        private const int DS_ULTRASONIC_MIN_RANGE_FREE_DIRECTION_MILLIMETERS = 600;
+        private const int DS_ULTRASONIC_MIN_RANGE_MILLIMETERS = 350;
         private const int DS_LASER_DOWN_MIN_RANGE_MILLIMETERS = 700;
         private const int DS_LASER_UP_MIN_RANGE_MILLIMETERS = 700;
         
@@ -401,7 +400,7 @@ namespace robot.sl.CarControl
             await Task.WhenAll(dsUltrasonicDistanceTask, dsDistanceSensorLaserUpTask, dsDistanceSensorLaserDownTask);
             var dsUltrasonicDistance = dsUltrasonicDistanceTask.Result;
             
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_STRAIGHT_AWAY_MILLIMETERS
+            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS
                 && dsLaserDistanceUp > DS_LASER_UP_MIN_RANGE_MILLIMETERS
                 && dsLaserDistanceDown > DS_LASER_DOWN_MIN_RANGE_MILLIMETERS)
             {
@@ -429,7 +428,7 @@ namespace robot.sl.CarControl
             await Task.Delay(500, cancellationToken);
             dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
 
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_FREE_DIRECTION_MILLIMETERS)
+            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS)
             {
                 return FreeDirection.Left;
             }
@@ -439,7 +438,7 @@ namespace robot.sl.CarControl
             await Task.Delay(250, cancellationToken);
             dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
 
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_FREE_DIRECTION_MILLIMETERS)
+            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS)
             {
                 return FreeDirection.LeftMiddle;
             }
@@ -449,7 +448,7 @@ namespace robot.sl.CarControl
             await Task.Delay(500, cancellationToken);
             dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
 
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_FREE_DIRECTION_MILLIMETERS)
+            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS)
             {
                 return FreeDirection.RightMiddle;
             }
@@ -459,7 +458,7 @@ namespace robot.sl.CarControl
             await Task.Delay(250, cancellationToken);
             dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
 
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_FREE_DIRECTION_MILLIMETERS)
+            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS)
             {
                 return FreeDirection.Right;
             }
