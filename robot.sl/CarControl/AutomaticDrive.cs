@@ -9,7 +9,8 @@ namespace robot.sl.CarControl
 {
     public class AutomaticDrive
     {
-        private const int DS_ULTRASONIC_MIN_RANGE_MILLIMETERS = 350;
+        private const int DS_ULTRASONIC_MIN_RANGE_STRAIGHT_AWAY_MILLIMETERS = 350;
+        private const int DS_ULTRASONIC_MIN_RANGE_FREE_DIRECTION_MILLIMETERS = 600;
         private const int DS_LASER_DOWN_MIN_RANGE_MILLIMETERS = 700;
         private const int DS_LASER_UP_MIN_RANGE_MILLIMETERS = 700;
         
@@ -384,15 +385,15 @@ namespace robot.sl.CarControl
 
         private async Task<FreeDirection> GetFreeDirectionAsync(CancellationToken cancellationToken)
         {
-            var dsLaserDistanceUp = 0;
-            var dsLaserDistanceDown = 0;
-
             if (_isForward == false)
             {
                 _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalMiddle);
                 await Task.Delay(500, cancellationToken);
             }
-            
+
+            var dsLaserDistanceUp = 0;
+            var dsLaserDistanceDown = 0;
+
             var dsUltrasonicDistanceTask = _distanceSensorUltrasonic.GetDistanceFiltered();
             var dsDistanceSensorLaserUpTask = Task.Factory.StartNew(() => dsLaserDistanceUp = _distanceSensorLaserUp.GetDistanceFiltered());
             var dsDistanceSensorLaserDownTask = Task.Factory.StartNew(() => dsLaserDistanceDown = _distanceSensorLaserDown.GetDistanceFiltered());
@@ -400,7 +401,7 @@ namespace robot.sl.CarControl
             await Task.WhenAll(dsUltrasonicDistanceTask, dsDistanceSensorLaserUpTask, dsDistanceSensorLaserDownTask);
             var dsUltrasonicDistance = dsUltrasonicDistanceTask.Result;
             
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS
+            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_STRAIGHT_AWAY_MILLIMETERS
                 && dsLaserDistanceUp > DS_LASER_UP_MIN_RANGE_MILLIMETERS
                 && dsLaserDistanceDown > DS_LASER_DOWN_MIN_RANGE_MILLIMETERS)
             {
@@ -428,7 +429,7 @@ namespace robot.sl.CarControl
             await Task.Delay(500, cancellationToken);
             dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
 
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS)
+            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_FREE_DIRECTION_MILLIMETERS)
             {
                 return FreeDirection.Left;
             }
@@ -438,27 +439,27 @@ namespace robot.sl.CarControl
             await Task.Delay(250, cancellationToken);
             dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
 
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS)
+            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_FREE_DIRECTION_MILLIMETERS)
             {
                 return FreeDirection.LeftMiddle;
             }
 
             //RightMiddle
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalRightMiddle);
-            await Task.Delay(250, cancellationToken);
+            await Task.Delay(500, cancellationToken);
             dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
 
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS)
+            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_FREE_DIRECTION_MILLIMETERS)
             {
                 return FreeDirection.RightMiddle;
             }
 
             //Right
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalRight);
-            await Task.Delay(500, cancellationToken);
+            await Task.Delay(250, cancellationToken);
             dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
 
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS)
+            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_FREE_DIRECTION_MILLIMETERS)
             {
                 return FreeDirection.Right;
             }
