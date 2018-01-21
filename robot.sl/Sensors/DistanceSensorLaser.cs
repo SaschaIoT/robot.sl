@@ -141,7 +141,7 @@ namespace robot.sl.Sensors
             _write_u8(_MSRC_CONFIG_CONTROL, (byte)config_control);
             // set final range signal rate limit to 0.25 MCPS (million counts per
             // second)
-            signal_rate_limit(0.25f);
+            signal_rate_limit(511.99f);
             _write_u8(_SYSTEM_SEQUENCE_CONFIG, 0xFF);
             var si = _get_spad_info();
             // The SPAD map (RefGoodSpadMap) is read by
@@ -263,7 +263,7 @@ namespace robot.sl.Sensors
             //var _measurement_timing_budget_us = measurement_timing_budget();
             _write_u8(_SYSTEM_SEQUENCE_CONFIG, 0xE8);
             //measurement_timing_budget(_measurement_timing_budget_us);
-            measurement_timing_budget((int)Mode.HIGH_ACCURACY);
+            measurement_timing_budget((int)Mode.HIGH_SPEED);
             _write_u8(_SYSTEM_SEQUENCE_CONFIG, 0x01);
             _perform_single_ref_calibration(0x40);
             _write_u8(_SYSTEM_SEQUENCE_CONFIG, 0x02);
