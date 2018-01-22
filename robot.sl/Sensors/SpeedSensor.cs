@@ -15,12 +15,11 @@ namespace robot.sl.Sensors
         public static double RoundsOneKilometer = 5250;
         public static int RoundsPerMinute { get; private set; }
         public static double KilometerPerHour { get; private set; }
-
         public static bool IsDriving
         {
             get
             {
-                return RoundsPerMinute >= 3;
+                return RoundsPerMinute >= 1;
             }
         }
         private static int _downsUps = 0;

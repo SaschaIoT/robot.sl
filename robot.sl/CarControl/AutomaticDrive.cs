@@ -13,14 +13,14 @@ namespace robot.sl.CarControl
         private const int DS_LASER_DOWN_MIN_RANGE_MILLIMETERS = 700;
         private const int DS_LASER_UP_MIN_RANGE_MILLIMETERS = 700;
         
+        private const int CHECK_FORWARD_HANG_AFTER = 700;
+
         //Dependeny objects
         private MotorController _motorController;
         private ServoController _servoController;
         private DistanceSensorUltrasonic _distanceSensorUltrasonic;
         private DistanceSensorLaser _distanceSensorLaserUp;
         private DistanceSensorLaser _distanceSensorLaserDown;
-
-        private ManualResetEvent _threadWaiter = new ManualResetEvent(false);
 
         public bool IsRunning
         {
@@ -32,32 +32,13 @@ namespace robot.sl.CarControl
 
         private const double SPEED = 0.55;
 
-        private bool _isForward = true;
-
+        private ManualResetEvent _threadWaiter = new ManualResetEvent(false);
         private CancellationTokenSource _cancellationTokenSource;
 
         private volatile bool _isStopped = true;
         private volatile bool _isStopping = false;
-
-        private DateTime? _isDriving = null;
-        public DateTime? Driving
-        {
-            get
-            {
-                return _isDriving;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    _isDriving = null;
-                }
-                else if (_isDriving == null)
-                {
-                    _isDriving = value;
-                }
-            }
-        }
+        private bool _isForward = true;
+        private DateTime? _drivingForward;
 
         public AutomaticDrive(MotorController motorController,
                               ServoController servoController,
@@ -105,8 +86,6 @@ namespace robot.sl.CarControl
 
             _isStopped = false;
 
-            Driving = null;
-
             _cancellationTokenSource = new CancellationTokenSource();
 
             StartInternal(_cancellationTokenSource.Token);
@@ -125,8 +104,6 @@ namespace robot.sl.CarControl
             {
                 return;
             }
-
-            Driving = null;
 
             if (_cancellationTokenSource != null)
             {
@@ -187,10 +164,11 @@ namespace robot.sl.CarControl
                     {
                         if (_isStopping)
                             break;
-
-                        if (Driving.HasValue && DateTime.Now >= Driving.Value.AddMilliseconds(700))
+                        
+                        if (_drivingForward.HasValue && DateTime.Now >= _drivingForward.Value.AddMilliseconds(CHECK_FORWARD_HANG_AFTER))
                         {
-                            await CheckHangAsync(cancellationToken);
+                            if (await CheckHangAsync(cancellationToken))
+                                continue;
                         }
 
                         carMoveCommand = new CarMoveCommand
@@ -200,10 +178,12 @@ namespace robot.sl.CarControl
 
                         _motorController.MoveCar(null, carMoveCommand);
 
-                        Driving = DateTime.Now;
+                        _drivingForward = DateTime.Now;
                     }
                     else
                     {
+                        _drivingForward = null;
+
                         if (freeDirection == FreeDirection.Left)
                         {
                             if (_isStopping)
@@ -251,8 +231,6 @@ namespace robot.sl.CarControl
 
             _motorController.MoveCar(null, carMoveCommandEnd);
 
-            Driving = null;
-
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
             _servoController.PwmController.SetPwm(Servo.DistanceSensorVertical, 0, ServoPositions.DistanceSensorVerticalTop);
 
@@ -271,7 +249,8 @@ namespace robot.sl.CarControl
 
             await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
 
-            await CheckHangAsync(cancellationToken);
+            if (await CheckHangAsync(cancellationToken))
+                return;
 
             carMoveCommand = new CarMoveCommand
             {
@@ -279,8 +258,6 @@ namespace robot.sl.CarControl
             };
 
             _motorController.MoveCar(null, carMoveCommand);
-
-            Driving = null;
         }
 
         private async Task TurnBackwardAsync(int milliseconds, CancellationToken cancellationToken)
@@ -295,7 +272,8 @@ namespace robot.sl.CarControl
 
             await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
 
-            await CheckHangAsync(cancellationToken);
+            if (await CheckHangAsync(cancellationToken))
+                return;
 
             carMoveCommand = new CarMoveCommand
             {
@@ -303,8 +281,6 @@ namespace robot.sl.CarControl
             };
 
             _motorController.MoveCar(null, carMoveCommand);
-
-            Driving = null;
         }
 
         private async Task TurnLeftAsync(int milliseconds, CancellationToken cancellationToken)
@@ -319,7 +295,8 @@ namespace robot.sl.CarControl
 
             await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
 
-            await CheckHangAsync(cancellationToken);
+            if (await CheckHangAsync(cancellationToken))
+                return;
 
             carMoveCommand = new CarMoveCommand
             {
@@ -327,8 +304,6 @@ namespace robot.sl.CarControl
             };
 
             _motorController.MoveCar(null, carMoveCommand);
-
-            Driving = null;
         }
 
         private async Task TurnFullAsync(CancellationToken cancellationToken)
@@ -343,7 +318,8 @@ namespace robot.sl.CarControl
 
             await Task.Delay(TimeSpan.FromMilliseconds(1250), cancellationToken);
 
-            await CheckHangAsync(cancellationToken);
+            if (await CheckHangAsync(cancellationToken))
+                return;
 
             carMoveCommand = new CarMoveCommand
             {
@@ -351,22 +327,22 @@ namespace robot.sl.CarControl
             };
 
             _motorController.MoveCar(null, carMoveCommand);
-
-            Driving = null;
         }
 
-        private async Task CheckHangAsync(CancellationToken cancellationToken)
+        private async Task<bool> CheckHangAsync(CancellationToken cancellationToken)
         {
-            if (!SpeedSensor.IsDriving)
+            var hang = false;
+
+            if (SpeedSensor.IsDriving == false)
             {
+                hang = true;
+
                 var carMoveCommand = new CarMoveCommand
                 {
                     Speed = 0
                 };
 
                 _motorController.MoveCar(null, carMoveCommand);
-
-                Driving = null;
 
                 await AudioPlayerController.PlayAndWaitAsync(AudioName.AutomatischesFahrenFesthaengen, cancellationToken);
 
@@ -380,6 +356,8 @@ namespace robot.sl.CarControl
 
                 _motorController.MoveCar(null, carMoveCommand);
             }
+
+            return hang;
         }
 
         private async Task<FreeDirection> GetFreeDirectionAsync(CancellationToken cancellationToken)
@@ -399,7 +377,7 @@ namespace robot.sl.CarControl
 
             await Task.WhenAll(dsUltrasonicDistanceTask, dsDistanceSensorLaserUpTask, dsDistanceSensorLaserDownTask);
             var dsUltrasonicDistance = dsUltrasonicDistanceTask.Result;
-            
+
             if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS
                 && dsLaserDistanceUp > DS_LASER_UP_MIN_RANGE_MILLIMETERS
                 && dsLaserDistanceDown > DS_LASER_DOWN_MIN_RANGE_MILLIMETERS)
@@ -421,8 +399,6 @@ namespace robot.sl.CarControl
 
             _motorController.MoveCar(null, carMoveCommand);
 
-            Driving = null;
-            
             //Left
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
             await Task.Delay(500, cancellationToken);
