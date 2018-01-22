@@ -168,7 +168,10 @@ namespace robot.sl.CarControl
                         if (_drivingForward.HasValue && DateTime.Now >= _drivingForward.Value.AddMilliseconds(CHECK_FORWARD_HANG_AFTER))
                         {
                             if (await CheckHangAsync(cancellationToken))
+                            {
+                                _drivingForward = null;
                                 continue;
+                            }
                         }
 
                         carMoveCommand = new CarMoveCommand
