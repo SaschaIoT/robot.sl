@@ -178,7 +178,8 @@ namespace robot.sl.CarControl
 
                         _motorController.MoveCar(null, carMoveCommand);
 
-                        _drivingForward = DateTime.Now;
+                        if(_drivingForward.HasValue == false)
+                            _drivingForward = DateTime.Now;
                     }
                     else
                     {
