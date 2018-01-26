@@ -111,7 +111,7 @@ namespace robot.sl.Helper
 
             await Task.WhenAll(new[] { stopAll, shutdownSound });
 
-            await DeviceController.ShutdownDeviceAsync();
+            DeviceController.ShutdownDevice();
         }
 
         public static async Task RestartAsync()
@@ -123,7 +123,7 @@ namespace robot.sl.Helper
 
             await StopAllAsync();
             await AudioPlayerController.PlayAndWaitAsync(AudioName.Restart);
-            await DeviceController.RestartDeviceAsync();
+            DeviceController.RestartDevice();
         }
 
         public static async Task SetDefaultRenderDeviceVolumeAsync(int volume)
