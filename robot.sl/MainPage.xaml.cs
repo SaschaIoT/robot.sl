@@ -121,7 +121,7 @@ namespace robot.sl
                 await Logger.WriteAsync($"{nameof(MainPage)}, {nameof(InitialzeAsync)}: ", exception);
 
                 await Task.Delay(TimeSpan.FromSeconds(20));
-                await DeviceController.RestartDeviceAsync();
+                DeviceController.RestartDevice();
             }
         }
     }
