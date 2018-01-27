@@ -1,6 +1,4 @@
-﻿var automaticDriveButton = document.getElementById("automaticDriveButton");
-
-var speakerOn = true;
+﻿var speakerOn = true;
 var speakerOnOffElement = document.getElementById("speakerOnOff");
 speakerOnOffElement.addEventListener("touchstart", function (e) {
 
@@ -112,7 +110,33 @@ soundModeOnOffElement.addEventListener("touchend", function (e) {
     soundModeOnOffElement.classList.remove("setting-menu-point-hover-hover");
 });
 
-var automaticDriveOn = false;
+var danceOn = true;
+var danceOnOffElement = document.getElementById("danceOnOff");
+danceOnOffElement.addEventListener("touchstart", function (e) {
+
+    danceOnOffElement.classList.add("setting-menu-point-hover-hover");
+
+    var danceOnOffString = "";
+    if (danceOn === false) {
+        danceOnOffString = "true";
+    }
+    else {
+        danceOnOffString = "false";
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "http://192.168.0.101/danceOnOff?on=" + danceOnOffString + "?time=" + new Date().getTime(), true);
+    xhr.responseType = "json";
+    xhr.timeout = xhttpRequestTimeout;
+    xhr.send();
+
+    e.preventDefault();
+    e.stopPropagation();
+});
+
+danceOnOffElement.addEventListener("touchend", function (e) {
+    danceOnOffElement.classList.remove("setting-menu-point-hover-hover");
+});
 
 var ausschalten = document.getElementById("ausschalten");
 ausschalten.addEventListener("touchstart", function (e) {
@@ -138,7 +162,8 @@ neustarten.addEventListener("touchstart", function (e) {
     }
 });
 
-
+var automaticDriveOn = false;
+var automaticDriveButton = document.getElementById("automaticDriveButton");
 automaticDriveButton.addEventListener('touchstart', function (e) {
 
     e.preventDefault();

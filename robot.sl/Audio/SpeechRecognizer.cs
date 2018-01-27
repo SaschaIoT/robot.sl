@@ -21,16 +21,19 @@ namespace robot.sl.Audio
         private MotorController _motorController;
         private ServoController _servoController;
         private AutomaticDrive _automaticDrive;
+        private Dance _dance;
 
         private ManualResetEvent _threadWaiter = new ManualResetEvent(false);
 
         public async Task InitialzeAsync(MotorController motorController,
-                                    ServoController servoController,
-                                    AutomaticDrive automaticDrive)
+                                         ServoController servoController,
+                                         AutomaticDrive automaticDrive,
+                                         Dance dance)
         {
             _motorController = motorController;
             _servoController = servoController;
             _automaticDrive = automaticDrive;
+            _dance = dance;
 
             _speechRecognizer = new SpeechRecognizer(new Language("de-DE"));
 
@@ -66,23 +69,22 @@ namespace robot.sl.Audio
 
         public async Task StopAsync()
         {
-            StopInternal();
+            await StopInternal();
             await _speechRecognizer.ContinuousRecognitionSession.StopAsync();
             _threadWaiter.Set();
         }
 
-        private void StopInternal()
+        private async Task StopInternal()
         {
             _isStopped = true;
 
-            _motorController.MoveCar(null, new CarMoveCommand
+            await _motorController.MoveCarAsync(new CarMoveCommand
             {
                 Speed = 0
-            });
+            }, MotorCommandSource.Other);
 
             _recognationForwardBackward = true;
             _recognationIsDriving = false;
-            _recognationShouldDancing = false;
         }
 
         private async void ContinuousRecognitionSession_Completed(SpeechContinuousRecognitionSession speechContinousRecognationSession, SpeechContinuousRecognitionCompletedEventArgs speechContinuousRecognationCompletedEventArgs)

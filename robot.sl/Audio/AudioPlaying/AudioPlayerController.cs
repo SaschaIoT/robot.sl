@@ -161,8 +161,8 @@ namespace robot.sl.Audio.AudioPlaying
                     }
                     else if (SoundModeOn
                              && audioName != AudioName.AutomatischesFahrenFesthaengen
-                             && audioName != AudioName.StartAutomaticDrive
-                             && audioName != AudioName.StopAutomaticDrive)
+                             && audioName != AudioName.AutomaticDriveOn
+                             && audioName != AudioName.AutomaticDriveOff)
                     {
                         speakerOnOff.CarSpeakerOn = false;
                         speakerOnOff.HeadsetSpeakerOn = false;

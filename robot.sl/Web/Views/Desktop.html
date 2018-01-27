@@ -42,6 +42,7 @@
             <div id="carSpeakerOnOff" class="settings-menu-point setting-menu-point-hover">&bull; Fahrzeug Lautsprecher <span id="carSpeakerOn" class="invisible"><span class="speaker-off-image"></span></span><span id="carSpeakerOff" class="visible invisible"><span class="speaker-on-image"></span></span><br /><br /></div>
             <div id="headsetSpeakerOnOff" class="settings-menu-point setting-menu-point-hover">&bull; Headset Lautsprecher <span id="headsetSpeakerOn" class="invisible"><span class="speaker-off-image"></span></span><span id="headsetSpeakerOff" class="visible invisible"><span class="speaker-on-image"></span></span><br /><br /></div>
             <div id="soundModeOnOff" class="settings-menu-point setting-menu-point-hover">&bull; Sound Modus <span id="soundModeOn" class="invisible"><span class="speaker-off-image"></span></span><span id="soundModeOff" class="visible invisible"><span class="speaker-on-image"></span></span><br /><br /></div>
+            <div id="danceOnOff" class="settings-menu-point setting-menu-point-hover">&bull; Tanzen <span id="danceOn" class="invisible"><span class="dance-off-image"></span></span><span id="danceOff" class="visible invisible"><span class="dance-on-image"></span></span><br /><br /></div>
             <div id="ausschalten" class="settings-menu-point setting-menu-point-hover">&bull; Ausschalten <span class="shutdown-image"></span><br /><br /></div>
             <div id="neustarten" class="settings-menu-point setting-menu-point-hover">&bull; Neustarten <span class="restart-image"></span><br /><br /></div>
         </div>
@@ -81,6 +82,7 @@
     <script type="text/javascript">
         var xhttpRequestTimeout = 1000;
         var requestTimeout = 500;
+        var isDesktop = true;
     </script>
     <script src="http://192.168.0.101/JavaScript/WebSocketHelper.js"></script>
     <script src="http://192.168.0.101/JavaScript/CommandsDesktop.js"></script>

@@ -26,6 +26,7 @@ namespace robot.sl
         private SpeechRecognition _speechRecognation;
         private DistanceSensorLaser _distanceSensorLaserDown;
         private DistanceSensorLaser _distanceSensorLaserUp;
+        private Dance _dance;
 
         private const int HEADSET_AUDIO_RENDER_VOLUME = 70;
         private const int SPEAKER_AUDIO_RENDER_VOLUME = 80;
@@ -88,9 +89,9 @@ namespace robot.sl
                 _accelerometerSensor.Start();
 
                 _automaticSpeakController = new AutomaticSpeakController(_accelerometerSensor);
-
+                
                 _motorController = new MotorController();
-                await _motorController.Initialize(_automaticSpeakController);
+                _dance = new Dance(_motorController);
 
                 _servoController = new ServoController();
                 await _servoController.InitializeAsync();
@@ -100,17 +101,20 @@ namespace robot.sl
 
                 _automaticDrive = new AutomaticDrive(_motorController, _servoController, _distanceSensorUltrasonic, _distanceSensorLaserUp, _distanceSensorLaserDown);
 
-                _speechRecognation = new SpeechRecognition();
-                await _speechRecognation.InitialzeAsync(_motorController, _servoController, _automaticDrive);
-                _speechRecognation.Start();
+                await _motorController.Initialize(_automaticSpeakController, _automaticDrive, _dance);
 
-                _gamepadController = new GamepadController(_motorController, _servoController, _automaticDrive, _accelerometerSensor);
+                _speechRecognation = new SpeechRecognition();
+                await _speechRecognation.InitialzeAsync(_motorController, _servoController, _automaticDrive, _dance);
 
                 _camera.Start();
 
-                _httpServerController = new HttpServerController(_motorController, _servoController, _automaticDrive, _camera);
+                _httpServerController = new HttpServerController(_motorController, _servoController, _automaticDrive, _camera, _dance);
 
-                SystemController.InitializeAsync(_accelerometerSensor, _automaticSpeakController, _motorController, _servoController, _automaticDrive, _camera, _httpServerController, _speechRecognation, _gamepadController);
+                _gamepadController = new GamepadController(_motorController, _servoController, _automaticDrive, _accelerometerSensor, _dance);
+
+                _speechRecognation.Start();
+
+                SystemController.InitializeAsync(_accelerometerSensor, _automaticSpeakController, _motorController, _servoController, _automaticDrive, _camera, _httpServerController, _speechRecognation, _gamepadController, _dance);
 
                 await AudioPlayerController.PlayAndWaitAsync(AudioName.Welcome);
 

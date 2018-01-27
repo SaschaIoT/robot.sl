@@ -20,5 +20,7 @@ preloadImages(
         "audio_volume_high@24x24.png",
         "audio_volume_mute@24x24.png",
         "close@24x24.png",
-        "reload@24x24.png"]
+        "reload@24x24.png",
+        "dance_on@24x24.png",
+        "dance_off@24x24.png"]
 );
