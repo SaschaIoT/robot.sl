@@ -22,6 +22,7 @@ namespace robot.sl.Helper
         private static HttpServerController _httpServerController;
         private static SpeechRecognition _speechRecognation;
         private static GamepadController _gamepadController;
+        private static Dance _dance;
 
         private static bool _initialized = false;
 
@@ -35,7 +36,8 @@ namespace robot.sl.Helper
                                       Camera camera,
                                       HttpServerController httpServerController,
                                       SpeechRecognition speechRecognation,
-                                      GamepadController gamepadController)
+                                      GamepadController gamepadController,
+                                      Dance dance)
         {
             _accelerometerSensor = accelerometerSensor;
             _automaticSpeakController = automaticSpeakController;
@@ -46,6 +48,7 @@ namespace robot.sl.Helper
             _httpServerController = httpServerController;
             _speechRecognation = speechRecognation;
             _gamepadController = gamepadController;
+            _dance = dance;
 
             _initialized = true;
         }
@@ -63,7 +66,8 @@ namespace robot.sl.Helper
                 await _camera.StopAsync();
                 await _gamepadController.StopAsync();
                 await _speechRecognation.StopAsync();
-                await _automaticDrive.StopAsync(false);
+                await _automaticDrive.StopAsync(false, false);
+                await _dance.StopAsync(false, false);
                 _servoController.Stop();
                 _motorController.Stop();
                 await _automaticSpeakController.StopAsync();
@@ -145,13 +149,8 @@ namespace robot.sl.Helper
         {
             await AudioDeviceController.SetDefaultCaptureDeviceAsync(captureDeviceName);
         }
-
+        
         public static async Task ShutdownApplicationAsync(bool unhandeledException)
-        {
-            await ShutdownApplicationAsync(unhandeledException, true);
-        }
-
-        public static async Task ShutdownApplicationAsync(bool unhandeledException, bool stopAll)
         {
             if (unhandeledException)
             {
@@ -164,8 +163,7 @@ namespace robot.sl.Helper
 
             try
             {
-                if(stopAll)
-                    await StopAllAsync();
+                await StopAllAsync();
             }
             catch (Exception) { }
 

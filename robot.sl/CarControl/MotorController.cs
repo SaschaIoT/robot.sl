@@ -1,5 +1,6 @@
 ﻿using robot.sl.Audio;
 using robot.sl.Exceptions;
+using robot.sl.Helper;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -103,19 +104,30 @@ namespace robot.sl.CarControl
         private int _frequency;
         public PwmController PwmController;
         public List<Motor> Motors;
-        private AutomaticSpeakController _automaticSpeakController;
         private volatile bool _isStopped;
         private CarMoveCommand _lastCarMoveCommand;
+        private MotorCommandSource _lastMotorCommandSource = MotorCommandSource.Other;
+
+        //Dependencies
+        private AutomaticSpeakController _automaticSpeakController;
+        private AutomaticDrive _automaticDrive;
+        private Dance _dance;
+
         public void Stop()
         {
             _isStopped = true;
         }
-        
+
         public async Task Initialize(AutomaticSpeakController automaticSpeakController,
+                                     AutomaticDrive automaticDrive,
+                                     Dance dance,
                                      byte i2cAddress = 0x60,
                                      int frequency = 40)
         {
             _automaticSpeakController = automaticSpeakController;
+            _automaticDrive = automaticDrive;
+            _dance = dance;
+
             _i2caddress = i2cAddress;
             _frequency = frequency;
             Motors = new List<Motor>
@@ -130,11 +142,11 @@ namespace robot.sl.CarControl
             await PwmController.InitializeAsync();
             PwmController.SetDesiredFrequency(_frequency);
 
-            MoveCar(null, new CarMoveCommand
+            await MoveCarAsync(new CarMoveCommand
             {
                 ForwardBackward = true,
                 Speed = 0
-            });
+            }, MotorCommandSource.Other);
         }
 
         public void SetPin(int pin, int value)
@@ -169,199 +181,224 @@ namespace robot.sl.CarControl
             return Motors[num - 1];
         }
 
-        public void MoveCar(CarControlCommand carControlCommand,
-                            CarMoveCommand carMoveCommandParam)
+        public async Task MoveCarAsync(CarControlCommand carControlCommand,
+                                       MotorCommandSource motorCommandSource)
         {
-            if(_isStopped)
-            {
-                return;
-            }
-
-            //Straight away correction
-            var leftCorrectionFaktor = 0.89;
-
-            //Speed from 0 to 255
-            var dcMotorMaxSpeed = 255;
-
-            CarMoveCommand carMoveCommand = null;
-
-            if (carMoveCommandParam != null)
-            {
-                carMoveCommand = carMoveCommandParam;
-            }
-            else if (carControlCommand != null)
-            {
-                carMoveCommand = new CarMoveCommand(carControlCommand);
-            }
-
-            if(_lastCarMoveCommand != null
-               && _lastCarMoveCommand.ForwardBackward == carMoveCommand.ForwardBackward
-               && _lastCarMoveCommand.LeftCircle == carMoveCommand.LeftCircle
-               && _lastCarMoveCommand.RightCircle == carMoveCommand.RightCircle
-               && _lastCarMoveCommand.RightLeft == carMoveCommand.RightLeft
-               && _lastCarMoveCommand.Speed == carMoveCommand.Speed)
-            {
-                return;
-            }
-
-            _lastCarMoveCommand = carMoveCommand;
-
-            _automaticSpeakController.CarMoveCommand = carMoveCommand;
-
-            var motorLeft1 = GetMotor(3);
-            var motorLeft2 = GetMotor(4);
-            var motorRight1 = GetMotor(1);
-            var motorRight2 = GetMotor(2);
-
-            if (carMoveCommand.Speed == 0)
-            {
-                motorLeft1.SetSpeed(0);
-                motorLeft2.SetSpeed(0);
-                motorRight1.SetSpeed(0);
-                motorRight2.SetSpeed(0);
-
-                motorLeft1.Run(MotorAction.RELEASE);
-                motorLeft2.Run(MotorAction.RELEASE);
-                motorRight1.Run(MotorAction.RELEASE);
-                motorRight2.Run(MotorAction.RELEASE);
-            }
-            else if (carMoveCommand.RightCircle)
-            {
-                var carSpeedFull = (int)Math.Round(carMoveCommand.Speed * dcMotorMaxSpeed, 0);
-
-                if (carMoveCommand.ForwardBackward)
-                {
-                    motorLeft1.Run(MotorAction.FORWARD);
-                    motorLeft2.Run(MotorAction.FORWARD);
-                    motorRight1.Run(MotorAction.BACKWARD);
-                    motorRight2.Run(MotorAction.BACKWARD);
-
-                    motorLeft1.SetSpeed(carSpeedFull);
-                    motorLeft2.SetSpeed(carSpeedFull);
-                    motorRight1.SetSpeed(carSpeedFull);
-                    motorRight2.SetSpeed(carSpeedFull);
-                }
-                else
-                {
-                    motorLeft1.Run(MotorAction.BACKWARD);
-                    motorLeft2.Run(MotorAction.BACKWARD);
-                    motorRight1.Run(MotorAction.FORWARD);
-                    motorRight2.Run(MotorAction.FORWARD);
-
-                    motorLeft1.SetSpeed(carSpeedFull);
-                    motorLeft2.SetSpeed(carSpeedFull);
-                    motorRight1.SetSpeed(carSpeedFull);
-                    motorRight2.SetSpeed(carSpeedFull);
-                }
-            }
-            else if (carMoveCommand.LeftCircle)
-            {
-                var carSpeedFull = (int)Math.Round(carMoveCommand.Speed * dcMotorMaxSpeed, 0);
-
-                if (carMoveCommand.ForwardBackward)
-                {
-                    motorLeft1.Run(MotorAction.BACKWARD);
-                    motorLeft2.Run(MotorAction.BACKWARD);
-                    motorRight1.Run(MotorAction.FORWARD);
-                    motorRight2.Run(MotorAction.FORWARD);
-
-                    motorLeft1.SetSpeed(carSpeedFull);
-                    motorLeft2.SetSpeed(carSpeedFull);
-                    motorRight1.SetSpeed(carSpeedFull);
-                    motorRight2.SetSpeed(carSpeedFull);
-                }
-                else
-                {
-                    motorLeft1.Run(MotorAction.FORWARD);
-                    motorLeft2.Run(MotorAction.FORWARD);
-                    motorRight1.Run(MotorAction.BACKWARD);
-                    motorRight2.Run(MotorAction.BACKWARD);
-
-                    motorLeft1.SetSpeed(carSpeedFull);
-                    motorLeft2.SetSpeed(carSpeedFull);
-                    motorRight1.SetSpeed(carSpeedFull);
-                    motorRight2.SetSpeed(carSpeedFull);
-                }
-            }
-            //Left
-            else if (carMoveCommand.RightLeft < 0)
-            {
-                var carSpeedFull = (int)Math.Round(carMoveCommand.Speed * dcMotorMaxSpeed, 0);
-                var carSpeedSlow = (int)Math.Round(carMoveCommand.Speed * (1 - Math.Abs(carMoveCommand.RightLeft)) * dcMotorMaxSpeed, 0);
-
-                if (carMoveCommand.ForwardBackward)
-                {
-                    motorLeft1.Run(MotorAction.FORWARD);
-                    motorLeft2.Run(MotorAction.FORWARD);
-                    motorRight1.Run(MotorAction.FORWARD);
-                    motorRight2.Run(MotorAction.FORWARD);
-                }
-                else
-                {
-                    motorLeft1.Run(MotorAction.BACKWARD);
-                    motorLeft2.Run(MotorAction.BACKWARD);
-                    motorRight1.Run(MotorAction.BACKWARD);
-                    motorRight2.Run(MotorAction.BACKWARD);
-                }
-
-                var carSpeedSlowWithLeftCorrection = (int)Math.Round(carSpeedSlow * leftCorrectionFaktor);
-                motorLeft1.SetSpeed(carSpeedSlowWithLeftCorrection);
-                motorLeft2.SetSpeed(carSpeedSlowWithLeftCorrection);
-                motorRight1.SetSpeed(carSpeedFull);
-                motorRight2.SetSpeed(carSpeedFull);
-            }
-            //Right
-            else if (carMoveCommand.RightLeft > 0)
-            {
-                var carSpeedFull = (int)Math.Round(carMoveCommand.Speed * dcMotorMaxSpeed, 0);
-                var carSpeedSlow = (int)Math.Round(carMoveCommand.Speed * (1 - Math.Abs(carMoveCommand.RightLeft)) * dcMotorMaxSpeed, 0);
-
-                if (carMoveCommand.ForwardBackward)
-                {
-                    motorLeft1.Run(MotorAction.FORWARD);
-                    motorLeft2.Run(MotorAction.FORWARD);
-                    motorRight1.Run(MotorAction.FORWARD);
-                    motorRight2.Run(MotorAction.FORWARD);
-                }
-                else
-                {
-                    motorLeft1.Run(MotorAction.BACKWARD);
-                    motorLeft2.Run(MotorAction.BACKWARD);
-                    motorRight1.Run(MotorAction.BACKWARD);
-                    motorRight2.Run(MotorAction.BACKWARD);
-                }
-
-                var carSpeedFullWithLeftCorrection = (int)Math.Round(carSpeedFull * leftCorrectionFaktor);
-                motorLeft1.SetSpeed(carSpeedFullWithLeftCorrection);
-                motorLeft2.SetSpeed(carSpeedFullWithLeftCorrection);
-                motorRight1.SetSpeed(carSpeedSlow);
-                motorRight2.SetSpeed(carSpeedSlow);
-            }
-            else if (carMoveCommand.RightLeft == 0)
-            {
-                var carSpeedFull = (int)Math.Round(carMoveCommand.Speed * dcMotorMaxSpeed, 0);
-
-                if (carMoveCommand.ForwardBackward)
-                {
-                    motorLeft1.Run(MotorAction.FORWARD);
-                    motorLeft2.Run(MotorAction.FORWARD);
-                    motorRight1.Run(MotorAction.FORWARD);
-                    motorRight2.Run(MotorAction.FORWARD);
-                }
-                else
-                {
-                    motorLeft1.Run(MotorAction.BACKWARD);
-                    motorLeft2.Run(MotorAction.BACKWARD);
-                    motorRight1.Run(MotorAction.BACKWARD);
-                    motorRight2.Run(MotorAction.BACKWARD);
-                }
-
-                var carSpeedFullWithLeftCorrection = (int)Math.Round(carSpeedFull * leftCorrectionFaktor);
-                motorLeft1.SetSpeed(carSpeedFullWithLeftCorrection);
-                motorLeft2.SetSpeed(carSpeedFullWithLeftCorrection);
-                motorRight1.SetSpeed(carSpeedFull);
-                motorRight2.SetSpeed(carSpeedFull);
-            }
+            await MoveCarAsync(new CarMoveCommand(carControlCommand), motorCommandSource);
         }
+
+        public async Task MoveCarAsync(CarMoveCommand carMoveCommand,
+                                       MotorCommandSource motorCommandSource)
+        {
+            if (_isStopped)
+            {
+                return;
+            }
+
+            if (_lastMotorCommandSource == MotorCommandSource.AutomaticDrive
+                && motorCommandSource != MotorCommandSource.AutomaticDrive)
+            {
+                var speak = motorCommandSource != MotorCommandSource.SpeechRecognation
+                            && motorCommandSource != MotorCommandSource.Dance;
+
+                await _automaticDrive.StopAsync(speak, true);
+            }
+            else if (_lastMotorCommandSource == MotorCommandSource.Dance
+                     && motorCommandSource != MotorCommandSource.Dance)
+            {
+                var speak = motorCommandSource != MotorCommandSource.SpeechRecognation
+                            && motorCommandSource != MotorCommandSource.AutomaticDrive;
+
+                await _dance.StopAsync(speak, true);
+            }
+
+            await MotorSynchronous.Call(() =>
+            {
+                _lastMotorCommandSource = motorCommandSource;
+
+                //Straight away correction
+                var leftCorrectionFaktor = 0.89;
+
+                //Speed from 0 to 255
+                var dcMotorMaxSpeed = 255;
+
+                if (_lastCarMoveCommand != null
+                   && _lastCarMoveCommand.ForwardBackward == carMoveCommand.ForwardBackward
+                   && _lastCarMoveCommand.LeftCircle == carMoveCommand.LeftCircle
+                   && _lastCarMoveCommand.RightCircle == carMoveCommand.RightCircle
+                   && _lastCarMoveCommand.RightLeft == carMoveCommand.RightLeft
+                   && _lastCarMoveCommand.Speed == carMoveCommand.Speed)
+                {
+                    return;
+                }
+
+                _lastCarMoveCommand = carMoveCommand;
+
+                _automaticSpeakController.CarMoveCommand = carMoveCommand;
+
+                var motorLeft1 = GetMotor(3);
+                var motorLeft2 = GetMotor(4);
+                var motorRight1 = GetMotor(1);
+                var motorRight2 = GetMotor(2);
+
+                if (carMoveCommand.Speed == 0)
+                {
+                    motorLeft1.SetSpeed(0);
+                    motorLeft2.SetSpeed(0);
+                    motorRight1.SetSpeed(0);
+                    motorRight2.SetSpeed(0);
+
+                    motorLeft1.Run(MotorAction.RELEASE);
+                    motorLeft2.Run(MotorAction.RELEASE);
+                    motorRight1.Run(MotorAction.RELEASE);
+                    motorRight2.Run(MotorAction.RELEASE);
+                }
+                else if (carMoveCommand.RightCircle)
+                {
+                    var carSpeedFull = (int)Math.Round(carMoveCommand.Speed * dcMotorMaxSpeed, 0);
+
+                    if (carMoveCommand.ForwardBackward)
+                    {
+                        motorLeft1.Run(MotorAction.FORWARD);
+                        motorLeft2.Run(MotorAction.FORWARD);
+                        motorRight1.Run(MotorAction.BACKWARD);
+                        motorRight2.Run(MotorAction.BACKWARD);
+
+                        motorLeft1.SetSpeed(carSpeedFull);
+                        motorLeft2.SetSpeed(carSpeedFull);
+                        motorRight1.SetSpeed(carSpeedFull);
+                        motorRight2.SetSpeed(carSpeedFull);
+                    }
+                    else
+                    {
+                        motorLeft1.Run(MotorAction.BACKWARD);
+                        motorLeft2.Run(MotorAction.BACKWARD);
+                        motorRight1.Run(MotorAction.FORWARD);
+                        motorRight2.Run(MotorAction.FORWARD);
+
+                        motorLeft1.SetSpeed(carSpeedFull);
+                        motorLeft2.SetSpeed(carSpeedFull);
+                        motorRight1.SetSpeed(carSpeedFull);
+                        motorRight2.SetSpeed(carSpeedFull);
+                    }
+                }
+                else if (carMoveCommand.LeftCircle)
+                {
+                    var carSpeedFull = (int)Math.Round(carMoveCommand.Speed * dcMotorMaxSpeed, 0);
+
+                    if (carMoveCommand.ForwardBackward)
+                    {
+                        motorLeft1.Run(MotorAction.BACKWARD);
+                        motorLeft2.Run(MotorAction.BACKWARD);
+                        motorRight1.Run(MotorAction.FORWARD);
+                        motorRight2.Run(MotorAction.FORWARD);
+
+                        motorLeft1.SetSpeed(carSpeedFull);
+                        motorLeft2.SetSpeed(carSpeedFull);
+                        motorRight1.SetSpeed(carSpeedFull);
+                        motorRight2.SetSpeed(carSpeedFull);
+                    }
+                    else
+                    {
+                        motorLeft1.Run(MotorAction.FORWARD);
+                        motorLeft2.Run(MotorAction.FORWARD);
+                        motorRight1.Run(MotorAction.BACKWARD);
+                        motorRight2.Run(MotorAction.BACKWARD);
+
+                        motorLeft1.SetSpeed(carSpeedFull);
+                        motorLeft2.SetSpeed(carSpeedFull);
+                        motorRight1.SetSpeed(carSpeedFull);
+                        motorRight2.SetSpeed(carSpeedFull);
+                    }
+                }
+                //Left
+                else if (carMoveCommand.RightLeft < 0)
+                {
+                    var carSpeedFull = (int)Math.Round(carMoveCommand.Speed * dcMotorMaxSpeed, 0);
+                    var carSpeedSlow = (int)Math.Round(carMoveCommand.Speed * (1 - Math.Abs(carMoveCommand.RightLeft)) * dcMotorMaxSpeed, 0);
+
+                    if (carMoveCommand.ForwardBackward)
+                    {
+                        motorLeft1.Run(MotorAction.FORWARD);
+                        motorLeft2.Run(MotorAction.FORWARD);
+                        motorRight1.Run(MotorAction.FORWARD);
+                        motorRight2.Run(MotorAction.FORWARD);
+                    }
+                    else
+                    {
+                        motorLeft1.Run(MotorAction.BACKWARD);
+                        motorLeft2.Run(MotorAction.BACKWARD);
+                        motorRight1.Run(MotorAction.BACKWARD);
+                        motorRight2.Run(MotorAction.BACKWARD);
+                    }
+
+                    var carSpeedSlowWithLeftCorrection = (int)Math.Round(carSpeedSlow * leftCorrectionFaktor);
+                    motorLeft1.SetSpeed(carSpeedSlowWithLeftCorrection);
+                    motorLeft2.SetSpeed(carSpeedSlowWithLeftCorrection);
+                    motorRight1.SetSpeed(carSpeedFull);
+                    motorRight2.SetSpeed(carSpeedFull);
+                }
+                //Right
+                else if (carMoveCommand.RightLeft > 0)
+                {
+                    var carSpeedFull = (int)Math.Round(carMoveCommand.Speed * dcMotorMaxSpeed, 0);
+                    var carSpeedSlow = (int)Math.Round(carMoveCommand.Speed * (1 - Math.Abs(carMoveCommand.RightLeft)) * dcMotorMaxSpeed, 0);
+
+                    if (carMoveCommand.ForwardBackward)
+                    {
+                        motorLeft1.Run(MotorAction.FORWARD);
+                        motorLeft2.Run(MotorAction.FORWARD);
+                        motorRight1.Run(MotorAction.FORWARD);
+                        motorRight2.Run(MotorAction.FORWARD);
+                    }
+                    else
+                    {
+                        motorLeft1.Run(MotorAction.BACKWARD);
+                        motorLeft2.Run(MotorAction.BACKWARD);
+                        motorRight1.Run(MotorAction.BACKWARD);
+                        motorRight2.Run(MotorAction.BACKWARD);
+                    }
+
+                    var carSpeedFullWithLeftCorrection = (int)Math.Round(carSpeedFull * leftCorrectionFaktor);
+                    motorLeft1.SetSpeed(carSpeedFullWithLeftCorrection);
+                    motorLeft2.SetSpeed(carSpeedFullWithLeftCorrection);
+                    motorRight1.SetSpeed(carSpeedSlow);
+                    motorRight2.SetSpeed(carSpeedSlow);
+                }
+                else if (carMoveCommand.RightLeft == 0)
+                {
+                    var carSpeedFull = (int)Math.Round(carMoveCommand.Speed * dcMotorMaxSpeed, 0);
+
+                    if (carMoveCommand.ForwardBackward)
+                    {
+                        motorLeft1.Run(MotorAction.FORWARD);
+                        motorLeft2.Run(MotorAction.FORWARD);
+                        motorRight1.Run(MotorAction.FORWARD);
+                        motorRight2.Run(MotorAction.FORWARD);
+                    }
+                    else
+                    {
+                        motorLeft1.Run(MotorAction.BACKWARD);
+                        motorLeft2.Run(MotorAction.BACKWARD);
+                        motorRight1.Run(MotorAction.BACKWARD);
+                        motorRight2.Run(MotorAction.BACKWARD);
+                    }
+
+                    var carSpeedFullWithLeftCorrection = (int)Math.Round(carSpeedFull * leftCorrectionFaktor);
+                    motorLeft1.SetSpeed(carSpeedFullWithLeftCorrection);
+                    motorLeft2.SetSpeed(carSpeedFullWithLeftCorrection);
+                    motorRight1.SetSpeed(carSpeedFull);
+                    motorRight2.SetSpeed(carSpeedFull);
+                }
+            });
+        }
+    }
+
+    public enum MotorCommandSource
+    {
+        Other,
+        AutomaticDrive,
+        SpeechRecognation,
+        Dance
     }
 }

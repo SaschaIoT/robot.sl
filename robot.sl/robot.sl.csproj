@@ -108,6 +108,7 @@
     <Compile Include="Audio\SpeechRecognizer.cs" />
     <Compile Include="Audio\SpeechRecognizerResult.cs" />
     <Compile Include="Audio\SpeechSynthesis.cs" />
+    <Compile Include="CarControl\Dance.cs" />
     <Compile Include="CarControl\AutomaticDrive.cs" />
     <Compile Include="CarControl\CarControlCommand.cs" />
     <Compile Include="CarControl\CarMoveCommand.cs" />
@@ -120,8 +121,12 @@
     <Compile Include="Devices\Gamepad.cs" />
     <Compile Include="Devices\GamepadButtonDown.cs" />
     <Compile Include="Exceptions\RobotSlException.cs" />
+    <Compile Include="Helper\DanceSynchronous.cs" />
     <Compile Include="Helper\DeviceNameHelper.cs" />
     <Compile Include="Helper\DeviceController.cs" />
+    <Compile Include="Helper\AutomaticDriveSynchronous.cs" />
+    <Compile Include="Helper\ServoSyncronous.cs" />
+    <Compile Include="Helper\MotorSyncronous.cs" />
     <Compile Include="Helper\ServoHelper.cs" />
     <Compile Include="Helper\AudioDeviceController.cs" />
     <Compile Include="Helper\NumberHelper.cs" />
@@ -137,7 +142,7 @@
     <Compile Include="Sensors\DistanceSensorLaser.cs" />
     <Compile Include="Sensors\DistanceSensorUltrasonic.cs" />
     <Compile Include="Sensors\SpeedSensor.cs" />
-    <Compile Include="Helper\I2CSynchronousHelper.cs" />
+    <Compile Include="Helper\I2CSynchronous.cs" />
     <Compile Include="Sensors\UltrasonicMeasureList.cs" />
     <Compile Include="Web\HttpContentType.cs" />
     <Compile Include="Web\HttpServer.cs" />
@@ -175,6 +180,8 @@
     <Content Include="Web\Images\automatic-drive%4064x64.png" />
     <Content Include="Web\Images\automatic-drive-active%4064x64.png" />
     <Content Include="Web\Images\close%4024x24.png" />
+    <Content Include="Web\Images\dance_on%4024x24.png" />
+    <Content Include="Web\Images\dance_off%4024x24.png" />
     <Content Include="Web\Images\electric_car%4040x40.png" />
     <Content Include="Web\Images\electric_car%40512x512.png" />
     <Content Include="Web\Images\electric_car_app_background%40400x400.png" />

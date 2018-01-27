@@ -48,7 +48,6 @@ namespace robot.sl.Audio.AudioPlaying
 
             //Welcome
             await AddAudioFileAsync(AudioName.Welcome, "Hallo Freunde, ich bin bereit zum Spielen!");
-            
             //Vor
             await AddAudioFileAsync(AudioName.Vor, "Vor");
             //Zurück
@@ -75,9 +74,15 @@ namespace robot.sl.Audio.AudioPlaying
             await AddAudioFileAsync(AudioName.Normal, "Normal");
             //Schnell
             await AddAudioFileAsync(AudioName.Schnell, "Schnell");
-            //Tanzen
-            await AddAudioFileAsync(AudioName.Tanzen, "Tanzen");
-            var steuerungsbefehle = "Folgende Steuerungsbefehle sind möglich: vor, zurück, links, rechts, stop, wenden, leicht links, leicht rechts, ganz leicht links, ganz leicht rechts, langsam, normal, schnell, Tanzen, Kamera hoch, Kamera runter, Kamera leicht hoch, Kamera leicht runter, Aktiviere automatisches Fahren und deaktiviere automatisches Fahren, ";
+            //TanzenOnAlready
+            await AddAudioFileAsync(AudioName.TanzenOnAlready, "Ich tanze bereits.");
+            //TanzenOffAlready
+            await AddAudioFileAsync(AudioName.TanzenOffAlready, "Tanzen ist bereits deaktiviert.");
+            //TanzenOn
+            await AddAudioFileAsync(AudioName.TanzenOn, "Jetzt tanze ich.");
+            //TanzenOff
+            await AddAudioFileAsync(AudioName.TanzenOff, "Jetzt tanze ich nicht mehr.");
+            var steuerungsbefehle = "Folgende Steuerungsbefehle sind möglich: vor, zurück, links, rechts, stop, wenden, leicht links, leicht rechts, ganz leicht links, ganz leicht rechts, langsam, normal, schnell, Aktiviere Tanzen, Deaktiviere Tanzen, Kamera hoch, Kamera runter, Kamera leicht hoch, Kamera leicht runter, Aktiviere automatisches Fahren und deaktiviere automatisches Fahren, ";
             var systembefehle = "Folgende Systembefehle sind möglich: Befehl, Steuerungsbefehle, Systembefehle, aktiviere Lautsprecher, deaktiviere Lautsprecher, aktiviere Headset Lautsprecher, deaktiviere Headset Lautsprecher, aktiviere Fahrzeug Lautsprecher, deaktiviere Fahrzeug Lautsprecher, aktiviere Sound Modus und deaktiviere Sound Modus";
             //Befehl
             await AddAudioFileAsync(AudioName.Befehl, steuerungsbefehle + systembefehle);
@@ -86,7 +91,7 @@ namespace robot.sl.Audio.AudioPlaying
             //Systembefehle
             await AddAudioFileAsync(AudioName.Systembefehle, systembefehle);
             //StarkeVibration
-            await AddAudioFileAsync(AudioName.StarkeVibration, "Aufpassen, ich bin nicht unzerstörbar");
+            await AddAudioFileAsync(AudioName.StarkeVibration, "Aufpassen, ich bin nicht unzerstörbar.");
             //Steht
             await AddAudioFileAsync(AudioName.Steht, "Mir ist langweilig, fahre mich doch ein bisschen herum.");
             //AutomatischesFahrenFesthaengen
@@ -95,10 +100,14 @@ namespace robot.sl.Audio.AudioPlaying
             await AddAudioFileAsync(AudioName.Shutdown, "Bis bald, ich schalte mich nun aus.");
             //Reboot
             await AddAudioFileAsync(AudioName.Restart, "Bis gleich, ich starte mich neu.");
-            //StartAutomaticDrive
-            await AddAudioFileAsync(AudioName.StartAutomaticDrive, "Jetzt übernehme ich die Steuerung.");
-            //StopAutomaticDrive
-            await AddAudioFileAsync(AudioName.StopAutomaticDrive, "Jetzt kannst Du mich wieder Steuern.");
+            //AutomaticDriveOnAlready
+            await AddAudioFileAsync(AudioName.AutomaticDriveOnAlready, "Automatisches Fahren ist bereits aktiviert.");
+            //AutomaticDriveOffAlready
+            await AddAudioFileAsync(AudioName.AutomaticDriveOffAlready, "Automatisches Fahren ist nicht aktiviert.");
+            //AutomaticDriveOn
+            await AddAudioFileAsync(AudioName.AutomaticDriveOn, "Jetzt übernehme ich die Steuerung.");
+            //AutomaticDriveOff
+            await AddAudioFileAsync(AudioName.AutomaticDriveOff, "Jetzt kannst Du mich wieder Steuern.");
             //ReallyRestart
             await AddAudioFileAsync(AudioName.ReallyRestart, "Möchtest Du mich wirklich neustarten?");
             //ReallyShutdown

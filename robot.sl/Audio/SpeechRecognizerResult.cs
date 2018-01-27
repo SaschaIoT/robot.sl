@@ -2,7 +2,6 @@
 using robot.sl.CarControl;
 using robot.sl.Helper;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.Media.SpeechRecognition;
 
@@ -13,9 +12,6 @@ namespace robot.sl.Audio
         private bool _recognationForwardBackward = true;
         private bool _recognationIsDriving = false;
         private double _recognationSpeed = 0.6;
-        private bool _recognationShouldDancing = false;
-        private volatile bool _dancingStopped = true;
-        private CancellationTokenSource _recognationDanceCancellationTokenSource;
         private DateTime? _shouldRestart = null;
         private DateTime? _shouldShutdown = null;
         private ushort _servoSpeechMoveSpeed = 30;
@@ -25,14 +21,12 @@ namespace robot.sl.Audio
         {
             try
             {
-                await StopDancingAsync();
-
                 var recognation = args.Result.Text;
                 switch (recognation)
                 {
                     case "Kamera hoch":
                         await AudioPlayerController.PlayAsync(AudioName.CameraUp);
-                        _servoController.MoveServo(new CarControlCommand
+                        await _servoController.MoveServo(new CarControlCommand
                         {
                             DirectionControlUpDownStepSpeed = _servoSpeechMoveSpeed,
                             DirectionControlUp = true
@@ -40,7 +34,7 @@ namespace robot.sl.Audio
                         break;
                     case "Kamera leicht hoch":
                         await AudioPlayerController.PlayAsync(AudioName.CameraLightUp);
-                        _servoController.MoveServo(new CarControlCommand
+                        await _servoController.MoveServo(new CarControlCommand
                         {
                             DirectionControlUpDownStepSpeed = _servoSpeechMoveLightSpeed,
                             DirectionControlUp = true
@@ -48,7 +42,7 @@ namespace robot.sl.Audio
                         break;
                     case "Kamera runter":
                         await AudioPlayerController.PlayAsync(AudioName.CameraDown);
-                        _servoController.MoveServo(new CarControlCommand
+                        await _servoController.MoveServo(new CarControlCommand
                         {
                             DirectionControlUpDownStepSpeed = _servoSpeechMoveSpeed,
                             DirectionControlDown = true
@@ -56,7 +50,7 @@ namespace robot.sl.Audio
                         break;
                     case "Kamera leicht runter":
                         await AudioPlayerController.PlayAsync(AudioName.CameraLightDown);
-                        _servoController.MoveServo(new CarControlCommand
+                        await _servoController.MoveServo(new CarControlCommand
                         {
                             DirectionControlUpDownStepSpeed = _servoSpeechMoveLightSpeed,
                             DirectionControlDown = true
@@ -64,113 +58,120 @@ namespace robot.sl.Audio
                         break;
                     case "Vor":
                         await AudioPlayerController.PlayAsync(AudioName.Vor);
-                        _motorController.MoveCar(null, new CarMoveCommand
+                        await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             ForwardBackward = true,
                             Speed = _recognationSpeed
-                        });
+                        }, MotorCommandSource.SpeechRecognation);
                         _recognationForwardBackward = true;
                         _recognationIsDriving = true;
                         break;
                     case "Zurück":
                         await AudioPlayerController.PlayAsync(AudioName.Zurueck);
-                        _motorController.MoveCar(null, new CarMoveCommand
+                        await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             ForwardBackward = false,
                             Speed = _recognationSpeed
-                        });
+                        }, MotorCommandSource.SpeechRecognation);
                         _recognationForwardBackward = false;
                         _recognationIsDriving = true;
                         break;
                     case "Links":
                         await AudioPlayerController.PlayAsync(AudioName.Links);
-                        _motorController.MoveCar(null, new CarMoveCommand
+                        await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             LeftCircle = true,
                             ForwardBackward = _recognationForwardBackward,
                             Speed = 1
-                        });
+                        }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(700));
-                        RecognationForwardBackwardStop();
+                        await RecognationForwardBackwardStop();
                         break;
                     case "Rechts":
                         await AudioPlayerController.PlayAsync(AudioName.Rechts);
-                        _motorController.MoveCar(null, new CarMoveCommand
+                        await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             RightCircle = true,
                             ForwardBackward = _recognationForwardBackward,
                             Speed = 1
-                        });
+                        }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(700));
-                        RecognationForwardBackwardStop();
+                        await RecognationForwardBackwardStop();
                         break;
                     case "Stop":
                         await AudioPlayerController.PlayAsync(AudioName.Stop);
-                        _motorController.MoveCar(null, new CarMoveCommand
+                        await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             Speed = 0
-                        });
+                        }, MotorCommandSource.SpeechRecognation);
                         _recognationIsDriving = false;
                         _recognationForwardBackward = true;
                         break;
                     case "Wenden":
                         await AudioPlayerController.PlayAsync(AudioName.Wenden);
-                        _motorController.MoveCar(null, new CarMoveCommand
+                        await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             RightCircle = true,
                             Speed = 1
-                        });
+                        }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(1250));
-                        RecognationForwardBackwardStop();
+                        await RecognationForwardBackwardStop();
                         break;
                     case "Leicht Links":
                         await AudioPlayerController.PlayAsync(AudioName.LeichtLinks);
-                        _motorController.MoveCar(null, new CarMoveCommand
+                        await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             LeftCircle = true,
                             ForwardBackward = _recognationForwardBackward,
                             Speed = 1
-                        });
+                        }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(350));
-                        RecognationForwardBackwardStop();
+                        await RecognationForwardBackwardStop();
                         break;
                     case "Leicht Rechts":
                         await AudioPlayerController.PlayAsync(AudioName.LeichtRechts);
-                        _motorController.MoveCar(null, new CarMoveCommand
+                        await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             RightCircle = true,
                             ForwardBackward = _recognationForwardBackward,
                             Speed = 1
-                        });
+                        }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(350));
-                        RecognationForwardBackwardStop();
+                        await RecognationForwardBackwardStop();
                         break;
                     case "Langsam":
                         await AudioPlayerController.PlayAsync(AudioName.Langsam);
                         _recognationSpeed = 0.3;
-                        RecognationForwardBackwardStop();
+                        await RecognationForwardBackwardStop();
                         break;
                     case "Normal":
                         await AudioPlayerController.PlayAsync(AudioName.Normal);
                         _recognationSpeed = 0.6;
-                        RecognationForwardBackwardStop();
+                        await RecognationForwardBackwardStop();
                         break;
                     case "Schnell":
                         await AudioPlayerController.PlayAsync(AudioName.Schnell);
                         _recognationSpeed = 1;
-                        RecognationForwardBackwardStop();
+                        await RecognationForwardBackwardStop();
                         break;
-                    case "Tanzen":
-                        await AudioPlayerController.PlayAsync(AudioName.Tanzen);
+                    case "Aktiviere Tanzen":
                         _recognationForwardBackward = true;
                         _recognationIsDriving = false;
-                        _recognationShouldDancing = true;
-                        RecognationDance();
+                        await _dance.StartAsync();
+                        break;
+                    case "Deaktiviere Tanzen":
+                        _recognationForwardBackward = true;
+                        _recognationIsDriving = false;
+                        await _dance.StopAsync();
                         break;
                     case "Aktiviere automatisches Fahren":
-                        _automaticDrive.Start();
+                        _recognationForwardBackward = true;
+                        _recognationIsDriving = false;
+                        await _automaticDrive.StartAsync();
                         break;
                     case "Deaktiviere automatisches Fahren":
+                        _recognationForwardBackward = true;
+                        _recognationIsDriving = false;
                         await _automaticDrive.StopAsync();
                         break;
                     case "Befehle":
@@ -239,25 +240,25 @@ namespace robot.sl.Audio
                         break;
                     case "Ganz leicht links":
                         await AudioPlayerController.PlayAsync(AudioName.GanzLeichtLinks);
-                        _motorController.MoveCar(null, new CarMoveCommand
+                        await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             LeftCircle = true,
                             ForwardBackward = _recognationForwardBackward,
                             Speed = 1
-                        });
+                        }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(175));
-                        RecognationForwardBackwardStop();
+                        await RecognationForwardBackwardStop();
                         break;
                     case "Ganz leicht rechts":
                         await AudioPlayerController.PlayAsync(AudioName.GanzLeichtRechts);
-                        _motorController.MoveCar(null, new CarMoveCommand
+                        await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             RightCircle = true,
                             ForwardBackward = _recognationForwardBackward,
                             Speed = 1
-                        });
+                        }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(175));
-                        RecognationForwardBackwardStop();
+                        await RecognationForwardBackwardStop();
                         break;
                 }
 
@@ -272,7 +273,7 @@ namespace robot.sl.Audio
 
                 if (_isStopped)
                 {
-                    StopInternal();
+                    await StopInternal();
                 }
             }
             catch (Exception exception)
@@ -282,152 +283,23 @@ namespace robot.sl.Audio
                 SystemController.ShutdownApplicationAsync(true).Wait();
             }
         }
-
-        private async Task StopDancingAsync()
+        
+        private async Task RecognationForwardBackwardStop()
         {
-            if (_recognationShouldDancing
-                && _recognationDanceCancellationTokenSource != null)
+            if (_recognationIsDriving == false)
             {
-                _recognationDanceCancellationTokenSource.Cancel(true);
-            }
-
-            _recognationShouldDancing = false;
-
-            while (!_dancingStopped)
-            {
-                await Task.Delay(10);
-            }
-        }
-
-        private async void RecognationDance()
-        {
-            _dancingStopped = false;
-
-            _recognationDanceCancellationTokenSource = new CancellationTokenSource();
-            var cancellationToken = _recognationDanceCancellationTokenSource.Token;
-
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                while (_recognationShouldDancing)
-                {
-                    _motorController.MoveCar(null, new CarMoveCommand
-                    {
-                        ForwardBackward = true,
-                        Speed = 1
-                    });
-
-                    await Task.Delay(300, cancellationToken);
-
-                    if (!_recognationShouldDancing)
-                        break;
-
-                    _motorController.MoveCar(null, new CarMoveCommand
-                    {
-                        RightCircle = true,
-                        ForwardBackward = true,
-                        Speed = 1
-                    });
-
-                    await Task.Delay(300, cancellationToken);
-
-                    if (!_recognationShouldDancing)
-                        break;
-
-                    _motorController.MoveCar(null, new CarMoveCommand
-                    {
-                        LeftCircle = true,
-                        ForwardBackward = true,
-                        Speed = 1
-                    });
-
-                    await Task.Delay(300, cancellationToken);
-
-                    if (!_recognationShouldDancing)
-                        break;
-
-                    _motorController.MoveCar(null, new CarMoveCommand
-                    {
-                        ForwardBackward = false,
-                        Speed = 1
-                    });
-
-                    await Task.Delay(300, cancellationToken);
-
-                    if (!_recognationShouldDancing)
-                        break;
-
-                    _motorController.MoveCar(null, new CarMoveCommand
-                    {
-                        RightCircle = true,
-                        ForwardBackward = false,
-                        Speed = 1
-                    });
-
-                    await Task.Delay(300, cancellationToken);
-
-                    if (!_recognationShouldDancing)
-                        break;
-
-                    _motorController.MoveCar(null, new CarMoveCommand
-                    {
-                        LeftCircle = true,
-                        ForwardBackward = false,
-                        Speed = 1
-                    });
-
-                    await Task.Delay(300, cancellationToken);
-
-                    if (!_recognationShouldDancing)
-                        break;
-
-                    _motorController.MoveCar(null, new CarMoveCommand
-                    {
-                        ForwardBackward = true,
-                        RightLeft = -0.5,
-                        Speed = 1
-                    });
-
-                    await Task.Delay(500, cancellationToken);
-
-                    if (!_recognationShouldDancing)
-                        break;
-
-                    _motorController.MoveCar(null, new CarMoveCommand
-                    {
-                        ForwardBackward = true,
-                        LeftCircle = true,
-                        Speed = 1
-                    });
-
-                    await Task.Delay(1500, cancellationToken);
-
-                    if (!_recognationShouldDancing)
-                        break;
-                }
-            }
-            catch (OperationCanceledException) { }
-
-            _dancingStopped = true;
-        }
-
-        private void RecognationForwardBackwardStop()
-        {
-            if (!_recognationIsDriving)
-            {
-                _motorController.MoveCar(null, new CarMoveCommand
+                await _motorController.MoveCarAsync(new CarMoveCommand
                 {
                     Speed = 0
-                });
+                }, MotorCommandSource.SpeechRecognation);
             }
             else
             {
-                _motorController.MoveCar(null, new CarMoveCommand
+                await _motorController.MoveCarAsync(new CarMoveCommand
                 {
                     ForwardBackward = _recognationForwardBackward,
                     Speed = _recognationSpeed
-                });
+                }, MotorCommandSource.SpeechRecognation);
             }
         }
     }

@@ -1,22 +1,23 @@
-﻿var automaticDriveButton = document.getElementById("automaticDriveButton");
-
-var settingButton = document.getElementById("setting");
+﻿var settingButton = document.getElementById("setting");
 settingButton.addEventListener("mouseover", function (e) {
+
+    settingButton.addEventListener("mouseleave", settingMouseLeave);
 
     e.preventDefault();
     e.stopPropagation();
 
     settingMenu.classList.remove("setting-menu-hide");
-
 });
 
-settingButton.addEventListener("mouseleave", function (e) {
+var settingMouseLeave = function (e) {
 
     e.preventDefault();
     e.stopPropagation();
 
     settingMenu.classList.add("setting-menu-hide");
-});
+};
+
+settingButton.addEventListener("mouseleave", settingMouseLeave);
 
 settingButton.addEventListener("click", function (e) {
 
@@ -112,7 +113,27 @@ soundModeOnOffElement.addEventListener("click", function (e) {
     e.stopPropagation();
 });
 
-var automaticDriveOn = false;
+var danceOn = true;
+var danceOnOffElement = document.getElementById("danceOnOff");
+danceOnOffElement.addEventListener("click", function (e) {
+
+    var danceOnOffString = "";
+    if (danceOn === false) {
+        danceOnOffString = "true";
+    }
+    else {
+        danceOnOffString = "false";
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "http://192.168.0.101/danceOnOff?on=" + danceOnOffString + "?time=" + new Date().getTime(), true);
+    xhr.responseType = "json";
+    xhr.timeout = xhttpRequestTimeout;
+    xhr.send();
+
+    e.preventDefault();
+    e.stopPropagation();
+});
 
 var ausschalten = document.getElementById("ausschalten");
 ausschalten.addEventListener("click", function (e) {
@@ -144,6 +165,8 @@ neustarten.addEventListener("click", function (e) {
     e.stopPropagation();
 });
 
+var automaticDriveOn = false;
+var automaticDriveButton = document.getElementById("automaticDriveButton");
 automaticDriveButton.addEventListener('click', function (e) {
 
     e.preventDefault();

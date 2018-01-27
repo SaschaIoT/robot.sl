@@ -39,13 +39,15 @@ namespace robot.sl.Web
         private MotorController _motorController;
         private ServoController _servoController;
         private AutomaticDrive _automaticDrive;
+        private Dance _dance;
 
         public WebSocket(StreamSocket socket,
                          HttpServerRequest httpServerRequest,
                          Camera camera,
                          MotorController motorController,
                          ServoController servoController,
-                         AutomaticDrive automaticDrive)
+                         AutomaticDrive automaticDrive,
+                         Dance dance)
         {
             _inputStream = socket.InputStream;
             _outputStream = socket.OutputStream;
@@ -54,6 +56,7 @@ namespace robot.sl.Web
             _servoController = servoController;
             _camera = camera;
             _automaticDrive = automaticDrive;
+            _dance = dance;
         }
 
         public async Task StartAsync()
@@ -63,8 +66,7 @@ namespace robot.sl.Web
                 await ReadFramesAsync();
             }
         }
-
-
+        
         private async Task<bool> CheckWebSocketVersionSupportAsync()
         {
             var webSocketVersion = new Regex("Sec-WebSocket-Version:(.*)", RegexOptions.IgnoreCase).Match(_httpServerRequest.Request).Groups[1].Value.Trim();
@@ -147,7 +149,7 @@ namespace robot.sl.Web
                         carControlCommand.DirectionControlRight = false;
                     }
 
-                    CarMoveCommand(carControlCommand);
+                    await CarMoveCommand(carControlCommand);
 
                     var carControlCommandResponse = new JsonObject
                         {
@@ -183,7 +185,8 @@ namespace robot.sl.Web
                                     { "CarSpeakerOn", JsonValue.CreateBooleanValue(AudioPlayerController.CarSpeakerOn)},
                                     { "HeadsetSpeakerOn", JsonValue.CreateBooleanValue(AudioPlayerController.HeadsetSpeakerOn)},
                                     { "SoundModeOn", JsonValue.CreateBooleanValue(AudioPlayerController.SoundModeOn)},
-                                    { "AutomaticDriveOn", JsonValue.CreateBooleanValue(_automaticDrive.IsRunning)}
+                                    { "AutomaticDriveOn", JsonValue.CreateBooleanValue(_automaticDrive.IsRunning)},
+                                    { "DanceOn", JsonValue.CreateBooleanValue(_dance.IsRunning)}
                                 }
                             }
                         };
@@ -368,14 +371,14 @@ namespace robot.sl.Web
             }
         }
 
-        private void CarMoveCommand(CarControlCommand carControlCommand)
+        private async Task CarMoveCommand(CarControlCommand carControlCommand)
         {
             var stopp = (!carControlCommand.DirectionControlUp
-                    && !carControlCommand.DirectionControlLeft
-                    && !carControlCommand.DirectionControlRight
-                    && !carControlCommand.DirectionControlDown
-                    && !carControlCommand.SpeedControlForward
-                    && !carControlCommand.SpeedControlBackward);
+                         && !carControlCommand.DirectionControlLeft
+                         && !carControlCommand.DirectionControlRight
+                         && !carControlCommand.DirectionControlDown
+                         && !carControlCommand.SpeedControlForward
+                         && !carControlCommand.SpeedControlBackward);
 
             var now = DateTime.Now;
             if (((stopp && _moveCarStopped) == false
@@ -384,27 +387,27 @@ namespace robot.sl.Web
             {
                 _moveCarStopped = stopp;
 
-                _motorController.MoveCar(carControlCommand, null);
-                _servoController.MoveServo(carControlCommand);
+                await _motorController.MoveCarAsync(carControlCommand, MotorCommandSource.Other);
+                await _servoController.MoveServo(carControlCommand);
                 _moveCarLastAction = now;
 
-                Task.Run(async () => { await CarControlCommandTimeoutAsync(now); });
+                CarControlCommandTimeoutAsync(now);
             }
         }
 
-        private async Task CarControlCommandTimeoutAsync(DateTime carControlCommand)
+        private async void CarControlCommandTimeoutAsync(DateTime carControlCommand)
         {
             await Task.Delay(MOVE_CAR_ACTION_TIMEOUT_MILLISECONDS);
 
             if (_moveCarLastAction == carControlCommand)
             {
-                _motorController.MoveCar(new CarControlCommand
+                await _motorController.MoveCarAsync(new CarControlCommand
                 {
                     SpeedControlBackward = false,
                     SpeedControlForward = false,
                     DirectionControlLeft = false,
                     DirectionControlRight = false
-                }, null);
+                }, MotorCommandSource.Other);
             }
         }
     }

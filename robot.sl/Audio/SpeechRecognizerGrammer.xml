@@ -46,7 +46,7 @@
         Schnell
       </item>
       <item>
-        Tanzen
+        Aktiviere Tanzen
       </item>
       <item>
         Befehle
@@ -119,6 +119,9 @@
       </item>
       <item>
         Kamera leicht runter
+      </item>
+      <item>
+        Deaktiviere Tanzen
       </item>
     </one-of>
   </rule>

@@ -22,7 +22,8 @@ namespace robot.sl.Web
         public HttpServerController(MotorController motorController,
                                     ServoController servoController,
                                     AutomaticDrive automaticDrive,
-                                    Camera camera)
+                                    Camera camera,
+                                    Dance dance)
         {
 
             Task.Factory.StartNew(() =>
@@ -31,7 +32,8 @@ namespace robot.sl.Web
                 _httpServer = new HttpServer(motorController,
                                              servoController,
                                              automaticDrive,
-                                             camera);
+                                             camera,
+                                             dance);
                 _httpServer.StartAsync();
                 _threadWaiter.WaitOne();
 
@@ -65,16 +67,19 @@ namespace robot.sl.Web
         private ServoController _servoController;
         private AutomaticDrive _automaticDrive;
         private Camera _camera;
+        private Dance _dance;
 
         public HttpServer(MotorController motorController,
                           ServoController servoController,
                           AutomaticDrive automaticDrive,
-                          Camera camera)
+                          Camera camera,
+                          Dance dance)
         {
             _motorController = motorController;
             _servoController = servoController;
             _automaticDrive = automaticDrive;
             _camera = camera;
+            _dance = dance;
 
             _listener = GetStreamSocketListener();
         }
@@ -189,7 +194,7 @@ namespace robot.sl.Web
 
                 if (automaticDriveOn)
                 {
-                    _automaticDrive.Start();
+                    await _automaticDrive.StartAsync();
                 }
                 else
                 {
@@ -247,6 +252,18 @@ namespace robot.sl.Web
                 await AudioPlayerController.SetSoundModeOnOffAsync(false);
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
+            //Set dance on
+            else if (request.Url.StartsWith("/danceonoff?on=true", StringComparison.OrdinalIgnoreCase))
+            {
+                await _dance.StartAsync();
+                HttpServerResponse.WriteResponseOk(outputStream);
+            }
+            //Set dance off
+            else if (request.Url.StartsWith("/danceonoff?on=false", StringComparison.OrdinalIgnoreCase))
+            {
+                await _dance.StopAsync();
+                HttpServerResponse.WriteResponseOk(outputStream);
+            }
             //Shutdown Windows
             else if (request.Url.StartsWith("/ausschalten", StringComparison.OrdinalIgnoreCase))
             {
@@ -283,7 +300,7 @@ namespace robot.sl.Web
             {
                 if (_camera.Frame != null)
                 {
-                    var webSocket = new WebSocket(socket, request, _camera, _motorController, _servoController, _automaticDrive);
+                    var webSocket = new WebSocket(socket, request, _camera, _motorController, _servoController, _automaticDrive, _dance);
                     await webSocket.StartAsync();
                 }
                 else
@@ -294,7 +311,7 @@ namespace robot.sl.Web
             //Get State, Speed, CarControlCommand, ServerVideoFrameRate
             else if (request.Url.StartsWith("/controller", StringComparison.OrdinalIgnoreCase))
             {
-                var webSocket = new WebSocket(socket, request, _camera, _motorController, _servoController, _automaticDrive);
+                var webSocket = new WebSocket(socket, request, _camera, _motorController, _servoController, _automaticDrive, _dance);
                 await webSocket.StartAsync();
             }
             //Get desktop html view

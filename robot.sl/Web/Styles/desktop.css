@@ -246,6 +246,26 @@ body {
     margin-bottom: 3px;
 }
 
+.dance-on-image {
+    background-image: url(../Images/dance_on@24x24.png);
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 3px;
+}
+
+.dance-off-image {
+    background-image: url(../Images/dance_off@24x24.png);
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 3px;
+}
+
 .shutdown-image {
     background-image: url(../Images/close@24x24.png);
     background-repeat: no-repeat;

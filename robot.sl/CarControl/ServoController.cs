@@ -31,45 +31,48 @@ namespace robot.sl.CarControl
             PwmController.SetPwm(Servo.DistanceSensorVertical, 0, ServoPositions.DistanceSensorVerticalTop);
         }
 
-        public void MoveServo(CarControlCommand carControlCommand)
+        public async Task MoveServo(CarControlCommand carControlCommand)
         {
-            if(_isStopped)
+            if (_isStopped)
             {
                 return;
             }
 
-            if (carControlCommand.DirectionControlUp)
+            await ServoSynchronous.Call(() =>
             {
-                if (ServoPositions.CameraVerticalTop == _servoCameraVerticalValue)
+                if (carControlCommand.DirectionControlUp)
                 {
-                    return;
+                    if (ServoPositions.CameraVerticalTop == _servoCameraVerticalValue)
+                    {
+                        return;
+                    }
+
+                    _servoCameraVerticalValue -= carControlCommand.DirectionControlUpDownStepSpeed;
+
+                    if (_servoCameraVerticalValue < ServoPositions.CameraVerticalTop)
+                    {
+                        _servoCameraVerticalValue = ServoPositions.CameraVerticalTop;
+                    }
+
+                    PwmController.SetPwm(Servo.CameraVertical, 0, _servoCameraVerticalValue);
                 }
-
-                _servoCameraVerticalValue -= carControlCommand.DirectionControlUpDownStepSpeed;
-
-                if (_servoCameraVerticalValue < ServoPositions.CameraVerticalTop)
+                else if (carControlCommand.DirectionControlDown)
                 {
-                    _servoCameraVerticalValue = ServoPositions.CameraVerticalTop;
+                    if (ServoPositions.CameraVerticalBottom == _servoCameraVerticalValue)
+                    {
+                        return;
+                    }
+
+                    _servoCameraVerticalValue += carControlCommand.DirectionControlUpDownStepSpeed;
+
+                    if (_servoCameraVerticalValue > ServoPositions.CameraVerticalBottom)
+                    {
+                        _servoCameraVerticalValue = ServoPositions.CameraVerticalBottom;
+                    }
+
+                    PwmController.SetPwm(Servo.CameraVertical, 0, _servoCameraVerticalValue);
                 }
-
-                PwmController.SetPwm(Servo.CameraVertical, 0, _servoCameraVerticalValue);
-            }
-            else if (carControlCommand.DirectionControlDown)
-            {
-                if (ServoPositions.CameraVerticalBottom == _servoCameraVerticalValue)
-                {
-                    return;
-                }
-
-                _servoCameraVerticalValue += carControlCommand.DirectionControlUpDownStepSpeed;
-
-                if (_servoCameraVerticalValue > ServoPositions.CameraVerticalBottom)
-                {
-                    _servoCameraVerticalValue = ServoPositions.CameraVerticalBottom;
-                }
-
-                PwmController.SetPwm(Servo.CameraVertical, 0, _servoCameraVerticalValue);
-            }
+            });
         }
     }
 }

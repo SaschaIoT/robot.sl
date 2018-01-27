@@ -29,6 +29,7 @@ namespace robot.sl.Devices
         private ServoController _servoController;
         private AccelerometerGyroscopeSensor _acceleratorSensor;
         private AutomaticDrive _automaticDrive;
+        private Dance _dance;
 
         public async Task StopAsync()
         {
@@ -45,7 +46,8 @@ namespace robot.sl.Devices
         public GamepadController(MotorController motorController,
                                  ServoController servoController,
                                  AutomaticDrive automaticDrive,
-                                 AccelerometerGyroscopeSensor acceleratorSensor)
+                                 AccelerometerGyroscopeSensor acceleratorSensor,
+                                 Dance dance)
         {
             if (_shutdown)
             {
@@ -56,6 +58,7 @@ namespace robot.sl.Devices
             _servoController = servoController;
             _automaticDrive = automaticDrive;
             _acceleratorSensor = acceleratorSensor;
+            _dance = dance;
 
             Gamepad.GamepadAdded += GamepadAdded;
             Gamepad.GamepadRemoved += GamepadRemoved;
@@ -127,6 +130,7 @@ namespace robot.sl.Devices
             var dPadRightButton = new GamepadButtonDown(buttonDownTimeMiddle, GamepadButtons.DPadRight);
             var yButton = new GamepadButtonDown(buttonDownTimeMiddle, GamepadButtons.Y);
             var bButton = new GamepadButtonDown(buttonDownTimeMiddle, GamepadButtons.B);
+            var aButton = new GamepadButtonDown(buttonDownTimeMiddle, GamepadButtons.A);
             var xRightShoulderButton = new GamepadButtonDown(buttonDownTimeLong, GamepadButtons.X, GamepadButtons.RightShoulder);
             var aRightShoulderButton = new GamepadButtonDown(buttonDownTimeLong, GamepadButtons.A, GamepadButtons.RightShoulder);
 
@@ -185,8 +189,8 @@ namespace robot.sl.Devices
                 {
                     _carStopped = false;
 
-                    _motorController.MoveCar(null, carMoveCommand);
-                    _servoController.MoveServo(carControlCommand);
+                    await _motorController.MoveCarAsync(carMoveCommand, MotorCommandSource.Other);
+                    await _servoController.MoveServo(carControlCommand);
                 }
 
                 //Car and servo not moving
@@ -261,6 +265,13 @@ namespace robot.sl.Devices
                 if (bButtonResult.ButtonClicked)
                 {
                     await AudioPlayerController.PlaySpeakerOnOffSoundModeAsync();
+                }
+
+                //Dance on/off toggle
+                var aButtonResult = aButton.UpdateGamepadButtonState(gamepadReading);
+                if (aButtonResult.ButtonClicked)
+                {
+                    await _dance.StartStopToggleAsync();
                 }
 
                 //Shutdown
