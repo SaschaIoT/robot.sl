@@ -124,8 +124,7 @@ function SendCarControlCommand() {
         directionControlRight: directionControlRightCurrent,
         directionControlDown: directionControlDownCurrent,
         speedControlForward: speedControlForwardCurrent,
-        speedControlBackward: speedControlBackwardCurrent,
-        speedControlLeftRight: 1
+        speedControlBackward: speedControlBackwardCurrent
     };
 
     webSocketHelper.waitUntilWebsocketReady(function () {

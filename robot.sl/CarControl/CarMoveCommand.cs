@@ -36,13 +36,13 @@ namespace robot.sl.CarControl
 
             if (carControlCommand.DirectionControlLeft)
             {
-                Speed = carControlCommand.SpeedControlLeftRight;
+                Speed = 1;
                 ForwardBackward = true;
                 LeftCircle = true;
             }
             else if (carControlCommand.DirectionControlRight)
             {
-                Speed = carControlCommand.SpeedControlLeftRight;
+                Speed = 1;
                 ForwardBackward = true;
                 RightCircle = true;
             }
