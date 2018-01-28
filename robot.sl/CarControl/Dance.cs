@@ -213,7 +213,7 @@ namespace robot.sl.CarControl
                 Speed = 0
             };
 
-            await _motorController.MoveCarAsync(carMoveCommandEnd, MotorCommandSource.Other);
+            await _motorController.MoveCarAsync(carMoveCommandEnd, MotorCommandSource.Dance);
 
             _isStopped = true;
         }
