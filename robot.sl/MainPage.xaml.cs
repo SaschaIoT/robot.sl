@@ -101,10 +101,10 @@ namespace robot.sl
 
                 _automaticDrive = new AutomaticDrive(_motorController, _servoController, _distanceSensorUltrasonic, _distanceSensorLaserUp, _distanceSensorLaserDown);
 
-                await _motorController.Initialize(_automaticSpeakController, _automaticDrive, _dance);
-
                 _speechRecognation = new SpeechRecognition();
                 await _speechRecognation.InitialzeAsync(_motorController, _servoController, _automaticDrive, _dance);
+
+                await _motorController.Initialize(_automaticSpeakController, _automaticDrive, _dance, _speechRecognation);
 
                 _camera.Start();
 

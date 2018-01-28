@@ -313,5 +313,11 @@ namespace robot.sl.Audio
                 }, MotorCommandSource.SpeechRecognation);
             }
         }
+
+        public void ResetDriving()
+        {
+            _recognationForwardBackward = true;
+            _recognationIsDriving = false;
+        }
     }
 }
