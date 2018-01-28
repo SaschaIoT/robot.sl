@@ -201,7 +201,7 @@ namespace robot.sl.CarControl
                 var speak = motorCommandSource != MotorCommandSource.SpeechRecognation
                             && motorCommandSource != MotorCommandSource.Dance;
 
-                await _automaticDrive.StopAsync(speak, true);
+                await _automaticDrive.StopAsync(speak, false);
             }
             else if (_lastMotorCommandSource == MotorCommandSource.Dance
                      && motorCommandSource != MotorCommandSource.Dance)
@@ -209,7 +209,7 @@ namespace robot.sl.CarControl
                 var speak = motorCommandSource != MotorCommandSource.SpeechRecognation
                             && motorCommandSource != MotorCommandSource.AutomaticDrive;
 
-                await _dance.StopAsync(speak, true);
+                await _dance.StopAsync(speak, false);
             }
 
             await MotorSynchronous.Call(() =>
