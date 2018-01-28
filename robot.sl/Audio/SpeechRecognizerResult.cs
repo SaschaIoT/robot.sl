@@ -11,11 +11,16 @@ namespace robot.sl.Audio
     {
         private bool _recognationForwardBackward = true;
         private bool _recognationIsDriving = false;
-        private double _recognationSpeed = 0.6;
+        private double _recognationSpeed = HALF_SPEED;
         private DateTime? _shouldRestart = null;
         private DateTime? _shouldShutdown = null;
         private ushort _servoSpeechMoveSpeed = 30;
         private ushort _servoSpeechMoveLightSpeed = 10;
+
+        const double FULL_SPEED = 1;
+        const double NO_SPEED = 0;
+        const double HALF_SPEED = 0.65;
+        const double SLOW_SPEED = 0.45;
 
         private async void RecognationResult(SpeechContinuousRecognitionSession sender, SpeechContinuousRecognitionResultGeneratedEventArgs args)
         {
@@ -82,7 +87,7 @@ namespace robot.sl.Audio
                         {
                             LeftCircle = true,
                             ForwardBackward = _recognationForwardBackward,
-                            Speed = 1
+                            Speed = FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(700));
                         await RecognationForwardBackwardStop();
@@ -93,7 +98,7 @@ namespace robot.sl.Audio
                         {
                             RightCircle = true,
                             ForwardBackward = _recognationForwardBackward,
-                            Speed = 1
+                            Speed = FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(700));
                         await RecognationForwardBackwardStop();
@@ -102,7 +107,7 @@ namespace robot.sl.Audio
                         await AudioPlayerController.PlayAsync(AudioName.Stop);
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
-                            Speed = 0
+                            Speed = NO_SPEED
                         }, MotorCommandSource.SpeechRecognation);
                         _recognationIsDriving = false;
                         _recognationForwardBackward = true;
@@ -112,7 +117,7 @@ namespace robot.sl.Audio
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             RightCircle = true,
-                            Speed = 1
+                            Speed = FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(1250));
                         await RecognationForwardBackwardStop();
@@ -123,7 +128,7 @@ namespace robot.sl.Audio
                         {
                             LeftCircle = true,
                             ForwardBackward = _recognationForwardBackward,
-                            Speed = 1
+                            Speed = FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(350));
                         await RecognationForwardBackwardStop();
@@ -134,24 +139,24 @@ namespace robot.sl.Audio
                         {
                             RightCircle = true,
                             ForwardBackward = _recognationForwardBackward,
-                            Speed = 1
+                            Speed = FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(350));
                         await RecognationForwardBackwardStop();
                         break;
                     case "Langsam":
                         await AudioPlayerController.PlayAsync(AudioName.Langsam);
-                        _recognationSpeed = 0.3;
+                        _recognationSpeed = SLOW_SPEED;
                         await RecognationForwardBackwardStop();
                         break;
                     case "Normal":
                         await AudioPlayerController.PlayAsync(AudioName.Normal);
-                        _recognationSpeed = 0.6;
+                        _recognationSpeed = HALF_SPEED;
                         await RecognationForwardBackwardStop();
                         break;
                     case "Schnell":
                         await AudioPlayerController.PlayAsync(AudioName.Schnell);
-                        _recognationSpeed = 1;
+                        _recognationSpeed = FULL_SPEED;
                         await RecognationForwardBackwardStop();
                         break;
                     case "Aktiviere Tanzen":
@@ -244,7 +249,7 @@ namespace robot.sl.Audio
                         {
                             LeftCircle = true,
                             ForwardBackward = _recognationForwardBackward,
-                            Speed = 1
+                            Speed = FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(175));
                         await RecognationForwardBackwardStop();
@@ -255,7 +260,7 @@ namespace robot.sl.Audio
                         {
                             RightCircle = true,
                             ForwardBackward = _recognationForwardBackward,
-                            Speed = 1
+                            Speed = FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(TimeSpan.FromMilliseconds(175));
                         await RecognationForwardBackwardStop();
@@ -290,7 +295,7 @@ namespace robot.sl.Audio
             {
                 await _motorController.MoveCarAsync(new CarMoveCommand
                 {
-                    Speed = 0
+                    Speed = NO_SPEED
                 }, MotorCommandSource.SpeechRecognation);
             }
             else
