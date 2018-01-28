@@ -138,7 +138,6 @@ namespace robot.sl.Web
                         DirectionControlDown = parameter["directionControlDown"].GetBoolean(),
                         SpeedControlForward = parameter["speedControlForward"].GetBoolean(),
                         SpeedControlBackward = parameter["speedControlBackward"].GetBoolean(),
-                        SpeedControlLeftRight = parameter["speedControlLeftRight"].GetNumber(),
                         DirectionControlUpDownStepSpeed = 7
                     };
 

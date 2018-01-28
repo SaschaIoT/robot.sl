@@ -11,7 +11,6 @@ namespace robot.sl.CarControl
         public bool DirectionControlDown { get; set; }
         public bool SpeedControlForward { get; set; }
         public bool SpeedControlBackward { get; set; }
-        public double SpeedControlLeftRight { get; set; }
         public ushort DirectionControlUpDownStepSpeed { get; set; }
 
         public CarControlCommand() { }
