@@ -112,6 +112,7 @@ namespace robot.sl.CarControl
         private AutomaticSpeakController _automaticSpeakController;
         private AutomaticDrive _automaticDrive;
         private Dance _dance;
+        private SpeechRecognition _speechRecognition;
 
         public void Stop()
         {
@@ -121,12 +122,14 @@ namespace robot.sl.CarControl
         public async Task Initialize(AutomaticSpeakController automaticSpeakController,
                                      AutomaticDrive automaticDrive,
                                      Dance dance,
+                                     SpeechRecognition speechRecognition,
                                      byte i2cAddress = 0x60,
                                      int frequency = 40)
         {
             _automaticSpeakController = automaticSpeakController;
             _automaticDrive = automaticDrive;
             _dance = dance;
+            _speechRecognition = speechRecognition;
 
             _i2caddress = i2cAddress;
             _frequency = frequency;
@@ -210,6 +213,11 @@ namespace robot.sl.CarControl
                             && motorCommandSource != MotorCommandSource.AutomaticDrive;
 
                 await _dance.StopAsync(speak, false);
+            }
+            else if(_lastMotorCommandSource == MotorCommandSource.SpeechRecognation
+                    && motorCommandSource != MotorCommandSource.SpeechRecognation)
+            {
+                _speechRecognition.ResetDriving();
             }
 
             await MotorSynchronous.Call(() =>
