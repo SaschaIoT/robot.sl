@@ -143,7 +143,7 @@ namespace robot.sl.Audio.AudioPlaying
             //AllSpeakerOn
             await AddAudioFileAsync(AudioName.AllSpeakerOn, "Alle Lautsprecher sind jetzt an.");
             //AllSpeakerAlreadyOn
-            await AddAudioFileAsync(AudioName.AllSpeakerAlreadyOn, "Alle Lautsprecher sind jetzt an.");
+            await AddAudioFileAsync(AudioName.AllSpeakerAlreadyOn, "Alle Lautsprecher sind bereits an.");
             //SoundModeOn
             await AddAudioFileAsync(AudioName.SoundModeOn, "Der Sound Modus automatisches Fahren ist jetzt an.");
             //SoundModusAlreadyOff
