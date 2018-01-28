@@ -250,7 +250,7 @@ namespace robot.sl.CarControl
                 Speed = 0
             };
 
-            await _motorController.MoveCarAsync(carMoveCommandEnd, MotorCommandSource.AutomaticDrive);
+            await _motorController.MoveCarAsync(carMoveCommandEnd, MotorCommandSource.Other);
 
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
             _servoController.PwmController.SetPwm(Servo.DistanceSensorVertical, 0, ServoPositions.DistanceSensorVerticalTop);
