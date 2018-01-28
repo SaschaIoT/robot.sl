@@ -27,8 +27,7 @@ namespace robot.sl.Audio
             try
             {
                 var confidence = args.Result.Confidence;
-                if (confidence == SpeechRecognitionConfidence.Low
-                    || confidence == SpeechRecognitionConfidence.Rejected)
+                if (confidence == SpeechRecognitionConfidence.Rejected)
                 {
                     return;
                 }
