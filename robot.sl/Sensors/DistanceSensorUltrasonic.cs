@@ -1,6 +1,7 @@
 ﻿using robot.sl.Helper;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -27,13 +28,15 @@ namespace robot.sl.Sensors
         private volatile bool _isStopped = true;
         private volatile bool _isStopping = false;
 
-        const int READ_SERIAL_TIMEOUT_MILLISECONDS = 1500;
-        const int MAX_READ_COUNT = 5;
+        const int READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS = 1500;
+        const int READ_SERIAL_READ_TIMEOUT_MILLISECONDS = 500;
         const string SERIAL_DEVICE_NAME = "uart2";
         const int SERIAL_DEVICE_GPIO_PIN = 1;
         const int MEASURMENTS_COUNT = 1;
-        const int MEASUREMENT_LENGTH = 7;
+        const int MEASUREMENT_LENGTH = 8;
         const string MEASUREMENT_END_CHARACTER = "\r";
+        const string MEASUREMEN_VALUE_REGEX = "R[0-9]{4}\r";
+        const int SENSOR_START_UP_TIME_MILLISECONDS = 170;
 
         public async Task InitializeAsync()
         {
@@ -46,7 +49,8 @@ namespace robot.sl.Sensors
             var serialDevices = (await DeviceInformation.FindAllAsync(serialDeviceSelector)).ToList();
 
             _serialPort = await SerialDevice.FromIdAsync(serialDevices.First(sd => sd.Id.ToLower().Contains(SERIAL_DEVICE_NAME)).Id);
-            _serialPort.ReadTimeout = TimeSpan.Zero;
+            //If data is present, wait if more data become available
+            _serialPort.ReadTimeout = TimeSpan.FromMilliseconds(READ_SERIAL_READ_TIMEOUT_MILLISECONDS);
             _serialPort.BaudRate = 9600;
             _serialPort.Parity = SerialParity.None;
             _serialPort.StopBits = SerialStopBitCount.One;
@@ -72,26 +76,28 @@ namespace robot.sl.Sensors
         {
             _startStopPin.Write(GpioPinValue.High);
 
+            await Task.Delay(SENSOR_START_UP_TIME_MILLISECONDS);
+
             while (!_isStopping)
             {
                 var ultrasonicMeasure = new Measurement();
 
                 try
                 {
-                    var readCount = 0;
+                    var readStart = new Stopwatch();
+                    readStart.Start();
+
                     var readString = await ReadStringAsync(MEASUREMENT_LENGTH * MEASURMENTS_COUNT);
-                    var measurementMatches = Regex.Matches(readString, "R[0-9]{4}\r");
+                    var measurementMatches = Regex.Matches(readString, MEASUREMEN_VALUE_REGEX);
 
                     while (measurementMatches.Count < MEASURMENTS_COUNT)
                     {
                         readString += await ReadStringAsync(MEASUREMENT_LENGTH);
-                        measurementMatches = Regex.Matches(readString, "R[0-9]{4}\r");
-
-                        readCount++;
-
-                        if (readCount >= (MAX_READ_COUNT * MEASURMENTS_COUNT))
+                        measurementMatches = Regex.Matches(readString, MEASUREMEN_VALUE_REGEX);
+                        
+                        if (readStart.ElapsedMilliseconds >= (READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS * MEASURMENTS_COUNT))
                         {
-                            await Logger.WriteAsync($"{nameof(DistanceSensorUltrasonic)}, {nameof(Measure)}: To many measurements. Maximum read count reached.");
+                            await Logger.WriteAsync($"{nameof(DistanceSensorUltrasonic)}, {nameof(Measure)}: To many faulty measurements. Maximum read count reached.");
                             SystemController.ShutdownApplicationAsync(true).Wait();
                         }
                     }
@@ -144,7 +150,7 @@ namespace robot.sl.Sensors
 
             var source = new CancellationTokenSource();
             var bytesReadTask = _dataReader.LoadAsync(count).AsTask(source.Token);
-            source.CancelAfter(READ_SERIAL_TIMEOUT_MILLISECONDS * MEASURMENTS_COUNT);
+            source.CancelAfter(READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS * MEASURMENTS_COUNT);
 
             var bytesRead = await bytesReadTask;
             if (bytesRead > 0)
