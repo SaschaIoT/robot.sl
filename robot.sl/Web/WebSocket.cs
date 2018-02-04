@@ -32,6 +32,7 @@ namespace robot.sl.Web
         private DateTime _moveCarLastAction = DateTime.Now;
         private const int MOVE_CAR_PERIOD_ACTION_MILLISECONDS = 30;
         private const int MOVE_CAR_ACTION_TIMEOUT_MILLISECONDS = 500;
+        private const int DIRECTION_CONTROL_UP_DOWN_STEP_SPEED = 4;
         private bool _moveCarStopped = true;
 
         //Dependencies
@@ -138,7 +139,7 @@ namespace robot.sl.Web
                         DirectionControlDown = parameter["directionControlDown"].GetBoolean(),
                         SpeedControlForward = parameter["speedControlForward"].GetBoolean(),
                         SpeedControlBackward = parameter["speedControlBackward"].GetBoolean(),
-                        DirectionControlUpDownStepSpeed = 7
+                        DirectionControlUpDownStepSpeed = DIRECTION_CONTROL_UP_DOWN_STEP_SPEED
                     };
 
                     if (carControlCommand.DirectionControlLeft

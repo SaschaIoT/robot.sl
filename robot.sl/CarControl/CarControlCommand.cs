@@ -13,12 +13,12 @@ namespace robot.sl.CarControl
         public bool SpeedControlBackward { get; set; }
         public ushort DirectionControlUpDownStepSpeed { get; set; }
 
+        const int DIRECTION_CONTROL_UP_DOWN_STEP_MAX_SPEED = 4;
+
         public CarControlCommand() { }
 
         public CarControlCommand(GamepadReading gamepadReading)
         {
-            var directionControlUpDownStepMaxSpeed = 6;
-
             var deadzone = 0.25;
 
             var leftThumbstickY = gamepadReading.LeftThumbstickY;
@@ -39,7 +39,7 @@ namespace robot.sl.CarControl
                 DirectionControlDown = true;
             }
 
-            DirectionControlUpDownStepSpeed = (ushort)Math.Round(Math.Abs(directionControlUpDown) * directionControlUpDownStepMaxSpeed, 1);
+            DirectionControlUpDownStepSpeed = (ushort)Math.Round(Math.Abs(directionControlUpDown) * DIRECTION_CONTROL_UP_DOWN_STEP_MAX_SPEED, 1);
         }
     }
 }
