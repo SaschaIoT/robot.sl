@@ -12,9 +12,9 @@
     {
         public static ushort CameraHorizontalMiddle { get; } = 283;
 
-        public static ushort CameraVerticalMiddle { get; } = 280;
-        public static ushort CameraVerticalTop { get; } = 210;
-        public static ushort CameraVerticalBottom { get; } = 370;
+        public static ushort CameraVerticalMiddle { get; } = 265;
+        public static ushort CameraVerticalTop { get; } = 170;
+        public static ushort CameraVerticalBottom { get; } = 350;
 
         public static ushort DistanceSensorHorizontalLeft { get; } = 120;
         public static ushort DistanceSensorHorizontalLeftMiddle { get; } = 180;

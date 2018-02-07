@@ -29,11 +29,13 @@ namespace robot.sl.Web
         private HttpServerRequest _httpServerRequest;
         private const uint BUFFER_SIZE = 3024;
 
-        private DateTime _moveCarLastAction = DateTime.Now;
-        private const int MOVE_CAR_PERIOD_ACTION_MILLISECONDS = 30;
+        private DateTime _motorLastAction = DateTime.Now;
+        private DateTime _servoLastAction = DateTime.Now;
+        private const int SERVO_MOTOR_PERIOD_ACTION_MILLISECONDS = 30;
         private const int MOVE_CAR_ACTION_TIMEOUT_MILLISECONDS = 500;
         private const int DIRECTION_CONTROL_UP_DOWN_STEP_SPEED = 4;
-        private bool _moveCarStopped = true;
+        private bool _motorStopped = true;
+        private bool _servoStopped = true;
 
         //Dependencies
         private Camera _camera;
@@ -373,25 +375,40 @@ namespace robot.sl.Web
 
         private async Task CarMoveCommand(CarControlCommand carControlCommand)
         {
-            var stopp = (!carControlCommand.DirectionControlUp
-                         && !carControlCommand.DirectionControlLeft
-                         && !carControlCommand.DirectionControlRight
-                         && !carControlCommand.DirectionControlDown
-                         && !carControlCommand.SpeedControlForward
-                         && !carControlCommand.SpeedControlBackward);
-
             var now = DateTime.Now;
-            if (((stopp && _moveCarStopped) == false
-                 && now.Subtract(_moveCarLastAction) >= TimeSpan.FromMilliseconds(MOVE_CAR_PERIOD_ACTION_MILLISECONDS))
-                || (stopp && _moveCarStopped == false))
+            
+            // Motor
+            var motorStopp = (!carControlCommand.DirectionControlLeft
+                              && !carControlCommand.DirectionControlRight
+                              && !carControlCommand.SpeedControlForward
+                              && !carControlCommand.SpeedControlBackward);
+            
+            if (((motorStopp && _motorStopped) == false
+                 && now.Subtract(_motorLastAction) >= TimeSpan.FromMilliseconds(SERVO_MOTOR_PERIOD_ACTION_MILLISECONDS))
+                || (motorStopp && _motorStopped == false))
             {
-                _moveCarStopped = stopp;
+                _motorStopped = motorStopp;
 
                 await _motorController.MoveCarAsync(carControlCommand, MotorCommandSource.Other);
-                await _servoController.MoveServo(carControlCommand);
-                _moveCarLastAction = now;
+
+                _motorLastAction = now;
 
                 CarControlCommandTimeoutAsync(now);
+            }
+
+            // Servo
+            var servoStopp = (!carControlCommand.DirectionControlUp
+                              && !carControlCommand.DirectionControlDown);
+
+            if (((servoStopp && _servoStopped) == false
+                 && now.Subtract(_servoLastAction) >= TimeSpan.FromMilliseconds(SERVO_MOTOR_PERIOD_ACTION_MILLISECONDS))
+                || (servoStopp && _servoStopped == false))
+            {
+                _servoStopped = servoStopp;
+
+                await _servoController.MoveServo(carControlCommand);
+
+                _servoLastAction = now;
             }
         }
 
@@ -399,7 +416,7 @@ namespace robot.sl.Web
         {
             await Task.Delay(MOVE_CAR_ACTION_TIMEOUT_MILLISECONDS);
 
-            if (_moveCarLastAction == carControlCommand)
+            if (_motorLastAction == carControlCommand)
             {
                 await _motorController.MoveCarAsync(new CarControlCommand
                 {
