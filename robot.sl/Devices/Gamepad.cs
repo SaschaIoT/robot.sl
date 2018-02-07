@@ -17,7 +17,8 @@ namespace robot.sl.Devices
     public class GamepadController
     {
         private Gamepad _gamepad;
-        private bool _carStopped = true;
+        private bool _motorStopped = true;
+        private bool _servoStopped = true;
         private bool _gamepadShouldVibrate = true;
         private volatile bool _isGamepadReadingStopped = true;
         private volatile bool _isGamepadVibrationStopped = true;
@@ -178,27 +179,37 @@ namespace robot.sl.Devices
 
                 var gamepadReading = gamepadReadingTry.Value;
 
-                var carMoveCommand = new CarMoveCommand(gamepadReading);
-                var carControlCommand = new CarControlCommand(gamepadReading);
+                var motorCarMoveCommand = new CarMoveCommand(gamepadReading);
+                var servoCarControlCommand = new CarControlCommand(gamepadReading);
 
-                //Move car and servo if is new command available
-                if (!(_carStopped
-                    && carMoveCommand.Speed == 0.0
-                    && !carControlCommand.DirectionControlUp
-                    && !carControlCommand.DirectionControlDown))
+                // Motor
+                if ((_motorStopped && motorCarMoveCommand.Speed == 0.0) == false)
                 {
-                    _carStopped = false;
+                    _motorStopped = false;
 
-                    await _motorController.MoveCarAsync(carMoveCommand, MotorCommandSource.Other);
-                    await _servoController.MoveServo(carControlCommand);
+                    await _motorController.MoveCarAsync(motorCarMoveCommand, MotorCommandSource.Other);
+                }
+                
+                if (motorCarMoveCommand.Speed == 0.0)
+                {
+                    _motorStopped = true;
                 }
 
-                //Car and servo not moving
-                if (carMoveCommand.Speed == 0.0
-                    && !carControlCommand.DirectionControlUp
-                    && !carControlCommand.DirectionControlDown)
+                // Servo
+                if ((_servoStopped
+                    && servoCarControlCommand.DirectionControlUp == false
+                    && servoCarControlCommand.DirectionControlDown == false) == false)
                 {
-                    _carStopped = true;
+                    _servoStopped = false;
+                    
+                    await _servoController.MoveServo(servoCarControlCommand);
+                }
+
+                // Servo not moving
+                if (servoCarControlCommand.DirectionControlUp == false
+                    && servoCarControlCommand.DirectionControlDown == false)
+                {
+                    _servoStopped = true;
                 }
 
                 // Enable/ disable gamepad vibration
