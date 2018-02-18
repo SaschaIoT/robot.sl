@@ -3,6 +3,7 @@ using robot.sl.CarControl;
 using robot.sl.Devices;
 using robot.sl.Sensors;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography;
@@ -163,13 +164,16 @@ namespace robot.sl.Web
                     break;
                 case "Speed":
 
+                    //Round to nearest 10
+                    var roundsPerMinute = ((int)Math.Round(SpeedSensor.RoundsPerMinute / 10.0)) * 10;
+
                     var speed = new JsonObject
                         {
                             { "command", JsonValue.CreateStringValue("Speed") },
                             { "parameter", new JsonObject
                                 {
-                                    { "RoundsPerMinute", JsonValue.CreateStringValue(SpeedSensor.RoundsPerMinute.ToString())},
-                                    { "KilometerPerHour", JsonValue.CreateStringValue(string.Format("{0:0.00}", SpeedSensor.KilometerPerHour).Replace(".", ","))}
+                                    { "RoundsPerMinute", JsonValue.CreateStringValue(roundsPerMinute.ToString())},
+                                    { "KilometerPerHour", JsonValue.CreateStringValue(SpeedSensor.KilometerPerHour.ToString("N1", new CultureInfo("de-DE")))}
                                 }
                             }
                         };
