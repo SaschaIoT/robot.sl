@@ -20,6 +20,14 @@ namespace robot.sl.CarControl
         public bool LeftCircle { get; set; }
         public bool RightCircle { get; set; }
 
+        private const int FULL_SPEED = 1;
+        private const int NO_SPEED = 0;
+        private const double MIN_SPEED = 0.45;
+        private const double MIN_SPEED_LEFT_RIGHT = 0.65;
+        private const double THUMBSTICK_X_LEFT_CIRCLE = 0.985;
+        private const double THUMBSTICK_X_RIGHT_CIRCLE = THUMBSTICK_X_LEFT_CIRCLE * -1;
+        private const double THUMBSTICK_DEADZONE = 0.25;
+
         public CarMoveCommand() { }
 
         public CarMoveCommand(CarControlCommand carControlCommand)
@@ -50,61 +58,86 @@ namespace robot.sl.CarControl
 
         public CarMoveCommand(GamepadReading gamepadReading)
         {
-            var deadzone = 0.25;
-
-            var leftThumbstickX = gamepadReading.LeftThumbstickX;
-            if ((leftThumbstickX > 0 && leftThumbstickX <= deadzone)
-                || (leftThumbstickX < 0 && leftThumbstickX >= (deadzone * -1)))
+            //Left/right
+            var leftRightThumbstick = gamepadReading.LeftThumbstickX;
+            if ((leftRightThumbstick > 0 && leftRightThumbstick <= THUMBSTICK_DEADZONE)
+                || (leftRightThumbstick < 0 && leftRightThumbstick >= (THUMBSTICK_DEADZONE * -1)))
             {
-                leftThumbstickX = 0.0;
+                leftRightThumbstick = 0;
             }
+            RightLeft = leftRightThumbstick;
 
-            var rightTrigger = gamepadReading.RightTrigger <= deadzone ? 0.0 : gamepadReading.RightTrigger;
-            var leftTrigger = gamepadReading.LeftTrigger <= deadzone ? 0.0 : gamepadReading.LeftTrigger;
+            //Forward/backward trigger
+            var forwardTrigger = gamepadReading.RightTrigger <= THUMBSTICK_DEADZONE ? 0 : gamepadReading.RightTrigger;
+            var backwardTrigger = gamepadReading.LeftTrigger <= THUMBSTICK_DEADZONE ? 0 : gamepadReading.LeftTrigger;
+            var bothTrigger = forwardTrigger > 0 && backwardTrigger > 0;
 
-            var rightLeftTrigger = (rightTrigger > 0.0) && (leftTrigger > 0.0);
+            //Forward or backward
+            if (bothTrigger == false
+                && (forwardTrigger > 0 || backwardTrigger > 0))
+            {
+                var speed = 0.0;
 
-            if (!rightLeftTrigger
-                && rightTrigger > 0.0)
-            {
-                Speed = rightTrigger;
-                ForwardBackward = true;
-            }
-            else if (!rightLeftTrigger
-                     && leftTrigger > 0.0)
-            {
-                Speed = leftTrigger;
-                ForwardBackward = false;
-            }
-            else
-            {
-                Speed = 0.0;
-                ForwardBackward = true;
-            }
+                //Forward
+                if (forwardTrigger > 0)
+                {
+                    speed = forwardTrigger;
+                    ForwardBackward = true;
+                }
+                //Backward
+                else if (backwardTrigger > 0)
+                {
+                    speed = backwardTrigger;
+                    ForwardBackward = false;
+                }
 
-            RightLeft = leftThumbstickX;
+                //Min speed
+                if(leftRightThumbstick != 0)
+                {
+                    if (speed < MIN_SPEED_LEFT_RIGHT)
+                    {
+                        Speed = MIN_SPEED_LEFT_RIGHT;
+                    }
+                    else
+                        Speed = speed;
+                }
+                else if (speed < MIN_SPEED)
+                {
+                    Speed = MIN_SPEED;
+                }
+                else
+                {
+                    Speed = speed;
+                }
 
-            if (RightLeft <= -0.985)
-            {
-                LeftCircle = true;
-            }
-            else if (RightLeft >= 0.985)
-            {
-                RightCircle = true;
-            }
-
-            if (RightLeft != 0.0 && Speed == 0.0)
-            {
-                if (RightLeft < 0)
+                //Left circle
+                if (leftRightThumbstick <= THUMBSTICK_X_RIGHT_CIRCLE)
                 {
                     LeftCircle = true;
-                    Speed = 1;
                 }
-                else if (RightLeft > 0)
+                //Right circle
+                else if (leftRightThumbstick >= THUMBSTICK_X_LEFT_CIRCLE)
                 {
                     RightCircle = true;
-                    Speed = 1;
                 }
+            }
+            //No speed and left
+            else if (leftRightThumbstick > 0)
+            {
+                LeftCircle = true;
+                Speed = FULL_SPEED;
+            }
+            //No speed and right
+            else if (leftRightThumbstick < 0)
+            {
+                RightCircle = true;
+                Speed = FULL_SPEED;
+            }
+            //No speed
+            else
+            {
+                Speed = NO_SPEED;
+                ForwardBackward = true;
             }
         }
     }
