@@ -1,6 +1,7 @@
 ﻿using robot.sl.Helper;
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Gpio;
@@ -12,7 +13,6 @@ namespace robot.sl.Sensors
     /// </summary>
     public static class SpeedSensor
     {
-        public static double RoundsOneKilometer = 5250;
         public static int RoundsPerMinute { get; private set; }
         public static double KilometerPerHour { get; private set; }
         public static bool IsDriving
@@ -22,10 +22,18 @@ namespace robot.sl.Sensors
                 return RoundsPerMinute >= 1;
             }
         }
-        private static int _downsUps = 0;
-        //private static volatile bool _read = false;
-        //private static Timer _timer;
-        private static GpioPin _pin;
+
+        private const int FALLS_DOWNS_ONE_ROUND = 40;
+        private const double ROUNDS_ONE_KILOMETER = 5250;
+        private const double FALLS_DOWNS_TO_SECOND_FACTOR = 14.28571428571429;
+        private const int SECOND_TO_MINUTE_FACTOR = 60;
+        private const int MINUTE_TO_HOUR_FACTOR = 60;
+        private const int MEASUREMENT_TIME_MILLISECONDS = 70;
+        private const int MEASUREMENT_FILTER_COUNT = 4;        
+        private const int GPIO_PIN_DEBOUNCE_TIMEOUT_MILLISECONDS = 25;
+
+        private static GpioChangeCounter _gpioChangeCounter;
+        private static List<int> _lastDownsUps;
         private static volatile bool _isStopped;
         private static volatile bool _isStopping;
 
@@ -33,11 +41,12 @@ namespace robot.sl.Sensors
         {
             var gpioController = GpioController.GetDefault();
 
-            _pin = gpioController.OpenPin(0);
-            _pin.SetDriveMode(GpioPinDriveMode.Input);
+            var pin = gpioController.OpenPin(0);
+            pin.SetDriveMode(GpioPinDriveMode.Input);
+            pin.DebounceTimeout = TimeSpan.FromMilliseconds(GPIO_PIN_DEBOUNCE_TIMEOUT_MILLISECONDS);
 
-            //Pin ValueChanged-Event currently not work with Microsoft.IoT.Lightning
-            //_pin.ValueChanged += Pin_ValueChanged;
+            _gpioChangeCounter = new GpioChangeCounter(pin);
+            _gpioChangeCounter.Polarity = GpioChangePolarity.Both;
         }
 
         public static void Start()
@@ -45,7 +54,7 @@ namespace robot.sl.Sensors
             Task.Factory.StartNew(() =>
             {
 
-                StartInternalAsync().Wait();
+                StartInternal();
 
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Current)
              .AsAsyncAction()
@@ -59,51 +68,25 @@ namespace robot.sl.Sensors
              }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        private static async Task StartInternalAsync()
+        private static void StartInternal()
         {
-            //_timer = new Timer(Counter, null, 0, 140);
-
             _isStopped = false;
 
-            var debounceTimeout = TimeSpan.FromMilliseconds(1);
-            var debounce = DateTime.Now;
-            var pinValueOld = _pin.Read();
-            var stopWatch = new Stopwatch();
+            _lastDownsUps = new int[MEASUREMENT_FILTER_COUNT].ToList();
 
-            stopWatch.Start();
+            _gpioChangeCounter.Start();
 
-            while (!_isStopping)
+            while (_isStopping == false)
             {
-                if (stopWatch.ElapsedMilliseconds >= 70)
-                {
-                    stopWatch.Reset();
-                    Counter(); //Counter(null);
-                    await Task.Delay(150);
-                    stopWatch.Start();
-                }
+                Task.Delay(MEASUREMENT_TIME_MILLISECONDS).Wait();
 
-                if (DateTime.Now <= debounce) //!_read || 
-                {
-                    continue;
-                }
+                var read = _gpioChangeCounter.Read();
+                Counter(read.Count);
 
-                var pinValueNew = _pin.Read();
-                if (pinValueOld == GpioPinValue.High
-                    && pinValueNew == GpioPinValue.Low)
-                {
-                    _downsUps++;
-                    debounce = DateTime.Now.Add(debounceTimeout);
-                }
-                else if (pinValueOld == GpioPinValue.Low
-                         && pinValueNew == GpioPinValue.High)
-                {
-                    _downsUps++;
-
-                    debounce = DateTime.Now.Add(debounceTimeout);
-                }
-
-                pinValueOld = pinValueNew;
+                _gpioChangeCounter.Reset();
             }
+
+            _gpioChangeCounter.Stop();
 
             _isStopped = true;
         }
@@ -112,54 +95,36 @@ namespace robot.sl.Sensors
         {
             _isStopping = true;
 
-            while (!_isStopped)
+            while (_isStopped == false)
             {
                 await Task.Delay(10);
             }
 
-            //_timer = null;
-            _downsUps = 0;
             RoundsPerMinute = 0;
             KilometerPerHour = 0;
+            _lastDownsUps = null;
 
             _isStopping = false;
         }
 
-        private static void Counter() //private static void Counter(object state)
+        private static void Counter(ulong downsUps)
         {
-            //_read = false;
+            var downsUpsPerMinute = downsUps * FALLS_DOWNS_TO_SECOND_FACTOR * SECOND_TO_MINUTE_FACTOR;
 
-            var sekundeFaktor = 14.28571428571429;
-            var minuteFaktor = 60;
-            var stundenFaktor = 60;
-            var oneRunde = 40;
-            var downsUpsPerMinute = _downsUps * sekundeFaktor * minuteFaktor;
-
-            var roundsPerMinute = (int)Math.Round(downsUpsPerMinute / oneRunde, 0);
+            var roundsPerMinute = (int)Math.Round(downsUpsPerMinute / FALLS_DOWNS_ONE_ROUND, 0);
             roundsPerMinute = roundsPerMinute < 0 ? 0 : roundsPerMinute;
+
+            _lastDownsUps.RemoveAt(0);
+            _lastDownsUps.Add(roundsPerMinute);
+
+            roundsPerMinute = (int)Math.Round(_lastDownsUps.Average());
+            
             RoundsPerMinute = roundsPerMinute;
 
-            var roundsPerHour = roundsPerMinute * stundenFaktor;
-            var kilometerPerHour = Math.Round(roundsPerHour / RoundsOneKilometer, 2);
+            var roundsPerHour = roundsPerMinute * MINUTE_TO_HOUR_FACTOR;
+            var kilometerPerHour = Math.Round(roundsPerHour / ROUNDS_ONE_KILOMETER, 2);
             kilometerPerHour = kilometerPerHour < 0 ? 0 : kilometerPerHour;
             KilometerPerHour = kilometerPerHour;
-
-            _downsUps = 0;
-            //_read = true;
         }
-
-        //Pin ValueChanged-Event currently not work with Microsoft.IoT.Lightning
-        //private static void Pin_ValueChanged(GpioPin gpioPin, GpioPinValueChangedEventArgs args)
-        //{
-        //    if (!_read)
-        //    {
-        //        return;
-        //    }
-
-        //    if (args.Edge == GpioPinEdge.FallingEdge)
-        //    {
-        //        _falls++;
-        //    }
-        //}
     }
 }
