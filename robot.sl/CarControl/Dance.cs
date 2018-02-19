@@ -53,13 +53,13 @@ namespace robot.sl.CarControl
             await StopAsync(true, true);
         }
 
-        public async Task StopAsync(bool speakStart, bool speakStartedAlreay)
+        public async Task StopAsync(bool speakOff, bool speakOffAlready)
         {
             await DanceSynchronous.Call(async () =>
             {
                 if (_isStopped)
                 {
-                    if(speakStartedAlreay)
+                    if(speakOffAlready)
                         await AudioPlayerController.PlayAsync(AudioName.TanzenOffAlready);
 
                     return;
@@ -68,6 +68,7 @@ namespace robot.sl.CarControl
                 if (_cancellationTokenSource != null)
                 {
                     _cancellationTokenSource.Cancel(true);
+                    _cancellationTokenSource = null;
                 }
 
                 _isStopping = true;
@@ -79,7 +80,7 @@ namespace robot.sl.CarControl
 
                 _isStopping = false;
 
-                if (speakStart)
+                if (speakOff)
                     await AudioPlayerController.PlayAsync(AudioName.TanzenOff);
             });
         }
