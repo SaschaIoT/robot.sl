@@ -62,20 +62,23 @@ namespace robot.sl.Helper
 
             var stopTask = Task.Run(async () =>
             {
+                ShutdownMotors();
+
+                await _automaticSpeakController.StopAsync();
+                await _automaticDrive.StopAsync(false, false);
+                await _dance.StopAsync(false, false);
+
                 _httpServerController.Stop();
                 await _camera.StopAsync();
                 await _gamepadController.StopAsync();
                 await _speechRecognation.StopAsync();
-                await _automaticDrive.StopAsync(false, false);
-                await _dance.StopAsync(false, false);
                 _servoController.Stop();
                 _motorController.Stop();
-                await _automaticSpeakController.StopAsync();
                 await _accelerometerSensor.StopAsync();
                 AudioPlayerController.Stop();
                 await SpeedSensor.StopAsync();
 
-                ShutdownMotorsServos();
+                ShutdownMotorsAndServos();
             });
 
             var timeoutTask = Task.Delay(TimeSpan.FromSeconds(10));
@@ -86,7 +89,7 @@ namespace robot.sl.Helper
             }
         }
 
-        private static void ShutdownMotorsServos()
+        private static void ShutdownMotorsAndServos()
         {
             _servoController.PwmController.SetPwm(Servo.CameraHorizontal, 0, ServoPositions.CameraHorizontalMiddle);
             _servoController.PwmController.SetPwm(Servo.CameraVertical, 0, ServoPositions.CameraVerticalMiddle);
@@ -97,6 +100,11 @@ namespace robot.sl.Helper
 
             _servoController.PwmController.SetAllPwm(4096, 0);
 
+            ShutdownMotors();
+        }
+
+        private static void ShutdownMotors()
+        {
             _motorController.GetMotor(1).Run(MotorAction.RELEASE);
             _motorController.GetMotor(2).Run(MotorAction.RELEASE);
             _motorController.GetMotor(3).Run(MotorAction.RELEASE);
@@ -110,10 +118,13 @@ namespace robot.sl.Helper
                 return;
             }
 
-            var stopAll = StopAllAsync();
-            var shutdownSound = AudioPlayerController.PlayAndWaitAsync(AudioName.Shutdown);
+            //Necessary to stop first, because it could speak and then shutdown speak is not spoken
+            await _automaticSpeakController.StopAsync();
 
-            await Task.WhenAll(new[] { stopAll, shutdownSound });
+            var stopAllTask = StopAllAsync();
+            var speakTask = AudioPlayerController.PlayAndWaitAsync(AudioName.Shutdown);
+
+            await Task.WhenAll(stopAllTask, speakTask);
 
             DeviceController.ShutdownDevice();
         }
@@ -125,8 +136,14 @@ namespace robot.sl.Helper
                 return;
             }
 
-            await StopAllAsync();
-            await AudioPlayerController.PlayAndWaitAsync(AudioName.Restart);
+            //Necessary to stop first, because it could speak and then shutdown speak is not spoken
+            await _automaticSpeakController.StopAsync();
+
+            var stopAllTask = StopAllAsync();
+            var speakTask = AudioPlayerController.PlayAndWaitAsync(AudioName.Restart);
+
+            await Task.WhenAll(stopAllTask, speakTask);
+
             DeviceController.RestartDevice();
         }
 
