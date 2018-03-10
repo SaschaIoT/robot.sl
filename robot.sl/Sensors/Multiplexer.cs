@@ -27,7 +27,6 @@ namespace robot.sl.Sensors
         public void SelectDevice(MultiplexerDevice multiplexerDevice)
         {
             _i2cDevice.Write(new byte[] { (byte)(1 << (int)multiplexerDevice) });
-            //Task.Delay(1).Wait();
         }
     }
 
