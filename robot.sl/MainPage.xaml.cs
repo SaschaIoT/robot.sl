@@ -24,22 +24,21 @@ namespace robot.sl
         private HttpServerController _httpServerController;
         private GamepadController _gamepadController;
         private SpeechRecognition _speechRecognation;
-        private DistanceSensorLaser _distanceSensorLaserDown;
-        private DistanceSensorLaser _distanceSensorLaserUp;
+        private DistanceSensorLaser _distanceSensorLaserTop;
+        private DistanceSensorLaser _distanceSensorLaserMiddleTop;
+        private DistanceSensorLaser _distanceSensorLaserMiddleBottom;
+        private DistanceSensorLaser _distanceSensorLaserBottom;
+        private Multiplexer _multiplexer;
         private Dance _dance;
 
         private const int HEADSET_AUDIO_RENDER_VOLUME = 70;
         private const int SPEAKER_AUDIO_RENDER_VOLUME = 80;
         private const int HEADSET_AUDIO_CAPTURE_VOLUME = 50;
-
-        private const int DISTANCE_SENSOR_LASER_UP_SHDN_PIN = 2;
-        private const int DISTANCE_SENSOR_LASER_DEFAULT_DEVICE_ADDRESS = 0x29;
-        private const int DISTANCE_SENSOR_LASER_DOWN_DEVICE_ADDRESS = 0x30;
-
+                
         public MainPage()
         {
             InitializeComponent();
-            
+
             Loaded += PageLoaded;
         }
 
@@ -47,23 +46,25 @@ namespace robot.sl
         {
             await InitialzeAsync();
         }
-
+                
         private async Task InitialzeAsync()
         {
             try
             {
-                _distanceSensorLaserUp = new DistanceSensorLaser();
-                await _distanceSensorLaserUp.SetDevicePowerAsync(false, DISTANCE_SENSOR_LASER_UP_SHDN_PIN);
+                _multiplexer = new Multiplexer();
+                await _multiplexer.InitializeAsync();
+                
+                _distanceSensorLaserTop = new DistanceSensorLaser(_multiplexer, MultiplexerDevice.DistanceLaserSensorTop, LightResponse.HIGH);
+                await _distanceSensorLaserTop.InitializeAsync();
 
-                _distanceSensorLaserDown = new DistanceSensorLaser();
-                await _distanceSensorLaserDown.InitializeAsync(DISTANCE_SENSOR_LASER_DEFAULT_DEVICE_ADDRESS, DISTANCE_SENSOR_LASER_DOWN_DEVICE_ADDRESS);
-                _distanceSensorLaserDown.SetDeviceAddress(DISTANCE_SENSOR_LASER_DOWN_DEVICE_ADDRESS);
-                await _distanceSensorLaserDown.InitializeAsync(DISTANCE_SENSOR_LASER_DOWN_DEVICE_ADDRESS);
-                _distanceSensorLaserDown.Configure();
+                _distanceSensorLaserMiddleTop = new DistanceSensorLaser(_multiplexer, MultiplexerDevice.DistanceLaserSensorMiddleTop, LightResponse.HIGH);
+                await _distanceSensorLaserMiddleTop.InitializeAsync();
 
-                await _distanceSensorLaserUp.SetDevicePowerAsync(true, DISTANCE_SENSOR_LASER_UP_SHDN_PIN);
-                await _distanceSensorLaserUp.InitializeAsync();
-                _distanceSensorLaserUp.Configure();
+                _distanceSensorLaserMiddleBottom = new DistanceSensorLaser(_multiplexer, MultiplexerDevice.DistanceLaserSensorMiddleBottom, LightResponse.HIGH);
+                await _distanceSensorLaserMiddleBottom.InitializeAsync();
+
+                _distanceSensorLaserBottom = new DistanceSensorLaser(_multiplexer, MultiplexerDevice.DistanceLaserSensorBottom, LightResponse.LOW);
+                await _distanceSensorLaserBottom.InitializeAsync();
                 
                 await SystemController.SetDefaultRenderDeviceAsync(DeviceNameHelper.SpeakerRenderDevice);
                 await SystemController.SetDefaultRenderDeviceVolumeAsync(SPEAKER_AUDIO_RENDER_VOLUME);
@@ -89,7 +90,7 @@ namespace robot.sl
                 _accelerometerSensor.Start();
 
                 _automaticSpeakController = new AutomaticSpeakController(_accelerometerSensor);
-                
+
                 _motorController = new MotorController();
                 _dance = new Dance(_motorController);
 
@@ -99,7 +100,7 @@ namespace robot.sl
                 _distanceSensorUltrasonic = new DistanceSensorUltrasonic();
                 await _distanceSensorUltrasonic.InitializeAsync();
 
-                _automaticDrive = new AutomaticDrive(_motorController, _servoController, _distanceSensorUltrasonic, _distanceSensorLaserUp, _distanceSensorLaserDown);
+                _automaticDrive = new AutomaticDrive(_motorController, _servoController, _distanceSensorUltrasonic, _distanceSensorLaserTop, _distanceSensorLaserMiddleTop, _distanceSensorLaserMiddleBottom, _distanceSensorLaserBottom);
 
                 _speechRecognation = new SpeechRecognition();
                 await _speechRecognation.InitialzeAsync(_motorController, _servoController, _automaticDrive, _dance);

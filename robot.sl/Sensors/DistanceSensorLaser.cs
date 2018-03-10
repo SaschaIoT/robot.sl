@@ -2,10 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Devices.Gpio;
 using Windows.Devices.I2c;
 
 namespace robot.sl.Sensors
@@ -16,12 +14,17 @@ namespace robot.sl.Sensors
     public class DistanceSensorLaser
     {
         private I2cDevice _i2cDevice;
-        public byte _deviceAddress = 0x29;
+        private List<int> _readings = new List<int>();
+        private LightResponse _lightResponse;
+        private MultiplexerDevice _multiplexerDevice;
+        
+        // Dependencies
+        private Multiplexer _multiplexer;
+
+        const byte _DEVICE_ADDRESS = 0x29;
         private int io_timeout_s = 0;
         private double _measurement_timing_budget_us = 0;
         private byte _stop_variable = 0;
-        private GpioPin _shdnPin;
-        private List<int> _readings = new List<int>();
 
         const byte _SYSRANGE_START = 0x00;
         const byte _SYSTEM_THRESH_HIGH = 0x0C;
@@ -84,11 +87,18 @@ namespace robot.sl.Sensors
         const byte _VCSEL_PERIOD_PRE_RANGE = 0;
         const byte _VCSEL_PERIOD_FINAL_RANGE = 1;
 
-        public async Task InitializeAsync(byte deviceAddress = 0x29, byte? retryDeviceAddress = null)
+        public DistanceSensorLaser(Multiplexer multiplexer,
+                                   MultiplexerDevice multiplexerDevice,
+                                   LightResponse lightResponse)
         {
-            _deviceAddress = deviceAddress;
+            _multiplexer = multiplexer;
+            _multiplexerDevice = multiplexerDevice;
+            _lightResponse = lightResponse;
+        }
 
-            var settings = new I2cConnectionSettings(_deviceAddress)
+        public async Task InitializeAsync()
+        {
+            var settings = new I2cConnectionSettings(_DEVICE_ADDRESS)
             {
                 BusSpeed = I2cBusSpeed.StandardMode, // Use this sensor only with I2C Standard Mode
                 SharingMode = I2cSharingMode.Shared
@@ -97,22 +107,10 @@ namespace robot.sl.Sensors
             var controller = await I2cController.GetDefaultAsync();
             _i2cDevice = controller.GetDevice(settings);
 
-            //If app is restarted, the distance sensor laser up has already the new address
-            if (retryDeviceAddress.HasValue)
-            {
-                try
-                {
-                    //Any command to test if device with the address exists
-                    SetDeviceAddress(deviceAddress);
-                }
-                catch (FileNotFoundException)
-                {
-                    await InitializeAsync(retryDeviceAddress.Value);
-                }
-            }
+            Configure();
         }
 
-        public void Configure(int io_timeout_s_p = 0)
+        private void Configure(int io_timeout_s_p = 0)
         {
             io_timeout_s = io_timeout_s_p;
 
@@ -120,8 +118,8 @@ namespace robot.sl.Sensors
 
             // Check identification registers for expected values.
             // From section 3.2 of the datasheet.
-            if (_read_u8(0xC0) != 0xEE || _read_u8(0xC1) != 0xAA || _read_u8(0xC2) != 0x10)
-                throw new Exception("Failed to find expected ID register values. Check wiring!");
+            //if (_read_u8(0xC0) != 0xEE || _read_u8(0xC1) != 0xAA || _read_u8(0xC2) != 0x10)
+            //    throw new Exception("Failed to find expected ID register values. Check wiring!");
 
             // Initialize access to the sensor.  This is based on the logic from:
             //   https://github.com/pololu/vl53l0x-arduino/blob/master/VL53L0X.cpp
@@ -141,7 +139,8 @@ namespace robot.sl.Sensors
             _write_u8(_MSRC_CONFIG_CONTROL, (byte)config_control);
             // set final range signal rate limit to 0.25 MCPS (million counts per
             // second)
-            signal_rate_limit(511.99f);
+            var signalRateLimit = LightResponseValues.GetLightResponseValue(_lightResponse);
+            signal_rate_limit(signalRateLimit);
             _write_u8(_SYSTEM_SEQUENCE_CONFIG, 0xFF);
             var si = _get_spad_info();
             // The SPAD map (RefGoodSpadMap) is read by
@@ -151,6 +150,7 @@ namespace robot.sl.Sensors
             var ref_spad_map = new byte[7];
             I2CSynchronous.Call(() =>
             {
+                _multiplexer.SelectDevice(_multiplexerDevice);
                 _i2cDevice.WriteRead(new byte[] { _GLOBAL_CONFIG_SPAD_ENABLES_REF_0 }, ref_spad_map);
             });
             _write_u8(0xFF, 0x01);
@@ -174,6 +174,7 @@ namespace robot.sl.Sensors
             }
             I2CSynchronous.Call(() =>
             {
+                _multiplexer.SelectDevice(_multiplexerDevice);
                 _i2cDevice.Write(ref_spad_map);
             });
             _write_u8(0xFF, 0x01);
@@ -276,28 +277,7 @@ namespace robot.sl.Sensors
         {
             _write_u8(_I2C_SLAVE_DEVICE_ADDRESS, (byte)(newAdress & 0x7F));
         }
-
-        public async Task SetDevicePowerAsync(bool on, int shdnPinNumber)
-        {
-            if (_shdnPin == null)
-            {
-                var gpioController = GpioController.GetDefault();
-                _shdnPin = gpioController.OpenPin(shdnPinNumber);
-                _shdnPin.SetDriveMode(GpioPinDriveMode.Output);
-            }
-
-            if (on)
-            {
-                _shdnPin.Write(GpioPinValue.High);
-            }
-            else
-            {
-                _shdnPin.Write(GpioPinValue.Low);
-            }
-
-            await Task.Delay(50);
-        }
-
+        
         private double _decode_timeout(int val)
         {
             //format: "(LSByte * 2^MSByte) + 1"
@@ -342,6 +322,7 @@ namespace robot.sl.Sensors
             var data = new byte[1];
             I2CSynchronous.Call(() =>
             {
+                _multiplexer.SelectDevice(_multiplexerDevice);
                 _i2cDevice.WriteRead(new byte[] { (byte)(address & 0xFF) }, data);
             });
 
@@ -353,6 +334,7 @@ namespace robot.sl.Sensors
             var data = new byte[2];
             I2CSynchronous.Call(() =>
             {
+                _multiplexer.SelectDevice(_multiplexerDevice);
                 _i2cDevice.WriteRead(new byte[] { (byte)(address & 0xFF) }, data);
             });
 
@@ -363,6 +345,7 @@ namespace robot.sl.Sensors
         {
             I2CSynchronous.Call(() =>
             {
+                _multiplexer.SelectDevice(_multiplexerDevice);
                 //Write an 8-bit unsigned value to the specified 8-bit address.
                 _i2cDevice.Write(new byte[] { (byte)(address & 0xFF), (byte)(val & 0xFF) });
             });
@@ -372,6 +355,7 @@ namespace robot.sl.Sensors
         {
             I2CSynchronous.Call(() =>
             {
+                _multiplexer.SelectDevice(_multiplexerDevice);
                 //Write a 16-bit BE unsigned value to the specified 8-bit address.
                 _i2cDevice.Write(new byte[] {
                     (byte)(address & 0xFF),
@@ -516,7 +500,8 @@ namespace robot.sl.Sensors
         // Defaults to 0.25 MCPS as initialized by the ST API and this library.
         private void signal_rate_limit(float limit_Mcps)
         {
-            //Min 1 Max 511.99
+            //Min 0.1 Max 511.99
+            //Min maybe could be lower
 
             // Q9.7 fixed point format (9 integer bits, 7 fractional bits)
             _write_u16(_FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT, (byte)(limit_Mcps * (1 << 7)));
@@ -624,7 +609,7 @@ namespace robot.sl.Sensors
                 if (io_timeout_s > 0 && start.ElapsedMilliseconds >= io_timeout_s)
                     throw new Exception("Timeout waiting for VL53L0X!");
             }
-
+            
             // assumptions: Linearity Corrective Gain is 1000 (default)
             // fractional ranging is not enabled
             var range_mm = _read_u16(_RESULT_RANGE_STATUS + 10);
@@ -693,5 +678,23 @@ namespace robot.sl.Sensors
         HIGH_ACCURACY = 200000, //200ms
         HIGH_SPEED = 20000, //20ms
         DEFAULT = 33000 //33ms
+    }
+
+    public enum LightResponse
+    {
+        HIGH = 1,
+        LOW = 0
+    }
+
+    public static class LightResponseValues
+    {
+        public const float HIGH = 511.99f;
+        public const float LOW = 0.1f;
+
+        public static float GetLightResponseValue(LightResponse lightResponse)
+        {
+            var lightResponseValue = lightResponse == LightResponse.HIGH ? HIGH : LOW;
+            return lightResponseValue;
+        }
     }
 }
