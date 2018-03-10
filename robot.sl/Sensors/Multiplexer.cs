@@ -26,6 +26,9 @@ namespace robot.sl.Sensors
 
         public void SelectDevice(MultiplexerDevice multiplexerDevice)
         {
+            // The switch time of the multiplexer is lower than I2C can transfer a bit,
+            // so there is no delay needed (no wait for switch necessary).
+            // Switch time: the time the multiplexer need to change the I2C channel
             _i2cDevice.Write(new byte[] { (byte)(1 << (int)multiplexerDevice) });
         }
     }
