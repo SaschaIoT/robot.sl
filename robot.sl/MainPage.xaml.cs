@@ -46,7 +46,7 @@ namespace robot.sl
         {
             await InitialzeAsync();
         }
-                
+        
         private async Task InitialzeAsync()
         {
             try
@@ -63,7 +63,7 @@ namespace robot.sl
                 _distanceSensorLaserMiddleBottom = new DistanceSensorLaser(_multiplexer, MultiplexerDevice.DistanceLaserSensorMiddleBottom, LightResponse.HIGH);
                 await _distanceSensorLaserMiddleBottom.InitializeAsync();
 
-                _distanceSensorLaserBottom = new DistanceSensorLaser(_multiplexer, MultiplexerDevice.DistanceLaserSensorBottom, LightResponse.LOW);
+                _distanceSensorLaserBottom = new DistanceSensorLaser(_multiplexer, MultiplexerDevice.DistanceLaserSensorBottom, LightResponse.HIGH);
                 await _distanceSensorLaserBottom.InitializeAsync();
                 
                 await SystemController.SetDefaultRenderDeviceAsync(DeviceNameHelper.SpeakerRenderDevice);
@@ -124,9 +124,7 @@ namespace robot.sl
             catch (Exception exception)
             {
                 await Logger.WriteAsync($"{nameof(MainPage)}, {nameof(InitialzeAsync)}: ", exception);
-
-                await Task.Delay(TimeSpan.FromSeconds(20));
-                DeviceController.RestartDevice();
+                await SystemController.ShutdownApplicationAsync(true);
             }
         }
     }

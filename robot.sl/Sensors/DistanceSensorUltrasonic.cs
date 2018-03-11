@@ -28,7 +28,7 @@ namespace robot.sl.Sensors
         private volatile bool _isStopped = true;
         private volatile bool _isStopping = false;
 
-        const int READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS = 1500;
+        const int READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS = 2000;
         const int READ_SERIAL_READ_TIMEOUT_MILLISECONDS = 500;
         const string SERIAL_DEVICE_NAME = "uart2";
         const int SERIAL_DEVICE_GPIO_PIN = 1;
