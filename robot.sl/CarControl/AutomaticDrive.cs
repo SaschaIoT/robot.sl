@@ -11,8 +11,7 @@ namespace robot.sl.CarControl
     {
         private const int DS_ULTRASONIC_MIN_RANGE_MILLIMETERS_DRIVING = 350;
         private const int DS_ULTRASONIC_MIN_RANGE_MILLIMETERS_FREE_DIRECTION_SEARCH = 450;
-        private const int DS_LASER_TOP_MIN_RANGE_MILLIMETERS = 300;
-        private const int DS_LASER_TOP_MAX_RANGE_MILLIMETERS = 500;
+        private const int DS_LASER_TOP_MIN_RANGE_MILLIMETERS = 700;
         private const int DS_LASER_MIDDLE_TOP_MIN_RANGE_MILLIMETERS = 700;
         private const int DS_LASER_MIDDLE_BOTTOM_MIN_RANGE_MILLIMETERS = 700;
         private const int DS_LASER_BOTTOM_MIN_RANGE_MILLIMETERS = 700;
@@ -408,7 +407,6 @@ namespace robot.sl.CarControl
 
             if (distanceSensorReadings.UltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS_DRIVING
                 && distanceSensorReadings.LaserDistanceTop > DS_LASER_TOP_MIN_RANGE_MILLIMETERS
-                && distanceSensorReadings.LaserDistanceTop <= DS_LASER_TOP_MAX_RANGE_MILLIMETERS
                 && distanceSensorReadings.LaserDistanceMiddleTop > DS_LASER_MIDDLE_TOP_MIN_RANGE_MILLIMETERS
                 && distanceSensorReadings.LaserDistanceMiddleBottom > DS_LASER_MIDDLE_BOTTOM_MIN_RANGE_MILLIMETERS
                 && distanceSensorReadings.LaserDistanceBottom > DS_LASER_BOTTOM_MIN_RANGE_MILLIMETERS)
