@@ -615,15 +615,7 @@ namespace robot.sl.Sensors
             // fractional ranging is not enabled
             var range_mm = _read_u16(_RESULT_RANGE_STATUS + 10);
             _write_u8(_SYSTEM_INTERRUPT_CLEAR, 0x01);
-
-            // Limit max value for distance laser sensor top.
-            // Distance laser sensors looking at floor not always deliver a reading (timeout max value was to high).
-            if (_multiplexerDevice == MultiplexerDevice.DistanceLaserSensorTop
-                && range_mm > _RANGE_MAX_VALUE)
-            {
-                range_mm = _RANGE_MAX_VALUE;
-            }
-
+            
             return range_mm;
         }
 
