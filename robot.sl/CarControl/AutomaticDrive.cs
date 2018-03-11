@@ -10,11 +10,12 @@ namespace robot.sl.CarControl
     public class AutomaticDrive
     {
         private const int DS_ULTRASONIC_MIN_RANGE_MILLIMETERS_DRIVING = 350;
-        private const int DS_ULTRASONIC_MIN_RANGE_MILLIMETERS_FREE_DIRECTION_SEARCH = 700;
-        private const int DS_LASER_TOP_MIN_RANGE_MILLIMETERS = 700;
+        private const int DS_ULTRASONIC_MIN_RANGE_MILLIMETERS_FREE_DIRECTION_SEARCH = 450;
+        private const int DS_LASER_TOP_MIN_RANGE_MILLIMETERS = 300;
+        private const int DS_LASER_TOP_MAX_RANGE_MILLIMETERS = 500;
         private const int DS_LASER_MIDDLE_TOP_MIN_RANGE_MILLIMETERS = 700;
         private const int DS_LASER_MIDDLE_BOTTOM_MIN_RANGE_MILLIMETERS = 700;
-        private const int DS_LASER_BOTTOM_MAX_RANGE_MILLIMETERS = 380;
+        private const int DS_LASER_BOTTOM_MIN_RANGE_MILLIMETERS = 700;
 
         private const int CHECK_FORWARD_HANG_AFTER = 1500;
 
@@ -88,6 +89,7 @@ namespace robot.sl.CarControl
                 _distanceSensorLaserMiddleBottom.ClearDistancesFiltered();
                 _distanceSensorLaserBottom.ClearDistancesFiltered();
                 _distanceSensorUltrasonic.ClearDistancesFiltered();
+
                 _distanceSensorUltrasonic.Start();
 
                 _cancellationTokenSource = new CancellationTokenSource();
@@ -136,15 +138,15 @@ namespace robot.sl.CarControl
                 {
                     await Task.Delay(10);
                 }
-
-                _threadWaiter.Set();
-
+                
                 _isStopping = false;
 
                 await _distanceSensorUltrasonic.StopAsync();
 
                 if (speakOff)
                     await AudioPlayerController.PlayAsync(AudioName.AutomaticDriveOff);
+
+                _threadWaiter.Set();
             });
         }
 
@@ -222,28 +224,28 @@ namespace robot.sl.CarControl
                             if (_isStopping)
                                 break;
 
-                            await TurnLeftAsync(700, cancellationToken);
+                            await TurnLeftAsync(700, cancellationToken, true);
                         }
                         else if (freeDirection == FreeDirection.LeftMiddle)
                         {
                             if (_isStopping)
                                 break;
 
-                            await TurnLeftAsync(350, cancellationToken);
+                            await TurnLeftAsync(350, cancellationToken, false);
                         }
                         else if (freeDirection == FreeDirection.Right)
                         {
                             if (_isStopping)
                                 break;
 
-                            await TurnRightAsync(700, cancellationToken);
+                            await TurnRightAsync(700, cancellationToken, true);
                         }
                         else if (freeDirection == FreeDirection.RightMiddle)
                         {
                             if (_isStopping)
                                 break;
 
-                            await TurnRightAsync(350, cancellationToken);
+                            await TurnRightAsync(350, cancellationToken, false);
                         }
                         else if (freeDirection == FreeDirection.None)
                         {
@@ -271,7 +273,7 @@ namespace robot.sl.CarControl
             _isStopped = true;
         }
 
-        private async Task TurnRightAsync(int milliseconds, CancellationToken cancellationToken)
+        private async Task TurnRightAsync(int milliseconds, CancellationToken cancellationToken, bool checkHang)
         {
             var carMoveCommand = new CarMoveCommand
             {
@@ -283,7 +285,7 @@ namespace robot.sl.CarControl
 
             await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
 
-            if (await CheckHangAsync(cancellationToken))
+            if (checkHang && await CheckHangAsync(cancellationToken))
                 return;
 
             carMoveCommand = new CarMoveCommand
@@ -294,7 +296,7 @@ namespace robot.sl.CarControl
             await _motorController.MoveCarAsync(carMoveCommand, MotorCommandSource.AutomaticDrive);
         }
 
-        private async Task TurnBackwardAsync(int milliseconds, CancellationToken cancellationToken)
+        private async Task TurnBackwardAsync(int milliseconds, CancellationToken cancellationToken, bool checkHang)
         {
             var carMoveCommand = new CarMoveCommand
             {
@@ -306,7 +308,7 @@ namespace robot.sl.CarControl
 
             await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
 
-            if (await CheckHangAsync(cancellationToken))
+            if (checkHang && await CheckHangAsync(cancellationToken))
                 return;
 
             carMoveCommand = new CarMoveCommand
@@ -317,7 +319,7 @@ namespace robot.sl.CarControl
             await _motorController.MoveCarAsync(carMoveCommand, MotorCommandSource.AutomaticDrive);
         }
 
-        private async Task TurnLeftAsync(int milliseconds, CancellationToken cancellationToken)
+        private async Task TurnLeftAsync(int milliseconds, CancellationToken cancellationToken, bool checkHang)
         {
             var carMoveCommand = new CarMoveCommand
             {
@@ -329,7 +331,7 @@ namespace robot.sl.CarControl
 
             await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
 
-            if (await CheckHangAsync(cancellationToken))
+            if (checkHang && await CheckHangAsync(cancellationToken))
                 return;
 
             carMoveCommand = new CarMoveCommand
@@ -380,8 +382,8 @@ namespace robot.sl.CarControl
 
                 await AudioPlayerController.PlayAndWaitAsync(AudioName.AutomatischesFahrenFesthaengen, cancellationToken);
 
-                await TurnBackwardAsync(1000, cancellationToken);
-                await TurnLeftAsync(700, cancellationToken);
+                await TurnBackwardAsync(1000, cancellationToken, false);
+                await TurnLeftAsync(700, cancellationToken, false);
 
                 carMoveCommand = new CarMoveCommand
                 {
@@ -402,30 +404,19 @@ namespace robot.sl.CarControl
                 await Task.Delay(500, cancellationToken);
             }
 
-            var dsLaserDistanceTop = 0;
-            var dsLaserDistanceMiddleTop = 0;
-            var dsLaserDistanceMiddleBottom = 0;
-            var dsLaserDistanceBottom = 0;
+            var distanceSensorReadings = await ReadDistances();
 
-            var dsUltrasonicDistanceTask = _distanceSensorUltrasonic.GetDistanceFiltered();
-            var dsDistanceSensorLaserTopTask = Task.Factory.StartNew(() => dsLaserDistanceTop = _distanceSensorLaserTop.GetDistanceFiltered());
-            var dsDistanceSensorLaserMiddleTopTask = Task.Factory.StartNew(() => dsLaserDistanceMiddleTop = _distanceSensorLaserMiddleTop.GetDistanceFiltered());
-            var dsDistanceSensorLaserMiddleBottomTask = Task.Factory.StartNew(() => dsLaserDistanceMiddleBottom = _distanceSensorLaserMiddleBottom.GetDistanceFiltered());
-            var dsDistanceSensorLaserBottomTask = Task.Factory.StartNew(() => dsLaserDistanceBottom = _distanceSensorLaserBottom.GetDistanceFiltered());
-
-            await Task.WhenAll(dsUltrasonicDistanceTask, dsDistanceSensorLaserTopTask, dsDistanceSensorLaserMiddleTopTask, dsDistanceSensorLaserMiddleBottomTask, dsDistanceSensorLaserBottomTask);
-            var dsUltrasonicDistance = dsUltrasonicDistanceTask.Result;
-
-            if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS_DRIVING
-                && dsLaserDistanceTop > DS_LASER_TOP_MIN_RANGE_MILLIMETERS
-                && dsLaserDistanceMiddleTop > DS_LASER_MIDDLE_TOP_MIN_RANGE_MILLIMETERS
-                && dsLaserDistanceMiddleBottom > DS_LASER_MIDDLE_BOTTOM_MIN_RANGE_MILLIMETERS
-                && dsLaserDistanceBottom <= DS_LASER_BOTTOM_MAX_RANGE_MILLIMETERS)
+            if (distanceSensorReadings.UltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS_DRIVING
+                && distanceSensorReadings.LaserDistanceTop > DS_LASER_TOP_MIN_RANGE_MILLIMETERS
+                && distanceSensorReadings.LaserDistanceTop <= DS_LASER_TOP_MAX_RANGE_MILLIMETERS
+                && distanceSensorReadings.LaserDistanceMiddleTop > DS_LASER_MIDDLE_TOP_MIN_RANGE_MILLIMETERS
+                && distanceSensorReadings.LaserDistanceMiddleBottom > DS_LASER_MIDDLE_BOTTOM_MIN_RANGE_MILLIMETERS
+                && distanceSensorReadings.LaserDistanceBottom > DS_LASER_BOTTOM_MIN_RANGE_MILLIMETERS)
             {
                 _isForward = true;
                 return FreeDirection.Forward;
             }
-
+            
             _distanceSensorLaserTop.ClearDistancesFiltered();
             _distanceSensorLaserMiddleTop.ClearDistancesFiltered();
             _distanceSensorLaserMiddleBottom.ClearDistancesFiltered();
@@ -444,7 +435,7 @@ namespace robot.sl.CarControl
             //Left
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
             await Task.Delay(500, cancellationToken);
-            dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
+            var dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
 
             if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS_FREE_DIRECTION_SEARCH)
             {
@@ -483,5 +474,30 @@ namespace robot.sl.CarControl
 
             return FreeDirection.None;
         }
+
+        private async Task<DistanceSensorReadings> ReadDistances()
+        {
+            var distanceSensorReadings = new DistanceSensorReadings();
+
+            var dsUltrasonicDistanceTask = _distanceSensorUltrasonic.GetDistanceFiltered();
+            var dsDistanceSensorLaserTopTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceTop = _distanceSensorLaserTop.GetDistanceFiltered());
+            var dsDistanceSensorLaserMiddleTopTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceMiddleTop = _distanceSensorLaserMiddleTop.GetDistanceFiltered());
+            var dsDistanceSensorLaserMiddleBottomTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceMiddleBottom = _distanceSensorLaserMiddleBottom.GetDistanceFiltered());
+            var dsDistanceSensorLaserBottomTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceBottom = _distanceSensorLaserBottom.GetDistanceFiltered());
+
+            await Task.WhenAll(dsUltrasonicDistanceTask, dsDistanceSensorLaserTopTask, dsDistanceSensorLaserMiddleTopTask, dsDistanceSensorLaserMiddleBottomTask, dsDistanceSensorLaserBottomTask);
+            distanceSensorReadings.UltrasonicDistance = dsUltrasonicDistanceTask.Result;
+
+            return distanceSensorReadings;
+        }
+    }
+
+    public class DistanceSensorReadings
+    {
+        public int LaserDistanceTop { get; set; }
+        public int LaserDistanceMiddleTop { get; set; }
+        public int LaserDistanceMiddleBottom { get; set; }
+        public int LaserDistanceBottom { get; set; }
+        public int UltrasonicDistance { get; set; }
     }
 }
