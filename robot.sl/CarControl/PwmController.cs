@@ -100,7 +100,7 @@ namespace robot.sl.CarControl
                 _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, newmode });
                 _pwmDevice.Write(new byte[] { (byte)Registers.PRESCALE, prescale });
                 _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, oldmode });
-                Task.Delay(TimeSpan.FromMilliseconds(5)).Wait();
+                Task.Delay(5).Wait();
                 _pwmDevice.Write(new byte[] { (byte)Registers.MODE1, (byte)(oldmode | 0xa1) });
             });
 

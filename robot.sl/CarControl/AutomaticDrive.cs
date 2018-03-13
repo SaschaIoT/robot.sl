@@ -92,7 +92,7 @@ namespace robot.sl.CarControl
 
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                StartInternal(_cancellationTokenSource.Token);
+                StartInternal(_cancellationTokenSource.Token).Wait();
 
                 _threadWaiter.WaitOne();
 
@@ -160,7 +160,7 @@ namespace robot.sl.CarControl
             }
         }
 
-        private async void StartInternal(CancellationToken cancellationToken)
+        private async Task StartInternal(CancellationToken cancellationToken)
         {
             try
             {
@@ -175,7 +175,7 @@ namespace robot.sl.CarControl
                 _servoController.PwmController.SetPwm(Servo.DistanceSensorVertical, 0, ServoPositions.DistanceSensorVerticalMiddle);
 
                 var startAutomaticDriveSpeechTask = AudioPlayerController.PlayAndWaitAsync(AudioName.AutomaticDriveOn, cancellationToken);
-                var waitServoPositionTask = Task.Delay(TimeSpan.FromMilliseconds(1500), cancellationToken);
+                var waitServoPositionTask = Task.Delay(1500, cancellationToken);
 
                 await Task.WhenAll(startAutomaticDriveSpeechTask, waitServoPositionTask);
 
@@ -185,7 +185,7 @@ namespace robot.sl.CarControl
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    await Task.Delay(TimeSpan.FromMilliseconds(25), cancellationToken);
+                    await Task.Delay(25, cancellationToken);
 
                     var freeDirection = await GetFreeDirectionAsync(cancellationToken);
 
@@ -281,7 +281,7 @@ namespace robot.sl.CarControl
 
             await _motorController.MoveCarAsync(carMoveCommand, MotorCommandSource.AutomaticDrive);
 
-            await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
+            await Task.Delay(milliseconds, cancellationToken);
 
             if (checkHang && await CheckHangAsync(cancellationToken))
                 return;
@@ -304,7 +304,7 @@ namespace robot.sl.CarControl
 
             await _motorController.MoveCarAsync(carMoveCommand, MotorCommandSource.AutomaticDrive);
 
-            await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
+            await Task.Delay(milliseconds, cancellationToken);
 
             if (checkHang && await CheckHangAsync(cancellationToken))
                 return;
@@ -327,7 +327,7 @@ namespace robot.sl.CarControl
 
             await _motorController.MoveCarAsync(carMoveCommand, MotorCommandSource.AutomaticDrive);
 
-            await Task.Delay(TimeSpan.FromMilliseconds(milliseconds), cancellationToken);
+            await Task.Delay(milliseconds, cancellationToken);
 
             if (checkHang && await CheckHangAsync(cancellationToken))
                 return;
@@ -350,7 +350,7 @@ namespace robot.sl.CarControl
 
             await _motorController.MoveCarAsync(carMoveCommand, MotorCommandSource.AutomaticDrive);
 
-            await Task.Delay(TimeSpan.FromMilliseconds(1250), cancellationToken);
+            await Task.Delay(1250, cancellationToken);
 
             if (await CheckHangAsync(cancellationToken))
                 return;
