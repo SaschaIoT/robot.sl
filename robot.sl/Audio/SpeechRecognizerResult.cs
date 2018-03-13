@@ -95,7 +95,7 @@ namespace robot.sl.Audio
                             ForwardBackward = _recognationForwardBackward,
                             Speed = MOTOR_FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
-                        await Task.Delay(TimeSpan.FromMilliseconds(700));
+                        await Task.Delay(700);
                         await RecognationForwardBackwardStop();
                         break;
                     case "Rechts":
@@ -106,7 +106,7 @@ namespace robot.sl.Audio
                             ForwardBackward = _recognationForwardBackward,
                             Speed = MOTOR_FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
-                        await Task.Delay(TimeSpan.FromMilliseconds(700));
+                        await Task.Delay(700);
                         await RecognationForwardBackwardStop();
                         break;
                     case "Stop":
@@ -125,7 +125,7 @@ namespace robot.sl.Audio
                             RightCircle = true,
                             Speed = MOTOR_FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
-                        await Task.Delay(TimeSpan.FromMilliseconds(1250));
+                        await Task.Delay(1250);
                         await RecognationForwardBackwardStop();
                         break;
                     case "Leicht Links":
@@ -136,7 +136,7 @@ namespace robot.sl.Audio
                             ForwardBackward = _recognationForwardBackward,
                             Speed = MOTOR_FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
-                        await Task.Delay(TimeSpan.FromMilliseconds(350));
+                        await Task.Delay(350);
                         await RecognationForwardBackwardStop();
                         break;
                     case "Leicht Rechts":
@@ -147,7 +147,7 @@ namespace robot.sl.Audio
                             ForwardBackward = _recognationForwardBackward,
                             Speed = MOTOR_FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
-                        await Task.Delay(TimeSpan.FromMilliseconds(350));
+                        await Task.Delay(350);
                         await RecognationForwardBackwardStop();
                         break;
                     case "Langsam":
@@ -257,7 +257,7 @@ namespace robot.sl.Audio
                             ForwardBackward = _recognationForwardBackward,
                             Speed = MOTOR_FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
-                        await Task.Delay(TimeSpan.FromMilliseconds(175));
+                        await Task.Delay(175);
                         await RecognationForwardBackwardStop();
                         break;
                     case "Ganz leicht rechts":
@@ -268,7 +268,7 @@ namespace robot.sl.Audio
                             ForwardBackward = _recognationForwardBackward,
                             Speed = MOTOR_FULL_SPEED
                         }, MotorCommandSource.SpeechRecognation);
-                        await Task.Delay(TimeSpan.FromMilliseconds(175));
+                        await Task.Delay(175);
                         await RecognationForwardBackwardStop();
                         break;
                 }
