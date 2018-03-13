@@ -402,6 +402,7 @@ namespace robot.sl.CarControl
                 await Task.Delay(500, cancellationToken);
             }
 
+            //Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
             var distanceSensorReadings = await ReadDistances();
 
             if (distanceSensorReadings.UltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_MILLIMETERS
@@ -482,6 +483,7 @@ namespace robot.sl.CarControl
             var dsDistanceSensorLaserMiddleBottomTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceMiddleBottom = _distanceSensorLaserMiddleBottom.GetDistanceFiltered());
             var dsDistanceSensorLaserBottomTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceBottom = _distanceSensorLaserBottom.GetDistanceFiltered());
 
+            //Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
             await Task.WhenAll(dsUltrasonicDistanceTask, dsDistanceSensorLaserTopTask, dsDistanceSensorLaserMiddleTopTask, dsDistanceSensorLaserMiddleBottomTask, dsDistanceSensorLaserBottomTask);
             distanceSensorReadings.UltrasonicDistance = dsUltrasonicDistanceTask.Result;
 

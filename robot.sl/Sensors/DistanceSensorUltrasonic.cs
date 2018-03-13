@@ -182,6 +182,7 @@ namespace robot.sl.Sensors
 
         /// <summary>
         /// Returns distance in millimeters
+        /// Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
         /// </summary>
         /// <returns></returns>
         public async Task<int> GetDistance()
@@ -210,6 +211,7 @@ namespace robot.sl.Sensors
 
         /// <summary>
         /// Returns distance in millimeters filtered
+        /// Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
         /// </summary>
         /// <param name="filteredMeasurement"></param>
         /// <returns></returns>
