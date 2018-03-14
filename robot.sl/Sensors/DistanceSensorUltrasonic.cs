@@ -30,6 +30,7 @@ namespace robot.sl.Sensors
 
         const int READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS = 2000;
         const int READ_SERIAL_READ_TIMEOUT_MILLISECONDS = 500;
+        const int READ_SERIAL_READ_MAX_READINGS = 20;
         const string SERIAL_DEVICE_NAME = "uart2";
         const int SERIAL_DEVICE_GPIO_PIN = 1;
         const int MEASURMENTS_COUNT = 1;
@@ -89,13 +90,17 @@ namespace robot.sl.Sensors
 
                     var readString = await ReadStringAsync(MEASUREMENT_LENGTH * MEASURMENTS_COUNT);
                     var measurementMatches = Regex.Matches(readString, MEASUREMEN_VALUE_REGEX);
+                    var readings = 0; 
 
                     while (measurementMatches.Count < MEASURMENTS_COUNT)
                     {
                         readString += await ReadStringAsync(MEASUREMENT_LENGTH);
                         measurementMatches = Regex.Matches(readString, MEASUREMEN_VALUE_REGEX);
-                        
-                        if (readStart.ElapsedMilliseconds >= (READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS * MEASURMENTS_COUNT))
+
+                        readings++;
+
+                        if (readStart.ElapsedMilliseconds >= (READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS * MEASURMENTS_COUNT)
+                            && readings >= READ_SERIAL_READ_MAX_READINGS)
                         {
                             await Logger.WriteAsync($"{nameof(DistanceSensorUltrasonic)}, {nameof(Measure)}: To many faulty measurements. Maximum read count reached.");
                             SystemController.ShutdownApplicationAsync(true).Wait();
