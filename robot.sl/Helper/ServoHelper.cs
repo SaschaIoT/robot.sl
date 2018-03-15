@@ -23,6 +23,6 @@
         public static ushort DistanceSensorHorizontalRightMiddle { get; } = 390;
 
         public static ushort DistanceSensorVerticalTop { get; } = 160;
-        public static ushort DistanceSensorVerticalMiddle { get; } = 242;
+        public static ushort DistanceSensorVerticalMiddle { get; } = 226;
     }
 }
