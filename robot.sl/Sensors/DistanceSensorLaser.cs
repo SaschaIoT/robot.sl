@@ -501,8 +501,7 @@ namespace robot.sl.Sensors
         // Defaults to 0.25 MCPS as initialized by the ST API and this library.
         private void signal_rate_limit(float limit_Mcps)
         {
-            //Min 0.1 Max 511.99
-            //Min maybe could be lower
+            //Min 0 Max 511.99
 
             // Q9.7 fixed point format (9 integer bits, 7 fractional bits)
             _write_u16(_FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT, (byte)(limit_Mcps * (1 << 7)));
