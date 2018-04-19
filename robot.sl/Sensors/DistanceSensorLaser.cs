@@ -17,7 +17,8 @@ namespace robot.sl.Sensors
         private List<int> _readings = new List<int>();
         private LightResponse _lightResponse;
         private MultiplexerDevice _multiplexerDevice;
-        
+        private const int FILTERING_COUNT = 5;
+
         // Dependencies
         private Multiplexer _multiplexer;
 
@@ -622,13 +623,13 @@ namespace robot.sl.Sensors
         {
             var distance = 0;
 
-            if (_readings.Count >= 5)
+            if (_readings.Count >= FILTERING_COUNT)
             {
                 _readings.RemoveAt(0);
             }
             else
             {
-                while (_readings.Count < 5)
+                while (_readings.Count < FILTERING_COUNT)
                 {
                     distance = GetDistance();
                     _readings.Add(distance);

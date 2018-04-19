@@ -1,252 +1,100 @@
 ﻿using robot.sl.Helper;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
-using Windows.Devices.Enumeration;
-using Windows.Devices.Gpio;
-using Windows.Devices.SerialCommunication;
-using Windows.Storage.Streams;
+using Windows.Devices.I2c;
 
 namespace robot.sl.Sensors
 {
     /// <summary>
-    /// Distance sensor ultrasonic: Maxbotix MB1013 HRLV-MaxSonar-EZ
+    /// Ultrasonic distance sensor: I2CXL-MaxSonar- EZ MB1202
     /// </summary>
     public class DistanceSensorUltrasonic
     {
-        private SerialDevice _serialPort = null;
-        private DataReader _dataReader = null;
-        private GpioPin _startStopPin = null;
-        public UltrasonicMeasureList UltrasonicMeasurements = new UltrasonicMeasureList();
+        private I2cDevice _distanceSensorUltrasonic;
         private List<int> _readings = new List<int>();
+        private MultiplexerDevice _multiplexerDevice = MultiplexerDevice.UltrasonicDistanceSensor;
+        private const int FILTERING_COUNT = 5;
 
-        private volatile bool _isStopped = true;
-        private volatile bool _isStopping = false;
+        //Dependencies
+        private Multiplexer _multiplexer;
 
-        const int READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS = 2000;
-        const int READ_SERIAL_READ_TIMEOUT_MILLISECONDS = 500;
-        const int READ_SERIAL_READ_MAX_READINGS = 20;
-        const string SERIAL_DEVICE_NAME = "uart2";
-        const int SERIAL_DEVICE_GPIO_PIN = 1;
-        const int MEASURMENTS_COUNT = 1;
-        const int MEASUREMENT_LENGTH = 8;
-        const string MEASUREMENT_END_CHARACTER = "\r";
-        const string MEASUREMEN_VALUE_REGEX = "R[0-9]{4}\r";
-        const int SENSOR_START_UP_TIME_MILLISECONDS = 170;
-
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(Multiplexer multiplexer, int i2cAddress = 0x39)
         {
-            var gpioController = GpioController.GetDefault();
-            _startStopPin = gpioController.OpenPin(SERIAL_DEVICE_GPIO_PIN);
-            _startStopPin.SetDriveMode(GpioPinDriveMode.Output);
-            _startStopPin.Write(GpioPinValue.Low);
+            var settings = new I2cConnectionSettings(i2cAddress);
+            settings.BusSpeed = I2cBusSpeed.FastMode;
+            settings.SharingMode = I2cSharingMode.Shared;
 
-            var serialDeviceSelector = SerialDevice.GetDeviceSelector();
-            var serialDevices = (await DeviceInformation.FindAllAsync(serialDeviceSelector)).ToList();
+            _multiplexer = multiplexer;
 
-            _serialPort = await SerialDevice.FromIdAsync(serialDevices.First(sd => sd.Id.ToLower().Contains(SERIAL_DEVICE_NAME)).Id);
-            //If data is present, wait if more data become available
-            _serialPort.ReadTimeout = TimeSpan.FromMilliseconds(READ_SERIAL_READ_TIMEOUT_MILLISECONDS);
-            _serialPort.BaudRate = 9600;
-            _serialPort.Parity = SerialParity.None;
-            _serialPort.StopBits = SerialStopBitCount.One;
-            _serialPort.DataBits = 8;
-
-            _dataReader = new DataReader(_serialPort.InputStream);
-            _dataReader.InputStreamOptions = InputStreamOptions.Partial;
+            var controller = await I2cController.GetDefaultAsync();
+            _distanceSensorUltrasonic = controller.GetDevice(settings);
         }
 
-        public void Start()
+        public void ChangeI2cAddress()
         {
-            if (!_isStopped)
+            //Change the I2c Address of "I2CXL-MaxSonar- EZ MB1202" because his adrees is conflicting with the adress of
+            //"Adafruit 16-Channel PWM/Servo HAT for Raspberry Pi". The addresses of "I2CXL-MaxSonar- EZ MB1202" and
+            //"Adafruit 16-Channel PWM/Servo HAT for Raspberry Pi" are not the same, but it conflicting because the
+            //"Adafruit 16-Channel PWM/Servo HAT for Raspberry Pi" has a bug.
+
+            I2CSynchronous.Call(() =>
             {
-                return;
-            }
+                _multiplexer.SelectDevice(_multiplexerDevice);
 
-            _isStopped = false;
-
-            Measure();
+                _distanceSensorUltrasonic.Write(new byte[] { 0xe0, 0xAA, 0xA5, 0x72 }); //0x71 is the 8 bit address of the I2c device
+            });
         }
 
-        public async void Measure()
-        {
-            _startStopPin.Write(GpioPinValue.High);
-
-            await Task.Delay(SENSOR_START_UP_TIME_MILLISECONDS);
-
-            while (!_isStopping)
-            {
-                var ultrasonicMeasure = new Measurement();
-
-                try
-                {
-                    var readStart = new Stopwatch();
-                    readStart.Start();
-
-                    var readString = await ReadStringAsync(MEASUREMENT_LENGTH * MEASURMENTS_COUNT);
-                    var measurementMatches = Regex.Matches(readString, MEASUREMEN_VALUE_REGEX);
-                    var readings = 0; 
-
-                    while (measurementMatches.Count < MEASURMENTS_COUNT)
-                    {
-                        readString += await ReadStringAsync(MEASUREMENT_LENGTH);
-                        measurementMatches = Regex.Matches(readString, MEASUREMEN_VALUE_REGEX);
-
-                        readings++;
-
-                        if (readStart.ElapsedMilliseconds >= (READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS * MEASURMENTS_COUNT)
-                            && readings >= READ_SERIAL_READ_MAX_READINGS)
-                        {
-                            await Logger.WriteAsync($"{nameof(DistanceSensorUltrasonic)}, {nameof(Measure)}: To many faulty measurements. Maximum read count reached.");
-                            SystemController.ShutdownApplicationAsync(true).Wait();
-                        }
-                    }
-
-                    ultrasonicMeasure.DistanceInMillimeter = ConvertToDistance(measurementMatches);
-                }
-                catch (TaskCanceledException)
-                {
-                    await Logger.WriteAsync($"{nameof(DistanceSensorUltrasonic)}, {nameof(Measure)}: Not receiving data from distance measurement sensor.");
-                    SystemController.ShutdownApplicationAsync(true).Wait();
-                }
-
-                UltrasonicMeasurements.Add(ultrasonicMeasure);
-                UltrasonicMeasurements.RemoveFirst();
-            }
-
-            _startStopPin.Write(GpioPinValue.Low);
-
-            _isStopped = true;
-        }
-
-        public async Task StopAsync()
-        {
-            if (_isStopped)
-            {
-                return;
-            }
-
-            _isStopping = true;
-
-            while (!_isStopped)
-            {
-                await Task.Delay(10);
-            }
-
-            _isStopping = false;
-        }
-
-        private async Task<string> ReadStringAsync(uint count)
-        {
-            var readBytes = await ReadBytesAsync(count);
-            var readString = Encoding.ASCII.GetString(readBytes) ?? string.Empty;
-
-            return readString;
-        }
-
-        private async Task<byte[]> ReadBytesAsync(uint count)
-        {
-            var readBytes = new List<byte>().ToArray();
-
-            var source = new CancellationTokenSource();
-            var bytesReadTask = _dataReader.LoadAsync(count).AsTask(source.Token);
-            source.CancelAfter(READ_SERIAL_READ_COMPLETE_TIMEOUT_MILLISECONDS * MEASURMENTS_COUNT);
-
-            var bytesRead = await bytesReadTask;
-            if (bytesRead > 0)
-            {
-                readBytes = new byte[bytesRead];
-                _dataReader.ReadBytes(readBytes);
-            }
-
-            return readBytes;
-        }
-
-        private int ConvertToDistance(MatchCollection distanceRawMatches)
+        public async Task<int> GetDistanceFiltered()
         {
             var distance = 0;
-            var distances = new List<int>();
 
-            foreach (var distanceRawMatch in distanceRawMatches.Cast<Match>().Select(match => match.Value).ToList())
+            if (_readings.Count >= FILTERING_COUNT)
             {
-                var distanceRaw = distanceRawMatch ?? string.Empty;
-
-                if (int.TryParse(distanceRaw.Substring(1).Replace(MEASUREMENT_END_CHARACTER, string.Empty), out distance))
-                {
-                    distances.Add(distance);
-                }
-            }
-
-            return Convert.ToInt32(distances.Average());
-        }
-
-        /// <summary>
-        /// Returns distance in millimeters
-        /// Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
-        /// </summary>
-        /// <returns></returns>
-        public async Task<int> GetDistance()
-        {
-            var last = UltrasonicMeasurements.GetLast();
-
-            while (last == null)
-            {
-                await Task.Delay(20);
-                last = UltrasonicMeasurements.GetLast();
-            }
-
-            var oldId = last.Id;
-
-            await Task.Delay(MEASURMENTS_COUNT * 100);
-
-            var current = UltrasonicMeasurements.GetLast();
-            while (current.Id == oldId)
-            {
-                await Task.Delay(20);
-                current = UltrasonicMeasurements.GetLast();
-            }
-
-            return current.DistanceInMillimeter;
-        }
-
-        /// <summary>
-        /// Returns distance in millimeters filtered
-        /// Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
-        /// </summary>
-        /// <param name="filteredMeasurement"></param>
-        /// <returns></returns>
-        public async Task<int> GetDistanceFiltered(bool filteredMeasurement = true)
-        {
-            var distance = 0;
-            if (filteredMeasurement == true)
-            {
-                if (_readings.Count >= 5)
-                {
-                    _readings.RemoveAt(0);
-                }
-                else
-                {
-                    while (_readings.Count < 5)
-                    {
-                        distance = await GetDistance();
-                        _readings.Add(distance);
-                    }
-                }
-
-                distance = await GetDistance();
-                _readings.Add(distance);
-
-                distance = Convert.ToInt32(_readings.Average());
+                _readings.RemoveAt(0);
             }
             else
             {
-                distance = await GetDistance();
+                while (_readings.Count < FILTERING_COUNT)
+                {
+                    distance = await GetDistance();
+                    _readings.Add(distance);
+                }
             }
+
+            distance = await GetDistance();
+            _readings.Add(distance);
+
+            var distanceFiltered = Convert.ToInt32(_readings.Average());
+            return distanceFiltered;
+        }
+
+        public async Task<int> GetDistance()
+        {
+            var range_highLowByte = new byte[2];
+
+            I2CSynchronous.Call(() =>
+            {
+                _multiplexer.SelectDevice(_multiplexerDevice);
+
+                //Call device measurement
+                _distanceSensorUltrasonic.Write(new byte[] { 0x51 });
+            });
+
+            //Wait device measurement has finished and I2C is ready
+            await Task.Delay(120);
+
+            I2CSynchronous.Call(() =>
+            {
+                _multiplexer.SelectDevice(_multiplexerDevice);
+
+                //Read measurement
+                _distanceSensorUltrasonic.WriteRead(new byte[] { 0xe1 }, range_highLowByte);
+            });
+
+            var distance = (range_highLowByte[0] * 256) + range_highLowByte[1];
 
             return distance;
         }
@@ -255,11 +103,5 @@ namespace robot.sl.Sensors
         {
             _readings.Clear();
         }
-    }
-
-    public class Measurement
-    {
-        public Guid Id { get; } = Guid.NewGuid();
-        public int DistanceInMillimeter { get; set; }
     }
 }

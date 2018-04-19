@@ -18,7 +18,7 @@ namespace robot.sl.Web
             Request = request;
             Error = error;
 
-            var urlRegex = new Regex(".*GET(.*)HTTP.*", RegexOptions.IgnoreCase);
+            var urlRegex = new Regex(".*?GET(.*)HTTP.*", RegexOptions.IgnoreCase);
             var urlGroups = urlRegex.Match(request).Groups;
             Url = urlGroups.Count >= 2 ? urlGroups[1].Value.Trim() : string.Empty;
 

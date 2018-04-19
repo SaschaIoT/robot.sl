@@ -24,7 +24,8 @@ namespace robot.sl
         private HttpServerController _httpServerController;
         private GamepadController _gamepadController;
         private SpeechRecognition _speechRecognation;
-        private DistanceSensorLaser _distanceSensorLaserTop;
+        private AnalogToDigitalSensor _analogToDigitalSensor;
+        private DistanceSensorLaserAnalog _distanceSensorLaserAnalogTop;
         private DistanceSensorLaser _distanceSensorLaserMiddleTop;
         private DistanceSensorLaser _distanceSensorLaserMiddleBottom;
         private DistanceSensorLaser _distanceSensorLaserBottom;
@@ -46,16 +47,13 @@ namespace robot.sl
         {
             await InitialzeAsync();
         }
-        
+
         private async Task InitialzeAsync()
         {
             try
             {
                 _multiplexer = new Multiplexer();
                 await _multiplexer.InitializeAsync();
-                
-                _distanceSensorLaserTop = new DistanceSensorLaser(_multiplexer, MultiplexerDevice.DistanceLaserSensorTop, LightResponse.HIGH);
-                await _distanceSensorLaserTop.InitializeAsync();
 
                 _distanceSensorLaserMiddleTop = new DistanceSensorLaser(_multiplexer, MultiplexerDevice.DistanceLaserSensorMiddleTop, LightResponse.HIGH);
                 await _distanceSensorLaserMiddleTop.InitializeAsync();
@@ -65,6 +63,14 @@ namespace robot.sl
 
                 _distanceSensorLaserBottom = new DistanceSensorLaser(_multiplexer, MultiplexerDevice.DistanceLaserSensorBottom, LightResponse.HIGH);
                 await _distanceSensorLaserBottom.InitializeAsync();
+
+                _analogToDigitalSensor = new AnalogToDigitalSensor(_multiplexer);
+                await _analogToDigitalSensor.InitializeAsync();
+
+                _distanceSensorLaserAnalogTop = new DistanceSensorLaserAnalog(_analogToDigitalSensor);
+                
+                _distanceSensorUltrasonic = new DistanceSensorUltrasonic();
+                await _distanceSensorUltrasonic.InitializeAsync(_multiplexer);
                 
                 await SystemController.SetDefaultRenderDeviceAsync(DeviceNameHelper.SpeakerRenderDevice);
                 await SystemController.SetDefaultRenderDeviceVolumeAsync(SPEAKER_AUDIO_RENDER_VOLUME);
@@ -96,11 +102,8 @@ namespace robot.sl
 
                 _servoController = new ServoController();
                 await _servoController.InitializeAsync();
-
-                _distanceSensorUltrasonic = new DistanceSensorUltrasonic();
-                await _distanceSensorUltrasonic.InitializeAsync();
-
-                _automaticDrive = new AutomaticDrive(_motorController, _servoController, _distanceSensorUltrasonic, _distanceSensorLaserTop, _distanceSensorLaserMiddleTop, _distanceSensorLaserMiddleBottom, _distanceSensorLaserBottom);
+                
+                _automaticDrive = new AutomaticDrive(_motorController, _servoController, _distanceSensorUltrasonic, _distanceSensorLaserAnalogTop, _distanceSensorLaserMiddleTop, _distanceSensorLaserMiddleBottom, _distanceSensorLaserBottom);
 
                 _speechRecognation = new SpeechRecognition();
                 await _speechRecognation.InitialzeAsync(_motorController, _servoController, _automaticDrive, _dance);
