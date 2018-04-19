@@ -7,6 +7,7 @@
         LeftMiddle,
         Right,
         RightMiddle,
+        Falling,
         None
     }
 }

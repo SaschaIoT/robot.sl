@@ -35,7 +35,8 @@ namespace robot.sl.Sensors
 
     public enum MultiplexerDevice
     {
-        DistanceLaserSensorTop = 0x7,
+        UltrasonicDistanceSensor = 0x4,
+        AnalogToDigitalSensor = 0x7,
         DistanceLaserSensorMiddleTop = 0x1,
         DistanceLaserSensorMiddleBottom = 0x5,
         DistanceLaserSensorBottom = 0x3
