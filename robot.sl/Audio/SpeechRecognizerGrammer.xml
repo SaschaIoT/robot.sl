@@ -123,6 +123,12 @@
       <item>
         Deaktiviere Tanzen
       </item>
+      <item>
+        Aktiviere Klippensensor
+      </item>
+      <item>
+        Deaktiviere Klippensensor
+      </item>
     </one-of>
   </rule>
 </grammar>

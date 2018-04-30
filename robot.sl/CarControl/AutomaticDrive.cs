@@ -45,6 +45,7 @@ namespace robot.sl.CarControl
         private volatile bool _isStopped = true;
         private volatile bool _isStopping = false;
         private bool _isForward = true;
+        private volatile bool _isCliffSensorOn = true;
         private DateTime? _drivingForward;
 
         public AutomaticDrive(MotorController motorController,
@@ -81,33 +82,6 @@ namespace robot.sl.CarControl
             });
         }
 
-        private void StartInternalAsync()
-        {
-            Task.Factory.StartNew(() =>
-            {
-                _distanceSensorLaserAnalogTop.ClearDistancesFiltered();
-                _distanceSensorLaserMiddleTop.ClearDistancesFiltered();
-                _distanceSensorLaserMiddleBottom.ClearDistancesFiltered();
-                _distanceSensorLaserBottom.ClearDistancesFiltered();
-                _distanceSensorUltrasonic.ClearDistancesFiltered();
-                
-                _cancellationTokenSource = new CancellationTokenSource();
-
-                StartInternal(_cancellationTokenSource.Token).Wait();
-
-                _threadWaiter.WaitOne();
-
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-            .AsAsyncAction()
-            .AsTask()
-            .ContinueWith((t) =>
-            {
-                Logger.WriteAsync(nameof(AutomaticDrive), t.Exception).Wait();
-                SystemController.ShutdownApplicationAsync(true).Wait();
-
-            }, TaskContinuationOptions.OnlyOnFaulted);
-        }
-
         public async Task StopAsync()
         {
             await StopAsync(true, true);
@@ -137,9 +111,9 @@ namespace robot.sl.CarControl
                 {
                     await Task.Delay(10);
                 }
-                
+
                 _isStopping = false;
-                
+
                 if (speakOff)
                     await AudioPlayerController.PlayAsync(AudioName.AutomaticDriveOff);
 
@@ -157,6 +131,68 @@ namespace robot.sl.CarControl
             {
                 await StartAsync();
             }
+        }
+
+        public bool GetCliffSensorState()
+        {
+            return _isCliffSensorOn;
+        }
+
+        public async Task SetCliffSensorState(bool toggle, bool on = false)
+        {
+            await CliffSensorStateSynchronous.Call(async () =>
+            {
+                if(toggle)
+                {
+                    on = _isCliffSensorOn == false;
+                }
+
+                if (_isCliffSensorOn == false && on)
+                {
+                    _isCliffSensorOn = on;
+                    await AudioPlayerController.PlayAsync(AudioName.CliffSensorOn);
+                }
+                else if (_isCliffSensorOn && on == false)
+                {
+                    _isCliffSensorOn = on;
+                    await AudioPlayerController.PlayAsync(AudioName.CliffSensorOff);
+                }
+                else if (_isCliffSensorOn && on)
+                {
+                    await AudioPlayerController.PlayAsync(AudioName.CliffSensorAlreadyOn);
+                }
+                else if (_isCliffSensorOn == false && on == false)
+                {
+                    await AudioPlayerController.PlayAsync(AudioName.CliffSensorAlreadyOff);
+                }
+            });
+        }
+
+        private void StartInternalAsync()
+        {
+            Task.Factory.StartNew(() =>
+            {
+                _distanceSensorLaserAnalogTop.ClearDistancesFiltered();
+                _distanceSensorLaserMiddleTop.ClearDistancesFiltered();
+                _distanceSensorLaserMiddleBottom.ClearDistancesFiltered();
+                _distanceSensorLaserBottom.ClearDistancesFiltered();
+                _distanceSensorUltrasonic.ClearDistancesFiltered();
+                
+                _cancellationTokenSource = new CancellationTokenSource();
+
+                StartInternal(_cancellationTokenSource.Token).Wait();
+
+                _threadWaiter.WaitOne();
+
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+            .AsAsyncAction()
+            .AsTask()
+            .ContinueWith((t) =>
+            {
+                Logger.WriteAsync(nameof(AutomaticDrive), t.Exception).Wait();
+                SystemController.ShutdownApplicationAsync(true).Wait();
+
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         private async Task StartInternal(CancellationToken cancellationToken)
@@ -182,8 +218,6 @@ namespace robot.sl.CarControl
 
                 while (_isStopping == false)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
                     await Task.Delay(25, cancellationToken);
 
                     var freeDirection = await GetFreeDirectionAsync(cancellationToken);
@@ -408,22 +442,31 @@ namespace robot.sl.CarControl
                 _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalMiddle);
                 await Task.Delay(SERVO_HALF_MOVE_TIME_MILLISECONDS, cancellationToken);
             }
-            
-            //Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
-            var distanceSensorReadings = await ReadDistances();
-            
-            var dsTopMaxDistanceNotReached = distanceSensorReadings.LaserDistanceTop < DS_LASER_ANALOG_TOP_MAX_RANGE_CENTIMETERS;
-            
-            if (distanceSensorReadings.UltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_CENTIMETERS
-                && distanceSensorReadings.LaserDistanceTop > DS_LASER_ANALOG_TOP_MIN_RANGE_CENTIMETERS
-                && dsTopMaxDistanceNotReached
-                && distanceSensorReadings.LaserDistanceMiddleTop > DS_LASER_MIDDLE_TOP_MIN_RANGE_MILLIMETERS
-                && distanceSensorReadings.LaserDistanceMiddleBottom > DS_LASER_MIDDLE_BOTTOM_MIN_RANGE_MILLIMETERS
-                && distanceSensorReadings.LaserDistanceBottom > DS_LASER_BOTTOM_MIN_RANGE_MILLIMETERS)
+
+            var dsTopMaxDistanceNotReached = false;
+            var forwardFree = false;
+
+            await CliffSensorStateSynchronous.Call(async () =>
             {
-                _isForward = true;
+                //Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
+                var distanceSensorReadings = await ReadDistances();
+
+                dsTopMaxDistanceNotReached = _isCliffSensorOn == false || (distanceSensorReadings.LaserDistanceTop < DS_LASER_ANALOG_TOP_MAX_RANGE_CENTIMETERS);
+
+                if (distanceSensorReadings.UltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_CENTIMETERS
+                    && (_isCliffSensorOn == false || (distanceSensorReadings.LaserDistanceTop > DS_LASER_ANALOG_TOP_MIN_RANGE_CENTIMETERS))
+                    && dsTopMaxDistanceNotReached
+                    && distanceSensorReadings.LaserDistanceMiddleTop > DS_LASER_MIDDLE_TOP_MIN_RANGE_MILLIMETERS
+                    && distanceSensorReadings.LaserDistanceMiddleBottom > DS_LASER_MIDDLE_BOTTOM_MIN_RANGE_MILLIMETERS
+                    && distanceSensorReadings.LaserDistanceBottom > DS_LASER_BOTTOM_MIN_RANGE_MILLIMETERS)
+                {
+                    _isForward = true;
+                    forwardFree = true;
+                }
+            });
+
+            if(forwardFree)
                 return FreeDirection.Forward;
-            }
 
             _distanceSensorLaserAnalogTop.ClearDistancesFiltered();
             _distanceSensorLaserMiddleTop.ClearDistancesFiltered();
@@ -493,15 +536,25 @@ namespace robot.sl.CarControl
             var distanceSensorReadings = new DistanceSensorReadings();
 
             var distanceSensorUltrasonicTask = _distanceSensorUltrasonic.GetDistanceFiltered();
-            var distanceSensorAnalogTopTask = _distanceSensorLaserAnalogTop.GetDistanceFiltered();
             var distanceSensorLaserMiddleTopTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceMiddleTop = _distanceSensorLaserMiddleTop.GetDistanceFiltered());
             var distanceSensorLaserMiddleBottomTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceMiddleBottom = _distanceSensorLaserMiddleBottom.GetDistanceFiltered());
             var distanceSensorLaserBottomTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceBottom = _distanceSensorLaserBottom.GetDistanceFiltered());
 
-            //Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
-            await Task.WhenAll(distanceSensorUltrasonicTask, distanceSensorLaserMiddleTopTask, distanceSensorLaserMiddleBottomTask, distanceSensorLaserBottomTask);
-            distanceSensorReadings.UltrasonicDistance = distanceSensorUltrasonicTask.Result;
-            distanceSensorReadings.LaserDistanceTop = distanceSensorAnalogTopTask.Result;
+            if(_isCliffSensorOn)
+            {
+                var distanceSensorAnalogTopTask = _distanceSensorLaserAnalogTop.GetDistanceFiltered();
+
+                //Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
+                await Task.WhenAll(distanceSensorUltrasonicTask, distanceSensorAnalogTopTask, distanceSensorLaserMiddleTopTask, distanceSensorLaserMiddleBottomTask, distanceSensorLaserBottomTask);
+                distanceSensorReadings.UltrasonicDistance = distanceSensorUltrasonicTask.Result;
+                distanceSensorReadings.LaserDistanceTop = distanceSensorAnalogTopTask.Result;
+            }
+            else
+            {
+                //Do not cancel operation, because after it sensor is in buggy state and does not work until power cycle
+                await Task.WhenAll(distanceSensorUltrasonicTask, distanceSensorLaserMiddleTopTask, distanceSensorLaserMiddleBottomTask, distanceSensorLaserBottomTask);
+                distanceSensorReadings.UltrasonicDistance = distanceSensorUltrasonicTask.Result;
+            }
 
             return distanceSensorReadings;
         }

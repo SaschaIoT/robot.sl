@@ -44,7 +44,7 @@ namespace robot.sl.Audio
                         });
                         break;
                     case "Kamera leicht hoch":
-                        await AudioPlayerController.PlayAsync(AudioName.CameraLightUp);
+                        await AudioPlayerController.PlayAsync(AudioName.CameraSlightlyUp);
                         await _servoController.MoveServo(new CarControlCommand
                         {
                             DirectionControlUpDownStepSpeed = SERVO_SLOW_SPEED,
@@ -60,7 +60,7 @@ namespace robot.sl.Audio
                         });
                         break;
                     case "Kamera leicht runter":
-                        await AudioPlayerController.PlayAsync(AudioName.CameraLightDown);
+                        await AudioPlayerController.PlayAsync(AudioName.CameraSlightlyDown);
                         await _servoController.MoveServo(new CarControlCommand
                         {
                             DirectionControlUpDownStepSpeed = SERVO_SLOW_SPEED,
@@ -68,7 +68,7 @@ namespace robot.sl.Audio
                         });
                         break;
                     case "Vor":
-                        await AudioPlayerController.PlayAsync(AudioName.Vor);
+                        await AudioPlayerController.PlayAsync(AudioName.Forward);
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             ForwardBackward = true,
@@ -78,7 +78,7 @@ namespace robot.sl.Audio
                         _recognationIsDriving = true;
                         break;
                     case "Zurück":
-                        await AudioPlayerController.PlayAsync(AudioName.Zurueck);
+                        await AudioPlayerController.PlayAsync(AudioName.Backward);
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             ForwardBackward = false,
@@ -88,7 +88,7 @@ namespace robot.sl.Audio
                         _recognationIsDriving = true;
                         break;
                     case "Links":
-                        await AudioPlayerController.PlayAsync(AudioName.Links);
+                        await AudioPlayerController.PlayAsync(AudioName.Left);
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             LeftCircle = true,
@@ -99,7 +99,7 @@ namespace robot.sl.Audio
                         await RecognationForwardBackwardStop();
                         break;
                     case "Rechts":
-                        await AudioPlayerController.PlayAsync(AudioName.Rechts);
+                        await AudioPlayerController.PlayAsync(AudioName.Right);
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             RightCircle = true,
@@ -119,7 +119,7 @@ namespace robot.sl.Audio
                         _recognationForwardBackward = true;
                         break;
                     case "Wenden":
-                        await AudioPlayerController.PlayAsync(AudioName.Wenden);
+                        await AudioPlayerController.PlayAsync(AudioName.Turn);
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             RightCircle = true,
@@ -129,7 +129,7 @@ namespace robot.sl.Audio
                         await RecognationForwardBackwardStop();
                         break;
                     case "Leicht Links":
-                        await AudioPlayerController.PlayAsync(AudioName.LeichtLinks);
+                        await AudioPlayerController.PlayAsync(AudioName.SlightlyLeft);
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             LeftCircle = true,
@@ -140,7 +140,7 @@ namespace robot.sl.Audio
                         await RecognationForwardBackwardStop();
                         break;
                     case "Leicht Rechts":
-                        await AudioPlayerController.PlayAsync(AudioName.LeichtRechts);
+                        await AudioPlayerController.PlayAsync(AudioName.SlightlyRight);
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             RightCircle = true,
@@ -151,7 +151,7 @@ namespace robot.sl.Audio
                         await RecognationForwardBackwardStop();
                         break;
                     case "Langsam":
-                        await AudioPlayerController.PlayAsync(AudioName.Langsam);
+                        await AudioPlayerController.PlayAsync(AudioName.Slow);
                         _recognationSpeed = MOTOR_SLOW_SPEED;
                         await RecognationForwardBackwardStop();
                         break;
@@ -161,7 +161,7 @@ namespace robot.sl.Audio
                         await RecognationForwardBackwardStop();
                         break;
                     case "Schnell":
-                        await AudioPlayerController.PlayAsync(AudioName.Schnell);
+                        await AudioPlayerController.PlayAsync(AudioName.Fast);
                         _recognationSpeed = MOTOR_FULL_SPEED;
                         await RecognationForwardBackwardStop();
                         break;
@@ -186,13 +186,13 @@ namespace robot.sl.Audio
                         await _automaticDrive.StopAsync();
                         break;
                     case "Befehle":
-                        await AudioPlayerController.PlayAsync(AudioName.Befehl);
+                        await AudioPlayerController.PlayAsync(AudioName.Commands);
                         break;
                     case "Steuerungsbefehle":
-                        await AudioPlayerController.PlayAsync(AudioName.Steuerungsbefehle);
+                        await AudioPlayerController.PlayAsync(AudioName.ControlCommands);
                         break;
                     case "Systembefehle":
-                        await AudioPlayerController.PlayAsync(AudioName.Systembefehle);
+                        await AudioPlayerController.PlayAsync(AudioName.SystemCommands);
                         break;
                     case "Starte Dich neu":
                     case "Neustarten":
@@ -250,7 +250,7 @@ namespace robot.sl.Audio
                         await AudioPlayerController.PlaySpeakerOnOffSoundModeAsync();
                         break;
                     case "Ganz leicht links":
-                        await AudioPlayerController.PlayAsync(AudioName.GanzLeichtLinks);
+                        await AudioPlayerController.PlayAsync(AudioName.VerySlightlyLeft);
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             LeftCircle = true,
@@ -261,7 +261,7 @@ namespace robot.sl.Audio
                         await RecognationForwardBackwardStop();
                         break;
                     case "Ganz leicht rechts":
-                        await AudioPlayerController.PlayAsync(AudioName.GanzLeichtRechts);
+                        await AudioPlayerController.PlayAsync(AudioName.VerySlightlyRight);
                         await _motorController.MoveCarAsync(new CarMoveCommand
                         {
                             RightCircle = true,
@@ -270,6 +270,12 @@ namespace robot.sl.Audio
                         }, MotorCommandSource.SpeechRecognation);
                         await Task.Delay(175);
                         await RecognationForwardBackwardStop();
+                        break;
+                    case "Aktiviere Klippensensor":
+                        await _automaticDrive.SetCliffSensorState(false, true);
+                        break;
+                    case "Deaktiviere Klippensensor":
+                        await _automaticDrive.SetCliffSensorState(false, false);
                         break;
                 }
 

@@ -25,18 +25,20 @@ function GetState() {
     };
 }
 
-function UpdateState(state) {
+var speakerOnElement = document.getElementById("speakerOn");
+var speakerOffElement = document.getElementById("speakerOff");
+var carSpeakerOnElement = document.getElementById("carSpeakerOn");
+var carSpeakerOffElement = document.getElementById("carSpeakerOff");
+var headsetSpeakerOnElement = document.getElementById("headsetSpeakerOn");
+var headsetSpeakerOffElement = document.getElementById("headsetSpeakerOff");
+var soundModeOnElement = document.getElementById("soundModeOn");
+var soundModeOffElement = document.getElementById("soundModeOff");
+var danceOnElement = document.getElementById("danceOn");
+var danceOffElement = document.getElementById("danceOff");
+var cliffSensorOnElement = document.getElementById("cliffSensorOn");
+var cliffSensorOffElement = document.getElementById("cliffSensorOff");
 
-    var speakerOnElement = document.getElementById("speakerOn");
-    var speakerOffElement = document.getElementById("speakerOff");
-    var carSpeakerOnElement = document.getElementById("carSpeakerOn");
-    var carSpeakerOffElement = document.getElementById("carSpeakerOff");
-    var headsetSpeakerOnElement = document.getElementById("headsetSpeakerOn");
-    var headsetSpeakerOffElement = document.getElementById("headsetSpeakerOff");
-    var soundModeOnElement = document.getElementById("soundModeOn");
-    var soundModeOffElement = document.getElementById("soundModeOff");
-    var danceOnElement = document.getElementById("danceOn");
-    var danceOffElement = document.getElementById("danceOff");
+function UpdateState(state) {
     
     if (state.CarSpeakerOn === true && state.HeadsetSpeakerOn === true) {
         if (speakerOn !== true) {
@@ -135,11 +137,27 @@ function UpdateState(state) {
         }
     }
 
+    if (state.CliffSensorOn === true) {
+        if (cliffSensorOn !== true) {
+            removeSettingMouseLeaveEvent();
+            cliffSensorOnElement.classList.remove("visible");
+            cliffSensorOffElement.classList.add("visible");
+        }
+    }
+    else if (state.CliffSensorOn === false) {
+        if (cliffSensorOn !== false) {
+            removeSettingMouseLeaveEvent();
+            cliffSensorOffElement.classList.remove("visible");
+            cliffSensorOnElement.classList.add("visible");
+        }
+    }
+
     carSpeakerOn = state.CarSpeakerOn;
     headsetSpeakerOn = state.HeadsetSpeakerOn;
     soundModeOn = state.SoundModeOn;
     automaticDriveOn = state.AutomaticDriveOn;
     danceOn = state.DanceOn;
+    cliffSensorOn = state.CliffSensorOn;
 }
 
 function removeSettingMouseLeaveEvent() {

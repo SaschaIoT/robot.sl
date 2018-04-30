@@ -137,13 +137,13 @@ namespace robot.sl.Audio
                     if (_carNotMoving.HasValue
                         && DateTime.Now >= _carNotMoving.Value.AddMinutes(randomMinutes))
                     {
-                        await AudioPlayerController.PlayAndWaitAsync(AudioName.Steht, cancellationToken);
+                        await AudioPlayerController.PlayAndWaitAsync(AudioName.Stand, cancellationToken);
                         _carNotMoving = null;
                     }
                     //Strong car vibration
                     else if (vibrationSpeed >= 0.35)
                     {
-                        await AudioPlayerController.PlayAndWaitAsync(AudioName.StarkeVibration, cancellationToken);
+                        await AudioPlayerController.PlayAndWaitAsync(AudioName.StrongVibration, cancellationToken);
                     }
                     //Turn to long left
                     else if (turnLeftStart.HasValue

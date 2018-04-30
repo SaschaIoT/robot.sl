@@ -192,7 +192,8 @@ namespace robot.sl.Web
                                     { "HeadsetSpeakerOn", JsonValue.CreateBooleanValue(AudioPlayerController.HeadsetSpeakerOn)},
                                     { "SoundModeOn", JsonValue.CreateBooleanValue(AudioPlayerController.SoundModeOn)},
                                     { "AutomaticDriveOn", JsonValue.CreateBooleanValue(_automaticDrive.IsRunning)},
-                                    { "DanceOn", JsonValue.CreateBooleanValue(_dance.IsRunning)}
+                                    { "DanceOn", JsonValue.CreateBooleanValue(_dance.IsRunning)},
+                                    { "CliffSensorOn", JsonValue.CreateBooleanValue(_automaticDrive.GetCliffSensorState())},
                                 }
                             }
                         };

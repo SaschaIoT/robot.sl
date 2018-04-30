@@ -23,11 +23,11 @@ body {
     width: 64px;
     height: 64px;
     background-repeat: no-repeat;
-    background-image: url("../Images/automatic-drive@64x64.png");
+    background-image: url("http://192.168.0.101/Images/automatic-drive@64x64.png");
 }
 
 .automatic-drive-active-button {
-    background-image: url("../Images/automatic-drive-active@64x64.png");
+    background-image: url("http://192.168.0.101/Images/automatic-drive-active@64x64.png");
 }
 
 .automatic-drive-container {
@@ -41,11 +41,11 @@ body {
     width: 64px;
     height: 64px;
     background-repeat: no-repeat;
-    background-image: url("../Images/fullscreen@64x64.png");
+    background-image: url("http://192.168.0.101/Images/fullscreen@64x64.png");
 }
 
 .fullscreen-active-button {
-    background-image: url("../Images/fullscreen-active@64x64.png");
+    background-image: url("http://192.168.0.101/Images/fullscreen-active@64x64.png");
 }
 
 .fullscreen-button-container {
@@ -74,7 +74,7 @@ body {
 
 .latency-image {
     float: right;
-    background-image: url("../Images/latency@24x24.png");
+    background-image: url("http://192.168.0.101/Images/latency@24x24.png");
     background-repeat: no-repeat;
     width: 24px;
     height: 24px;
@@ -148,7 +148,7 @@ body {
     }
 
 .setting-icon {
-    background-image: url("../Images/setting-icon@30x30.png");
+    background-image: url("http://192.168.0.101/Images/setting-icon@30x30.png");
     background-repeat: no-repeat;
     background-position: center right;
     width: 30px;
@@ -204,7 +204,7 @@ body {
 
 .tachometer-image {
     float: right;
-    background-image: url("../Images/tachometer@24x24.png");
+    background-image: url("http://192.168.0.101/Images/tachometer@24x24.png");
     background-repeat: no-repeat;
     width: 24px;
     height: 24px;
@@ -227,7 +227,7 @@ body {
 }
 
 .speaker-on-image {
-    background-image: url(../Images/audio_volume_high@24x24.png);
+    background-image: url("http://192.168.0.101/Images/audio_volume_high@24x24.png");
     background-repeat: no-repeat;
     width: 24px;
     height: 24px;
@@ -237,7 +237,7 @@ body {
 }
 
 .speaker-off-image {
-    background-image: url(../Images/audio_volume_mute@24x24.png);
+    background-image: url("http://192.168.0.101/Images/audio_volume_mute@24x24.png");
     background-repeat: no-repeat;
     width: 24px;
     height: 24px;
@@ -247,7 +247,7 @@ body {
 }
 
 .dance-on-image {
-    background-image: url(../Images/dance_on@24x24.png);
+    background-image: url("http://192.168.0.101/Images/dance_on@24x24.png");
     background-repeat: no-repeat;
     width: 24px;
     height: 24px;
@@ -257,7 +257,27 @@ body {
 }
 
 .dance-off-image {
-    background-image: url(../Images/dance_off@24x24.png);
+    background-image: url("http://192.168.0.101/Images/dance_off@24x24.png");
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 3px;
+}
+
+.cliff-sensor-on-image {
+    background-image: url("http://192.168.0.101/Images/cliff_sensor_on@24x24.png");
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 3px;
+}
+
+.cliff-sensor-off-image {
+    background-image: url("http://192.168.0.101/Images/cliff_sensor_off@24x24.png");
     background-repeat: no-repeat;
     width: 24px;
     height: 24px;
@@ -267,7 +287,7 @@ body {
 }
 
 .shutdown-image {
-    background-image: url(../Images/close@24x24.png);
+    background-image: url("http://192.168.0.101/Images/close@24x24.png");
     background-repeat: no-repeat;
     width: 24px;
     height: 24px;
@@ -277,7 +297,7 @@ body {
 }
 
 .restart-image {
-    background-image: url(../Images/reload@24x24.png);
+    background-image: url("http://192.168.0.101/Images/reload@24x24.png");
     background-repeat: no-repeat;
     width: 24px;
     height: 24px;
