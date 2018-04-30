@@ -1,9 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using robot.sl.CarControl;
+using System.Threading.Tasks;
 
 namespace robot.sl.Audio.AudioPlaying
 {
     public static partial class AudioPlayerController
     {
+        private static int PAUSE_BETWENN_WORDS_MILLISECONDS = 300;
+
         public static async Task SetAllSpeakerOnOffAsync(bool speakerOn)
         {
             if (speakerOn)
@@ -141,54 +144,88 @@ namespace robot.sl.Audio.AudioPlaying
             }
         }
 
-        public static async Task PlaySpeakerOnOffSoundModeAsync()
+        public static async void PlaySpeakerOnOffSoundModeAsync(AutomaticDrive automaticDrive, Dance dance)
         {
-            if (CarSpeakerOn && HeadsetSpeakerOn)
+            //CarSpeaker
+            if(CarSpeakerOn)
             {
-                if (SoundModeOn)
-                {
-                    await PlayAsync(AudioName.AllSpeakerOnSoundModeOn);
-                }
-                else
-                {
-                    await PlayAsync(AudioName.AllSpeakerOnSoundModeOff);
-                }
-            }
-            else if (!CarSpeakerOn && !HeadsetSpeakerOn)
-            {
-                if (SoundModeOn)
-                {
-                    await PlayAsync(AudioName.AllSpeakerOffSoundModeOn);
-                }
-                else
-                {
-                    await PlayAsync(AudioName.AllSpeakerOffSoundModeOff);
-                }
+                if (await PlayAndWaitAsync(AudioName.CarSpeakerOn) == false)
+                    return;
             }
             else
             {
-                if (SoundModeOn)
-                {
-                    if (CarSpeakerOn)
-                    {
-                        await PlayAsync(AudioName.CarSpeakerOnHeadsetSpeakerOffSoundModeOn);
-                    }
-                    else if (HeadsetSpeakerOn)
-                    {
-                        await PlayAsync(AudioName.CarSpeakerOffHeadsetSpeakerOnSoundModeOn);
-                    }
-                }
-                else
-                {
-                    if (CarSpeakerOn)
-                    {
-                        await PlayAsync(AudioName.CarSpeakerOnHeadsetSpeakerOffSoundModeOff);
-                    }
-                    else if (HeadsetSpeakerOn)
-                    {
-                        await PlayAsync(AudioName.CarSpeakerOffHeadsetSpeakerOnSoundModeOff);
-                    }
-                }
+                if (await PlayAndWaitAsync(AudioName.CarSpeakerOff) == false)
+                    return;
+            }
+
+            await Task.Delay(PAUSE_BETWENN_WORDS_MILLISECONDS);
+
+            //HeadsetSpeaker
+            if (HeadsetSpeakerOn)
+            {
+                if (await PlayAndWaitAsync(AudioName.HeadsetSpeakerOn) == false)
+                    return;
+            }
+            else
+            {
+                if (await PlayAndWaitAsync(AudioName.HeadsetSpeakerOff) == false)
+                    return;
+            }
+
+            await Task.Delay(PAUSE_BETWENN_WORDS_MILLISECONDS);
+
+            //SoundMode
+            if (SoundModeOn)
+            {
+                if (await PlayAndWaitAsync(AudioName.SoundModeOn) == false)
+                    return;
+            }
+            else
+            {
+                if (await PlayAndWaitAsync(AudioName.SoundModusOff) == false)
+                    return;
+            }
+
+            await Task.Delay(PAUSE_BETWENN_WORDS_MILLISECONDS);
+
+            //CliffSensor
+            if (automaticDrive.GetCliffSensorState())
+            {
+                if (await PlayAndWaitAsync(AudioName.CliffSensorOn) == false)
+                    return;
+            }
+            else
+            {
+                if (await PlayAndWaitAsync(AudioName.CliffSensorOff) == false)
+                    return;
+            }
+
+            await Task.Delay(PAUSE_BETWENN_WORDS_MILLISECONDS);
+
+            //AutomaticDrive
+            if (automaticDrive.IsRunning)
+            {
+                if (await PlayAndWaitAsync(AudioName.AutomaticDriveOn_Status) == false)
+                    return;
+            }
+            else
+            {
+                if (await PlayAndWaitAsync(AudioName.AutomaticDriveOff_Status) == false)
+                    return;
+            }
+
+            await Task.Delay(PAUSE_BETWENN_WORDS_MILLISECONDS);
+
+            //Dance
+            if (dance.IsRunning)
+            {
+                if (await PlayAndWaitAsync(AudioName.DanceOn_Status) == false)
+                    return;
+            }
+            else
+            {
+                if (await PlayAndWaitAsync(AudioName.DanceOff_Status) == false)
+                    return;
             }
         }
     }

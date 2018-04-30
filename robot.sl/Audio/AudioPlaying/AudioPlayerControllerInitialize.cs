@@ -78,14 +78,18 @@ namespace robot.sl.Audio.AudioPlaying
             await AddAudioFileAsync(AudioName.DanceOn, "Jetzt tanze ich.");
             //DanceOff
             await AddAudioFileAsync(AudioName.DanceOff, "Jetzt tanze ich nicht mehr.");
+            //DanceOn_Status
+            await AddAudioFileAsync(AudioName.DanceOn_Status, "Tanzen ist an.");
+            //DanceOff_Status
+            await AddAudioFileAsync(AudioName.DanceOff_Status, "Tanzen ist aus.");
             //DanceOnAlready
             await AddAudioFileAsync(AudioName.DanceOnAlready, "Ich tanze bereits.");
             //DanceOffAlready
             await AddAudioFileAsync(AudioName.DanceOffAlready, "Tanzen ist bereits deaktiviert.");
             //CliffSensorOn
-            await AddAudioFileAsync(AudioName.CliffSensorOn, "Der Klippensensor wurde aktiviert.");
+            await AddAudioFileAsync(AudioName.CliffSensorOn, "Der Klippensensor ist an.");
             //CliffSensorOff
-            await AddAudioFileAsync(AudioName.CliffSensorOff, "Der Klippensensor wurde deaktiviert.");
+            await AddAudioFileAsync(AudioName.CliffSensorOff, "Der Klippensensor ist aus.");
             //CliffSensorAlreadyOn
             await AddAudioFileAsync(AudioName.CliffSensorAlreadyOn, "Der Klippensensor ist bereits aktiviert.");
             //CliffSensorAlreadyOff
@@ -109,14 +113,18 @@ namespace robot.sl.Audio.AudioPlaying
             await AddAudioFileAsync(AudioName.Shutdown, "Bis bald, ich schalte mich nun aus.");
             //Reboot
             await AddAudioFileAsync(AudioName.Restart, "Bis gleich, ich starte mich neu.");
-            //AutomaticDriveOnAlready
-            await AddAudioFileAsync(AudioName.AutomaticDriveOnAlready, "Automatisches Fahren ist bereits aktiviert.");
-            //AutomaticDriveOffAlready
-            await AddAudioFileAsync(AudioName.AutomaticDriveOffAlready, "Automatisches Fahren ist nicht aktiviert.");
             //AutomaticDriveOn
             await AddAudioFileAsync(AudioName.AutomaticDriveOn, "Jetzt übernehme ich die Steuerung.");
             //AutomaticDriveOff
             await AddAudioFileAsync(AudioName.AutomaticDriveOff, "Jetzt kannst Du mich wieder Steuern.");
+            //AutomaticDriveOn_Status
+            await AddAudioFileAsync(AudioName.AutomaticDriveOn_Status, "Automatisches Fahren ist an.");
+            //AutomaticDriveOff_Status
+            await AddAudioFileAsync(AudioName.AutomaticDriveOff_Status, "Automatisches Fahren ist aus.");
+            //AutomaticDriveOnAlready
+            await AddAudioFileAsync(AudioName.AutomaticDriveOnAlready, "Automatisches Fahren ist bereits aktiviert.");
+            //AutomaticDriveOffAlready
+            await AddAudioFileAsync(AudioName.AutomaticDriveOffAlready, "Automatisches Fahren ist nicht aktiviert.");
             //ReallyRestart
             await AddAudioFileAsync(AudioName.ReallyRestart, "Möchtest Du mich wirklich neustarten?");
             //ReallyShutdown
@@ -130,19 +138,19 @@ namespace robot.sl.Audio.AudioPlaying
             //SoundModeAlreadyOn
             await AddAudioFileAsync(AudioName.SoundModeAlreadyOn, "Der Sound Modus automatisches Fahren ist bereits an.");
             //HeadsetSpeakerOff
-            await AddAudioFileAsync(AudioName.HeadsetSpeakerOff, "Der Headset Lautsprecher ist jetzt aus.");
+            await AddAudioFileAsync(AudioName.HeadsetSpeakerOff, "Der Headset Lautsprecher ist aus.");
             //HeadsetSpeakerAlreadyOff
             await AddAudioFileAsync(AudioName.HeadsetSpeakerAlreadyOff, "Der Headset Lautsprecher ist bereits aus.");
             //HeadsetSpeakerOn
-            await AddAudioFileAsync(AudioName.HeadsetSpeakerOn, "Der Headset Lautsprecher ist jetzt an.");
+            await AddAudioFileAsync(AudioName.HeadsetSpeakerOn, "Der Headset Lautsprecher ist an.");
             //HeadsetSpeakerAlreadyOn
             await AddAudioFileAsync(AudioName.HeadsetSpeakerAlreadyOn, "Der Headset Lautsprecher ist bereits an.");
             //CarSpeakerOff
-            await AddAudioFileAsync(AudioName.CarSpeakerOff, "Der Fahrzeug Lautsprecher ist jetzt aus.");
+            await AddAudioFileAsync(AudioName.CarSpeakerOff, "Der Fahrzeug Lautsprecher ist aus.");
             //CarSpeakerAlreadyOff
             await AddAudioFileAsync(AudioName.CarSpeakerAlreadyOff, "Der Fahrzeug Lautsprecher ist bereits aus.");
             //CarSpeakerOn
-            await AddAudioFileAsync(AudioName.CarSpeakerOn, "Der Fahrzeug Lautsprecher ist jetzt an.");
+            await AddAudioFileAsync(AudioName.CarSpeakerOn, "Der Fahrzeug Lautsprecher ist an.");
             //CarSpeakerAlreadyOn
             await AddAudioFileAsync(AudioName.CarSpeakerAlreadyOn, "Der Fahrzeug Lautsprecher ist bereits an.");
             //AllSpeakerOff
@@ -154,27 +162,11 @@ namespace robot.sl.Audio.AudioPlaying
             //AllSpeakerAlreadyOn
             await AddAudioFileAsync(AudioName.AllSpeakerAlreadyOn, "Alle Lautsprecher sind bereits an.");
             //SoundModeOn
-            await AddAudioFileAsync(AudioName.SoundModeOn, "Der Sound Modus automatisches Fahren ist jetzt an.");
+            await AddAudioFileAsync(AudioName.SoundModeOn, "Der Sound Modus automatisches Fahren ist an.");
             //SoundModusAlreadyOff
             await AddAudioFileAsync(AudioName.SoundModusAlreadyOff, "Der Sound Modus automatisches Fahren ist bereits aus.");
             //SoundModusOff
-            await AddAudioFileAsync(AudioName.SoundModusOff, "Der Sound Modus automatisches Fahren ist jetzt aus.");
-            //CarSpeakerOffHeadsetSpeakerOnSoundModeOff
-            await AddAudioFileAsync(AudioName.CarSpeakerOffHeadsetSpeakerOnSoundModeOff, "Der Fahrzeug Lautsprecher ist aus. Der Headset Lautsprecher ist an. Der Sound Modus automatisches Fahren ist aus.");
-            //CarSpeakerOnHeadsetSpeakerOffSoundModeOff
-            await AddAudioFileAsync(AudioName.CarSpeakerOnHeadsetSpeakerOffSoundModeOff, "Der Fahrzeug Lautsprecher ist an. Der Headset Lautsprecher ist aus. Der Sound Modus automatisches Fahren ist aus.");
-            //CarSpeakerOffHeadsetSpeakerOnSoundModeOn
-            await AddAudioFileAsync(AudioName.CarSpeakerOffHeadsetSpeakerOnSoundModeOn, "Der Fahrzeug Lautsprecher ist aus. Der Headset Lautsprecher ist an. Der Sound Modus automatisches Fahren ist an.");
-            //CarSpeakerOnHeadsetSpeakerOffSoundModeOn
-            await AddAudioFileAsync(AudioName.CarSpeakerOnHeadsetSpeakerOffSoundModeOn, "Der Fahrzeug Lautsprecher ist an. Der Headset Lautsprecher ist aus. Der Sound Modus automatisches Fahren ist an.");
-            //AllSpeakerOffSoundModeOff
-            await AddAudioFileAsync(AudioName.AllSpeakerOffSoundModeOff, "Alle Lautsprecher sind aus. Der Sound Modus automatisches Fahren ist ebenfalls an.");
-            //AllSpeakerOffSoundModeOn
-            await AddAudioFileAsync(AudioName.AllSpeakerOffSoundModeOn, "Alle Lautsprecher sind aus. Der Sound Modus automatisches Fahren ist an.");
-            //AllSpeakerOnSoundModeOff
-            await AddAudioFileAsync(AudioName.AllSpeakerOnSoundModeOff, "Alle Lautsprecher sind an. Der Sound Modus automatisches Fahren ist aus.");
-            //AllSpeakerOnSoundModeOn
-            await AddAudioFileAsync(AudioName.AllSpeakerOnSoundModeOn, "Alle Lautsprecher sind an. Der Sound Modus automatisches Fahren ist ebenfalls an.");
+            await AddAudioFileAsync(AudioName.SoundModusOff, "Der Sound Modus automatisches Fahren ist aus.");
             //CameraUp
             await AddAudioFileAsync(AudioName.CameraUp, "Kamera hoch");
             //CameraDown

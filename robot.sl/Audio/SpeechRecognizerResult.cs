@@ -246,8 +246,8 @@ namespace robot.sl.Audio
                     case "Deaktiviere Sound Modus":
                         await AudioPlayerController.SetSoundModeOnOffAsync(false);
                         break;
-                    case "Lautsprecher und Sound Modus":
-                        await AudioPlayerController.PlaySpeakerOnOffSoundModeAsync();
+                    case "Aktueller Status":
+                        AudioPlayerController.PlaySpeakerOnOffSoundModeAsync(_automaticDrive, _dance);
                         break;
                     case "Ganz leicht links":
                         await AudioPlayerController.PlayAsync(AudioName.VerySlightlyLeft);
