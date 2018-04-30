@@ -58,4 +58,5 @@ function KeepAliveGetServerVideoFrameRate() {
     }
 }
 
-KeepAliveGetServerVideoFrameRate();
+//Commet in for server side frame rate measurement
+//KeepAliveGetServerVideoFrameRate();

@@ -113,9 +113,12 @@ namespace robot.sl.Audio.AudioPlaying
                 speakerOnOff.HeadsetSpeakerOn = true;
                 _neverSpeak = true;
             }
-            else if (audioName != AudioName.Shutdown
-                     && audioName != AudioName.Restart
-                     && audioName != AudioName.AppError)
+            else if (audioName == AudioName.Shutdown || audioName == AudioName.Restart)
+            {
+                speakerOnOff.CarSpeakerOn = true;
+                speakerOnOff.HeadsetSpeakerOn = true;
+            }
+            else
             {
                 if (_stopped)
                 {
@@ -124,10 +127,7 @@ namespace robot.sl.Audio.AudioPlaying
                 }
                 else
                 {
-                    if (audioName == AudioName.Shutdown
-                        || audioName == AudioName.Restart
-                        || audioName == AudioName.AppError
-                        || audioName == AudioName.GamepadVibrationOn
+                    if (audioName == AudioName.GamepadVibrationOn
                         || audioName == AudioName.GamepadVibrationOff
                         || audioName == AudioName.SoundModeAlreadyOn
                         || audioName == AudioName.HeadsetSpeakerOff
@@ -153,6 +153,9 @@ namespace robot.sl.Audio.AudioPlaying
                         || audioName == AudioName.AllSpeakerOffSoundModeOn
                         || audioName == AudioName.AllSpeakerOnSoundModeOff
                         || audioName == AudioName.AllSpeakerOnSoundModeOn
+                        || audioName == AudioName.Commands
+                        || audioName == AudioName.SystemCommands
+                        || audioName == AudioName.ControlCommands
                         || audioName == AudioName.ReallyRestart
                         || audioName == AudioName.ReallyShutdown)
                     {
@@ -168,11 +171,6 @@ namespace robot.sl.Audio.AudioPlaying
                         speakerOnOff.HeadsetSpeakerOn = false;
                     }
                 }
-            }
-            else
-            {
-                speakerOnOff.CarSpeakerOn = true;
-                speakerOnOff.HeadsetSpeakerOn = true;
             }
 
             return speakerOnOff;

@@ -2,19 +2,17 @@
 settingButton.addEventListener("mouseover", function (e) {
 
     settingButton.addEventListener("mouseleave", settingMouseLeave);
+    settingMenu.classList.remove("setting-menu-hide");
 
     e.preventDefault();
     e.stopPropagation();
-
-    settingMenu.classList.remove("setting-menu-hide");
 });
 
 var settingMouseLeave = function (e) {
+    settingMenu.classList.add("setting-menu-hide");
 
     e.preventDefault();
     e.stopPropagation();
-
-    settingMenu.classList.add("setting-menu-hide");
 };
 
 settingButton.addEventListener("mouseleave", settingMouseLeave);
@@ -37,11 +35,11 @@ speakerOnOffElement.addEventListener("click", function (e) {
         speakerOnOffString = "false";
     }
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://192.168.0.101/speakerOnOff?on=" + speakerOnOffString + "?time=" + new Date().getTime(), true);
-    xhr.responseType = "json";
-    xhr.timeout = xhttpRequestTimeout;
-    xhr.send();
+    var request = new XMLHttpRequest();
+    request.open("GET", "http://192.168.0.101/speakerOnOff?on=" + speakerOnOffString + "?time=" + new Date().getTime(), true);
+    request.responseType = "json";
+    request.timeout = requestTimeout;
+    request.send();
 
     e.preventDefault();
     e.stopPropagation();
@@ -59,11 +57,11 @@ carSpeakerOnOffElement.addEventListener("click", function (e) {
         carSpeakerOnOffString = "false";
     }
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://192.168.0.101/carSpeakerOnOff?on=" + carSpeakerOnOffString + "?time=" + new Date().getTime(), true);
-    xhr.responseType = "json";
-    xhr.timeout = xhttpRequestTimeout;
-    xhr.send();
+    var request = new XMLHttpRequest();
+    request.open("GET", "http://192.168.0.101/carSpeakerOnOff?on=" + carSpeakerOnOffString + "?time=" + new Date().getTime(), true);
+    request.responseType = "json";
+    request.timeout = requestTimeout;
+    request.send();
 
     e.preventDefault();
     e.stopPropagation();
@@ -81,11 +79,11 @@ headsetSpeakerOnOffElement.addEventListener("click", function (e) {
         headsetSpeakerOnOffString = "false";
     }
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://192.168.0.101/headsetSpeakerOnOff?on=" + headsetSpeakerOnOffString + "?time=" + new Date().getTime(), true);
-    xhr.responseType = "json";
-    xhr.timeout = xhttpRequestTimeout;
-    xhr.send();
+    var request = new XMLHttpRequest();
+    request.open("GET", "http://192.168.0.101/headsetSpeakerOnOff?on=" + headsetSpeakerOnOffString + "?time=" + new Date().getTime(), true);
+    request.responseType = "json";
+    request.timeout = requestTimeout;
+    request.send();
 
     e.preventDefault();
     e.stopPropagation();
@@ -103,11 +101,11 @@ soundModeOnOffElement.addEventListener("click", function (e) {
         soundModeOnOffString = "false";
     }
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://192.168.0.101/soundModeOnOff?on=" + soundModeOnOffString + "?time=" + new Date().getTime(), true);
-    xhr.responseType = "json";
-    xhr.timeout = xhttpRequestTimeout;
-    xhr.send();
+    var request = new XMLHttpRequest();
+    request.open("GET", "http://192.168.0.101/soundModeOnOff?on=" + soundModeOnOffString + "?time=" + new Date().getTime(), true);
+    request.responseType = "json";
+    request.timeout = requestTimeout;
+    request.send();
 
     e.preventDefault();
     e.stopPropagation();
@@ -125,11 +123,33 @@ danceOnOffElement.addEventListener("click", function (e) {
         danceOnOffString = "false";
     }
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://192.168.0.101/danceOnOff?on=" + danceOnOffString + "?time=" + new Date().getTime(), true);
-    xhr.responseType = "json";
-    xhr.timeout = xhttpRequestTimeout;
-    xhr.send();
+    var request = new XMLHttpRequest();
+    request.open("GET", "http://192.168.0.101/danceOnOff?on=" + danceOnOffString + "?time=" + new Date().getTime(), true);
+    request.responseType = "json";
+    request.timeout = requestTimeout;
+    request.send();
+
+    e.preventDefault();
+    e.stopPropagation();
+});
+
+var cliffSensorOn = true;
+var cliffSensorOnOffElement = document.getElementById("cliffSensorOnOff");
+cliffSensorOnOffElement.addEventListener("click", function (e) {
+
+    var cliffSensorOnOffString = "";
+    if (cliffSensorOn === false) {
+        cliffSensorOnOffString = "true";
+    }
+    else {
+        cliffSensorOnOffString = "false";
+    }
+
+    var request = new XMLHttpRequest();
+    request.open("GET", "http://192.168.0.101/cliffSensorOnOff?on=" + cliffSensorOnOffString + "?time=" + new Date().getTime(), true);
+    request.responseType = "json";
+    request.timeout = requestTimeout;
+    request.send();
 
     e.preventDefault();
     e.stopPropagation();
@@ -139,11 +159,11 @@ var ausschalten = document.getElementById("ausschalten");
 ausschalten.addEventListener("click", function (e) {
 
     if (confirm('Willst Du mich wirklich ausschalten?')) {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://192.168.0.101/ausschalten?time=" + new Date().getTime(), true);
-        xhr.responseType = "json";
-        xhr.timeout = xhttpRequestTimeout;
-        xhr.send();
+        var request = new XMLHttpRequest();
+        request.open("GET", "http://192.168.0.101/ausschalten?time=" + new Date().getTime(), true);
+        request.responseType = "json";
+        request.timeout = requestTimeout;
+        request.send();
     }
 
     e.preventDefault();
@@ -154,11 +174,11 @@ var neustarten = document.getElementById("neustarten");
 neustarten.addEventListener("click", function (e) {
 
     if (confirm('Willst Du mich wirklich neustarten?')) {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://192.168.0.101/neustarten?time=" + new Date().getTime(), true);
-        xhr.responseType = "json";
-        xhr.timeout = xhttpRequestTimeout;
-        xhr.send();
+        var request = new XMLHttpRequest();
+        request.open("GET", "http://192.168.0.101/neustarten?time=" + new Date().getTime(), true);
+        request.responseType = "json";
+        request.timeout = requestTimeout;
+        request.send();
     }
 
     e.preventDefault();
@@ -168,13 +188,14 @@ neustarten.addEventListener("click", function (e) {
 var automaticDriveOn = false;
 var automaticDriveButton = document.getElementById("automaticDriveButton");
 automaticDriveButton.addEventListener('click', function (e) {
+    
+    var automaticDriveParameter = "<RequestBody>" + JSON.stringify({ automaticDrive: !automaticDriveOn }) + "</RequestBody>";
+
+    var request = new XMLHttpRequest();
+    request.open("GET", "http://192.168.0.101/AutomaticDrive/" + new Date().getTime() + automaticDriveParameter + ".html", true);
+    request.timeout = requestTimeout;
+    request.send("data=" + encodeURIComponent(automaticDriveParameter));
 
     e.preventDefault();
     e.stopPropagation();
-
-    var http = new XMLHttpRequest();
-    var automaticDriveParameter = "<RequestBody>" + JSON.stringify({ automaticDrive: !automaticDriveOn }) + "</RequestBody>";
-    http.open("GET", "http://192.168.0.101/AutomaticDrive/" + new Date().getTime() + automaticDriveParameter + ".html", true);
-
-    http.send("data=" + encodeURIComponent(automaticDriveParameter));
 });

@@ -264,6 +264,18 @@ namespace robot.sl.Web
                 await _dance.StopAsync();
                 HttpServerResponse.WriteResponseOk(outputStream);
             }
+            //Set cliff sensor on
+            else if (request.Url.StartsWith("/cliffsensoronoff?on=true", StringComparison.OrdinalIgnoreCase))
+            {
+                await _automaticDrive.SetCliffSensorState(false, true);
+                HttpServerResponse.WriteResponseOk(outputStream);
+            }
+            //Set cliff sensor off
+            else if (request.Url.StartsWith("/cliffsensoronoff?on=false", StringComparison.OrdinalIgnoreCase))
+            {
+                await _automaticDrive.SetCliffSensorState(false, false);
+                HttpServerResponse.WriteResponseOk(outputStream);
+            }
             //Shutdown Windows
             else if (request.Url.StartsWith("/ausschalten", StringComparison.OrdinalIgnoreCase))
             {

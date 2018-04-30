@@ -42,58 +42,67 @@ namespace robot.sl.Audio.AudioPlaying
 
             _carSpeaker = new AudioPlayer();
             await _carSpeaker.InitializeAsync(false);
-
-            //Jede Box muss eine eigenen Stream und StorageFile erhalten, der Stream darf auch nicht kopiert werden
-            //sonst kommt es zu einer ViolationAccess Exception
+            
+            //Each speaker must have its own stream and storage file. The stream must not be copied either
+            //otherwise there will be a ViolationAccess exception.
 
             //Welcome
             await AddAudioFileAsync(AudioName.Welcome, "Hallo Freunde, ich bin bereit zum Spielen!");
-            //Vor
-            await AddAudioFileAsync(AudioName.Vor, "Vor");
-            //Zurück
-            await AddAudioFileAsync(AudioName.Zurueck, "Zurück");
-            //Links
-            await AddAudioFileAsync(AudioName.Links, "Links");
-            //Rechts
-            await AddAudioFileAsync(AudioName.Rechts, "Rechts");
+            //Forward
+            await AddAudioFileAsync(AudioName.Forward, "Vor");
+            //Backward
+            await AddAudioFileAsync(AudioName.Backward, "Zurück");
+            //Left
+            await AddAudioFileAsync(AudioName.Left, "Links");
+            //Right
+            await AddAudioFileAsync(AudioName.Right, "Rechts");
             //Stop
             await AddAudioFileAsync(AudioName.Stop, "Stop");
-            //Wenden
-            await AddAudioFileAsync(AudioName.Wenden, "Wenden");
-            //Leicht Links
-            await AddAudioFileAsync(AudioName.LeichtLinks, "Leicht Links");
-            //Leicht Rechts
-            await AddAudioFileAsync(AudioName.LeichtRechts, "Leicht Rechts");
-            //Ganz leicht Links
-            await AddAudioFileAsync(AudioName.GanzLeichtLinks, "Ganz leicht Links");
-            //Ganz leicht Rechts
-            await AddAudioFileAsync(AudioName.GanzLeichtRechts, "Ganz leicht Rechts");
-            //Langsam
-            await AddAudioFileAsync(AudioName.Langsam, "Langsam");
+            //Turn
+            await AddAudioFileAsync(AudioName.Turn, "Wenden");
+            //SlightlyLeft
+            await AddAudioFileAsync(AudioName.SlightlyLeft, "Leicht Links");
+            //SlightlyRight
+            await AddAudioFileAsync(AudioName.SlightlyRight, "Leicht Rechts");
+            //VerySlightlyLeft
+            await AddAudioFileAsync(AudioName.VerySlightlyLeft, "Ganz leicht Links");
+            //VerySlightlyRight
+            await AddAudioFileAsync(AudioName.VerySlightlyRight, "Ganz leicht Rechts");
+            //Slow
+            await AddAudioFileAsync(AudioName.Slow, "Langsam");
             //Normal
             await AddAudioFileAsync(AudioName.Normal, "Normal");
-            //Schnell
-            await AddAudioFileAsync(AudioName.Schnell, "Schnell");
-            //TanzenOnAlready
-            await AddAudioFileAsync(AudioName.TanzenOnAlready, "Ich tanze bereits.");
-            //TanzenOffAlready
-            await AddAudioFileAsync(AudioName.TanzenOffAlready, "Tanzen ist bereits deaktiviert.");
-            //TanzenOn
-            await AddAudioFileAsync(AudioName.TanzenOn, "Jetzt tanze ich.");
-            //TanzenOff
-            await AddAudioFileAsync(AudioName.TanzenOff, "Jetzt tanze ich nicht mehr.");
+            //Fast
+            await AddAudioFileAsync(AudioName.Fast, "Schnell");
+            //DanceOn
+            await AddAudioFileAsync(AudioName.DanceOn, "Jetzt tanze ich.");
+            //DanceOff
+            await AddAudioFileAsync(AudioName.DanceOff, "Jetzt tanze ich nicht mehr.");
+            //DanceOnAlready
+            await AddAudioFileAsync(AudioName.DanceOnAlready, "Ich tanze bereits.");
+            //DanceOffAlready
+            await AddAudioFileAsync(AudioName.DanceOffAlready, "Tanzen ist bereits deaktiviert.");
+            //CliffSensorOn
+            await AddAudioFileAsync(AudioName.CliffSensorOn, "Der Klippensensor wurde aktiviert.");
+            //CliffSensorOff
+            await AddAudioFileAsync(AudioName.CliffSensorOff, "Der Klippensensor wurde deaktiviert.");
+            //CliffSensorAlreadyOn
+            await AddAudioFileAsync(AudioName.CliffSensorAlreadyOn, "Der Klippensensor ist bereits aktiviert.");
+            //CliffSensorAlreadyOff
+            await AddAudioFileAsync(AudioName.CliffSensorAlreadyOff, "Der Klippensensor ist bereits deaktiviert.");
+
             var steuerungsbefehle = "Folgende Steuerungsbefehle sind möglich: vor, zurück, links, rechts, stop, wenden, leicht links, leicht rechts, ganz leicht links, ganz leicht rechts, langsam, normal, schnell, Aktiviere Tanzen, Deaktiviere Tanzen, Kamera hoch, Kamera runter, Kamera leicht hoch, Kamera leicht runter, Aktiviere automatisches Fahren und deaktiviere automatisches Fahren, ";
-            var systembefehle = "Folgende Systembefehle sind möglich: Befehl, Steuerungsbefehle, Systembefehle, aktiviere Lautsprecher, deaktiviere Lautsprecher, aktiviere Headset Lautsprecher, deaktiviere Headset Lautsprecher, aktiviere Fahrzeug Lautsprecher, deaktiviere Fahrzeug Lautsprecher, aktiviere Sound Modus und deaktiviere Sound Modus";
-            //Befehl
-            await AddAudioFileAsync(AudioName.Befehl, steuerungsbefehle + systembefehle);
-            //Steuerungsbefehle
-            await AddAudioFileAsync(AudioName.Steuerungsbefehle, steuerungsbefehle);
-            //Systembefehle
-            await AddAudioFileAsync(AudioName.Systembefehle, systembefehle);
-            //StarkeVibration
-            await AddAudioFileAsync(AudioName.StarkeVibration, "Aufpassen, ich bin nicht unzerstörbar.");
-            //Steht
-            await AddAudioFileAsync(AudioName.Steht, "Mir ist langweilig, fahre mich doch ein bisschen herum.");
+            var systembefehle = "Folgende Systembefehle sind möglich: Befehl, Steuerungsbefehle, Systembefehle, aktiviere Lautsprecher, deaktiviere Lautsprecher, aktiviere Headset Lautsprecher, deaktiviere Headset Lautsprecher, aktiviere Fahrzeug Lautsprecher, deaktiviere Fahrzeug Lautsprecher, aktiviere Sound Modus, deaktiviere Sound Modus, aktiviere Klippensensor und deaktiviere Klippensensor";
+            //Commands
+            await AddAudioFileAsync(AudioName.Commands, steuerungsbefehle + systembefehle);
+            //ControlCommands
+            await AddAudioFileAsync(AudioName.ControlCommands, steuerungsbefehle);
+            //SystemCommands
+            await AddAudioFileAsync(AudioName.SystemCommands, systembefehle);
+            //StrongVibration
+            await AddAudioFileAsync(AudioName.StrongVibration, "Aufpassen, ich bin nicht unzerstörbar.");
+            //Stand
+            await AddAudioFileAsync(AudioName.Stand, "Mir ist langweilig, fahre mich doch ein bisschen herum.");
             //AutomatischesFahrenFesthaengen
             await AddAudioFileAsync(AudioName.AutomatischesFahrenFesthaengen, "Ich stecke fest, ein Moment ich versuche mich zu befreien.");
             //Shutdown
@@ -170,10 +179,10 @@ namespace robot.sl.Audio.AudioPlaying
             await AddAudioFileAsync(AudioName.CameraUp, "Kamera hoch");
             //CameraDown
             await AddAudioFileAsync(AudioName.CameraDown, "Kamera runter");
-            //CameraLightUp
-            await AddAudioFileAsync(AudioName.CameraLightUp, "Kamera leicht hoch");
-            //CameraLightDown
-            await AddAudioFileAsync(AudioName.CameraLightDown, "Kamera leicht runter");
+            //CameraSlightlyUp
+            await AddAudioFileAsync(AudioName.CameraSlightlyUp, "Kamera leicht hoch");
+            //CameraSlightlyDown
+            await AddAudioFileAsync(AudioName.CameraSlightlyDown, "Kamera leicht runter");
             //TurnToLongLeft
             await AddAudioFileAsync(AudioName.TurnToLongLeft, "Mir ist schwindelig, dreh doch mal wieder nach rechts.");
             //TurnToLongRight

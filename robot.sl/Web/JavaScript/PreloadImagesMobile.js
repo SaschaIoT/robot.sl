@@ -1,10 +1,11 @@
-﻿var path = "../Images/"
+﻿var path = "http://192.168.0.101/Images/"
 var images = [];
 
 function preloadImages(imagePaths) {
     for (var index = 0; index < imagePaths.length; index++) {
-        images[index] = new Image();
-        images[index].src = path + imagePaths[index];
+        var image = new Image();
+        image.src = path + imagePaths[index];
+        images.push(image);
     }
 }
 
@@ -30,5 +31,7 @@ preloadImages(
         "close@24x24.png",
         "reload@24x24.png",
         "dance_on@24x24.png",
-        "dance_off@24x24.png"]
+        "dance_off@24x24.png",
+        "cliff_sensor_on@24x24.png",
+        "cliff_sensor_off@24x24.png"]
 );

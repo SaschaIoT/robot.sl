@@ -121,6 +121,7 @@
     <Compile Include="Devices\Gamepad.cs" />
     <Compile Include="Devices\GamepadButtonDown.cs" />
     <Compile Include="Exceptions\RobotSlException.cs" />
+    <Compile Include="Helper\CliffSensorStateSynchronous.cs" />
     <Compile Include="Helper\DanceSynchronous.cs" />
     <Compile Include="Helper\DeviceNameHelper.cs" />
     <Compile Include="Helper\DeviceController.cs" />
@@ -181,6 +182,8 @@
     <Content Include="Web\Images\audio_volume_mute%4024x24.png" />
     <Content Include="Web\Images\automatic-drive%4064x64.png" />
     <Content Include="Web\Images\automatic-drive-active%4064x64.png" />
+    <Content Include="Web\Images\cliff_sensor_off%4024x24.png" />
+    <Content Include="Web\Images\cliff_sensor_on%4024x24.png" />
     <Content Include="Web\Images\close%4024x24.png" />
     <Content Include="Web\Images\dance_on%4024x24.png" />
     <Content Include="Web\Images\dance_off%4024x24.png" />

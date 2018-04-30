@@ -35,7 +35,7 @@ namespace robot.sl.CarControl
             {
                 if (_isStopped == false)
                 {
-                    await AudioPlayerController.PlayAsync(AudioName.TanzenOnAlready);
+                    await AudioPlayerController.PlayAsync(AudioName.DanceOnAlready);
 
                     return;
                 }
@@ -60,7 +60,7 @@ namespace robot.sl.CarControl
                 if (_isStopped)
                 {
                     if(speakOffAlready)
-                        await AudioPlayerController.PlayAsync(AudioName.TanzenOffAlready);
+                        await AudioPlayerController.PlayAsync(AudioName.DanceOffAlready);
 
                     return;
                 }
@@ -81,7 +81,7 @@ namespace robot.sl.CarControl
                 _isStopping = false;
 
                 if (speakOff)
-                    await AudioPlayerController.PlayAsync(AudioName.TanzenOff);
+                    await AudioPlayerController.PlayAsync(AudioName.DanceOff);
             });
         }
 
@@ -106,7 +106,7 @@ namespace robot.sl.CarControl
                     Speed = 0
                 }, MotorCommandSource.Dance);
 
-                await AudioPlayerController.PlayAndWaitAsync(AudioName.TanzenOn, cancellationToken);
+                await AudioPlayerController.PlayAndWaitAsync(AudioName.DanceOn, cancellationToken);
 
                 while (_isStopping == false)
                 {
