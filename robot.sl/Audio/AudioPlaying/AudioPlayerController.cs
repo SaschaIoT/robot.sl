@@ -155,6 +155,8 @@ namespace robot.sl.Audio.AudioPlaying
                         || audioName == AudioName.SoundModeOn
                         || audioName == AudioName.SoundModusAlreadyOff
                         || audioName == AudioName.SoundModusOff
+                        || audioName == AudioName.CliffSensorOn
+                        || audioName == AudioName.CliffSensorOff
                         || audioName == AudioName.AutomaticDriveOn_Status
                         || audioName == AudioName.AutomaticDriveOff_Status
                         || audioName == AudioName.DanceOn_Status
