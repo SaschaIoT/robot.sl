@@ -276,7 +276,7 @@ namespace robot.sl.Devices
                 var bButtonResult = bButton.UpdateGamepadButtonState(gamepadReading);
                 if (bButtonResult.ButtonClicked)
                 {
-                    await AudioPlayerController.PlaySpeakerOnOffSoundModeAsync();
+                    AudioPlayerController.PlaySpeakerOnOffSoundModeAsync(_automaticDrive, _dance);
                 }
 
                 //Dance on/off toggle
