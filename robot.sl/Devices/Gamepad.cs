@@ -136,6 +136,16 @@ namespace robot.sl.Devices
             var xRightShoulderButton = new GamepadButtonDown(buttonDownTimeLong, GamepadButtons.X, GamepadButtons.RightShoulder);
             var aRightShoulderButton = new GamepadButtonDown(buttonDownTimeLong, GamepadButtons.A, GamepadButtons.RightShoulder);
 
+            var xButtonNotClickableButtons = new List<GamepadButtons>
+                    {
+                        GamepadButtons.RightShoulder
+                    };
+
+            var aButtonNotClickableButtons = new List<GamepadButtons>
+                    {
+                        GamepadButtons.RightShoulder
+                    };
+
             var xRightShoulderButtonNotClickableButtons = new List<GamepadButtons>
                     {
                         GamepadButtons.Y
@@ -280,14 +290,14 @@ namespace robot.sl.Devices
                 }
 
                 //Dance on/off toggle
-                var aButtonResult = aButton.UpdateGamepadButtonState(gamepadReading);
+                var aButtonResult = aButton.UpdateGamepadButtonState(gamepadReading, aButtonNotClickableButtons);
                 if (aButtonResult.ButtonClicked)
                 {
                     await _dance.StartStopToggleAsync();
                 }
 
                 //Cliff sensor on/off toggle
-                var xButtonResult = xButton.UpdateGamepadButtonState(gamepadReading);
+                var xButtonResult = xButton.UpdateGamepadButtonState(gamepadReading, xButtonNotClickableButtons);
                 if (xButtonResult.ButtonClicked)
                 {
                     await _automaticDrive.SetCliffSensorState(true);

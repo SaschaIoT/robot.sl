@@ -47,9 +47,11 @@ namespace robot.sl.Devices
             {
                 foreach (var button in gamepadButtonsPreventClickable)
                 {
-                    clickable = (gamepadReading.Buttons & _gamepadButtonOne) == _gamepadButtonOne;
+                    var buttonClicked = (gamepadReading.Buttons & button) == button;
 
-                    if(!clickable)
+                    clickable = buttonClicked == false;
+
+                    if(clickable == false)
                     {
                         break;
                     }
@@ -59,7 +61,7 @@ namespace robot.sl.Devices
             var gamepadButtonDownResult = new GamepadButtonDownResult();
 
             var buttonDown = false;
-            if (!_gamepadButtonTwo.HasValue)
+            if (_gamepadButtonTwo.HasValue == false)
             {
                 buttonDown = (gamepadReading.Buttons & _gamepadButtonOne) == _gamepadButtonOne;
             }
@@ -70,15 +72,19 @@ namespace robot.sl.Devices
 
             gamepadButtonDownResult.ButtonDown = buttonDown;
 
-            if (!buttonDown && _buttonDownCalled)
+            if (buttonDown == false && _buttonDownCalled)
             {
                 _buttonDownCalled = false;
             }
-
-            if (buttonDown
-                && !_buttonDownCalled
-                && !_buttonDownCalledTime.HasValue
-                && clickable)
+            else if(clickable == false)
+            {
+                _buttonDownCalled = false;
+                _buttonDownCalledTime = null;
+            }
+            else if (buttonDown
+                     && _buttonDownCalled == false
+                     && _buttonDownCalledTime.HasValue == false
+                     && clickable)
             {
                 _buttonDownCalledTime = DateTime.Now;
             }
