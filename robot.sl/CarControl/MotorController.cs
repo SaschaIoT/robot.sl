@@ -28,8 +28,8 @@ namespace robot.sl.CarControl
             if (motorNumber == 0)
             {
                 motorPwmPin = 8;
-                motorIn1Pin = 9;
-                motorIn2Pin = 10;
+                motorIn1Pin = 10;
+                motorIn2Pin = 9;
             }
             else if (motorNumber == 1)
             {
@@ -223,10 +223,7 @@ namespace robot.sl.CarControl
             await MotorSynchronous.Call(() =>
             {
                 _lastMotorCommandSource = motorCommandSource;
-
-                //Straight away correction
-                var leftCorrectionFaktor = 0.89;
-
+                
                 //Speed from 0 to 255
                 var dcMotorMaxSpeed = 255;
 
@@ -339,10 +336,9 @@ namespace robot.sl.CarControl
                         motorRight1.Run(MotorAction.BACKWARD);
                         motorRight2.Run(MotorAction.BACKWARD);
                     }
-
-                    var carSpeedSlowWithLeftCorrection = (int)Math.Round(carSpeedSlow * leftCorrectionFaktor);
-                    motorLeft1.SetSpeed(carSpeedSlowWithLeftCorrection);
-                    motorLeft2.SetSpeed(carSpeedSlowWithLeftCorrection);
+                    
+                    motorLeft1.SetSpeed(carSpeedSlow);
+                    motorLeft2.SetSpeed(carSpeedSlow);
                     motorRight1.SetSpeed(carSpeedFull);
                     motorRight2.SetSpeed(carSpeedFull);
                 }
@@ -366,10 +362,9 @@ namespace robot.sl.CarControl
                         motorRight1.Run(MotorAction.BACKWARD);
                         motorRight2.Run(MotorAction.BACKWARD);
                     }
-
-                    var carSpeedFullWithLeftCorrection = (int)Math.Round(carSpeedFull * leftCorrectionFaktor);
-                    motorLeft1.SetSpeed(carSpeedFullWithLeftCorrection);
-                    motorLeft2.SetSpeed(carSpeedFullWithLeftCorrection);
+                    
+                    motorLeft1.SetSpeed(carSpeedFull);
+                    motorLeft2.SetSpeed(carSpeedFull);
                     motorRight1.SetSpeed(carSpeedSlow);
                     motorRight2.SetSpeed(carSpeedSlow);
                 }
@@ -391,10 +386,9 @@ namespace robot.sl.CarControl
                         motorRight1.Run(MotorAction.BACKWARD);
                         motorRight2.Run(MotorAction.BACKWARD);
                     }
-
-                    var carSpeedFullWithLeftCorrection = (int)Math.Round(carSpeedFull * leftCorrectionFaktor);
-                    motorLeft1.SetSpeed(carSpeedFullWithLeftCorrection);
-                    motorLeft2.SetSpeed(carSpeedFullWithLeftCorrection);
+                    
+                    motorLeft1.SetSpeed(carSpeedFull);
+                    motorLeft2.SetSpeed(carSpeedFull);
                     motorRight1.SetSpeed(carSpeedFull);
                     motorRight2.SetSpeed(carSpeedFull);
                 }
