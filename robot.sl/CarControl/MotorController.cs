@@ -28,8 +28,8 @@ namespace robot.sl.CarControl
             if (motorNumber == 0)
             {
                 motorPwmPin = 8;
-                motorIn1Pin = 10;
-                motorIn2Pin = 9;
+                motorIn1Pin = 9;
+                motorIn2Pin = 10;
             }
             else if (motorNumber == 1)
             {
