@@ -1,84 +1,88 @@
-﻿var webSocketVideoFrame;
-var frameTime;
+﻿var webSocketVideoFrame = [];
+var frameTime = [];
 var streamWebCamElement = document.querySelector("#streamWebCam");
-var lastImageUrl;
+var lastTimestamp = 0;
+var timestampLength = 8;
+var imageMimeType = "image/jpeg";
 
-function GetVideoFrames() {
+DataView.prototype.getUint64 = function (byteOffset, littleEndian) {
+    const left = this.getUint32(byteOffset, littleEndian);
+    const right = this.getUint32(byteOffset + 4, littleEndian);
+    const combined = new Number(littleEndian ? left + 2 ** 32 * right : 2 ** 32 * left + right);
 
-    webSocketVideoFrame = new WebSocket('ws://192.168.0.101:80/VideoFrame');
-    webSocketVideoFrame.binaryType = "arraybuffer";
+    return combined;
+};
 
-    webSocketVideoFrame.onopen = function () {
-        webSocketHelper.waitUntilWebsocketReady(function () {
-            webSocketVideoFrame.send(JSON.stringify({ command: "VideoFrame" }));
-        }, webSocketVideoFrame, 0);
+function DisplayVideoFrame(imageData) {
+    var imageUrl = URL.createObjectURL(imageData);
+    imageUrl.load = () => {
+        URL.revokeObjectURL(imageUrl);
     };
+    streamWebCamElement.src = imageUrl;
+}
 
-    webSocketVideoFrame.onmessage = function () {
+function GetVideoFrames(id) {
 
-        if (frameTime !== undefined)
-            UpdateLatency(frameTime, false);
+    webSocketVideoFrame[id] = new WebSocket('ws://192.168.0.101:80/VideoFrame');
+    webSocketVideoFrame[id].binaryType = "arraybuffer";
 
-        var bytearray = new Uint8Array(event.data);
+    webSocketVideoFrame[id].onmessage = function (e) {
 
-        var blob = new Blob([event.data], { type: "image/jpeg" });
-        lastImageUrl = createObjectURL(blob);
-        streamWebCamElement.src = lastImageUrl;
+        if (frameTime[id] !== undefined) {
+            UpdateLatency(frameTime[id], false);
+        }
 
-        frameTime = new Date().getTime();
+        var data = e.data;
+        var timestamp = new DataView(data.slice(0, timestampLength)).getUint64(0, true);
+
+        if (timestamp > lastTimestamp) {
+            lastTimestamp = timestamp;
+
+            //if (frameTime[id]) {
+            //    console.log(new Date().getTime() - frameTime[id]);
+            //}
+
+            frameTime[id] = new Date().getTime();
+
+            let frame = new Blob([data.slice(timestampLength, data.byteLength)], { type: imageMimeType });
+            DisplayVideoFrame(frame);
+        }
     };
 }
 
-streamWebCamElement.addEventListener("load", function (e) {
-    URL.revokeObjectURL(lastImageUrl);
-
-    webSocketHelper.waitUntilWebsocketReady(function () {
-        webSocketVideoFrame.send(JSON.stringify({ command: "VideoFrame" }));
-    }, webSocketVideoFrame, 0);
-});
-
-function createObjectURL(blob) {
-    var URL = window.URL || window.webkitURL;
-    if (URL && URL.createObjectURL) {
-        return URL.createObjectURL(blob);
-    } else {
-        return null;
-    }
-}
-
-function KeepAliveGetVideoFrames() {
+function KeepAliveGetVideoFrames(id) {
 
     var duration = 0;
-    if (frameTime !== undefined) {
-        duration = new Date().getTime() - frameTime
+    if (frameTime[id] !== undefined) {
+        duration = new Date().getTime() - frameTime[id];
     }
 
-    if (frameTime !== undefined
-        && duration <= requestTimeout) {
-
+    if (frameTime[id] !== undefined && duration <= requestTimeout) {
         setTimeout(function () {
-            KeepAliveGetVideoFrames();
+            KeepAliveGetVideoFrames(id);
         }, 50);
     } else {
 
-        if (webSocketVideoFrame !== undefined) {
+        if (webSocketVideoFrame[0] !== undefined) {
             try {
-                webSocketVideoFrame.close();
+                webSocketVideoFrame[0].close();
             } catch (e) { }
         }
 
-        if (frameTime !== undefined) {
-            UpdateLatency(frameTime, true);
-        } else {
+        if (frameTime[id] !== undefined) {
+            UpdateLatency(frameTime[id], true);
+        } else if (!frameTime[0] && !frameTime[1] && !frameTime[2]) {
             UpdateLatency(2001, true);
-        } 
+        }
 
-        GetVideoFrames();
+        GetVideoFrames(id);
 
         setTimeout(function () {
-            KeepAliveGetVideoFrames();
+            KeepAliveGetVideoFrames(id);
         }, 4000);
     }
 }
 
-KeepAliveGetVideoFrames();
+KeepAliveGetVideoFrames(0);
+KeepAliveGetVideoFrames(1);
+KeepAliveGetVideoFrames(2);

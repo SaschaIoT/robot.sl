@@ -43,7 +43,7 @@ namespace robot.sl.Devices
         public GamepadButtonDownResult UpdateGamepadButtonState(GamepadReading gamepadReading, List<GamepadButtons> gamepadButtonsPreventClickable)
         {
             var clickable = true;
-            if(gamepadButtonsPreventClickable != null)
+            if (gamepadButtonsPreventClickable != null)
             {
                 foreach (var button in gamepadButtonsPreventClickable)
                 {
@@ -51,7 +51,7 @@ namespace robot.sl.Devices
 
                     clickable = buttonClicked == false;
 
-                    if(clickable == false)
+                    if (clickable == false)
                     {
                         break;
                     }
@@ -72,11 +72,11 @@ namespace robot.sl.Devices
 
             gamepadButtonDownResult.ButtonDown = buttonDown;
 
-            if (buttonDown == false && _buttonDownCalled)
+            if (buttonDown == false || _buttonDownCalled)
             {
                 _buttonDownCalled = false;
             }
-            else if(clickable == false)
+            else if (clickable == false)
             {
                 _buttonDownCalled = false;
                 _buttonDownCalledTime = null;

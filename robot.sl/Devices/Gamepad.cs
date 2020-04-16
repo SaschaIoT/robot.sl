@@ -69,37 +69,35 @@ namespace robot.sl.Devices
         {
             _gamepad = gamepad;
 
-            Task.Factory.StartNew(() =>
+            var threadGamepad = new Thread(() =>
             {
+                try
+                {
+                    StartGamepadReadingAsync(gamepad).Wait();
+                }
+                catch (Exception exception)
+                {
+                    Logger.WriteAsync($"{nameof(Gamepad)}, {nameof(StartGamepadReadingAsync)}: ", exception).Wait();
+                    SystemController.ShutdownApplicationAsync(true).Wait();
+                }
+            });
+            threadGamepad.Priority = ThreadPriority.Highest;
+            threadGamepad.Start();
 
-                StartGamepadReadingAsync(gamepad).Wait();
-
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-            .AsAsyncAction()
-             .AsTask()
-             .ContinueWith((t) =>
-             {
-
-                 Logger.WriteAsync($"{nameof(Gamepad)}, {nameof(StartGamepadReadingAsync)}: ", t.Exception).Wait();
-                 SystemController.ShutdownApplicationAsync(true).Wait();
-
-             }, TaskContinuationOptions.OnlyOnFaulted);
-
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() =>
             {
-
-                StartGamepadVibrationAsync(gamepad).Wait();
-
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-             .AsAsyncAction()
-             .AsTask()
-             .ContinueWith((t) =>
-             {
-
-                 Logger.WriteAsync($"{nameof(Gamepad)}, {nameof(StartGamepadVibrationAsync)}: ", t.Exception).Wait();
-                 SystemController.ShutdownApplicationAsync(true).Wait();
-
-             }, TaskContinuationOptions.OnlyOnFaulted);
+                try
+                {
+                    StartGamepadVibrationAsync(gamepad).Wait();
+                }
+                catch (Exception exception)
+                {
+                    Logger.WriteAsync($"{nameof(Gamepad)}, {nameof(StartGamepadVibrationAsync)}: ", exception).Wait();
+                    SystemController.ShutdownApplicationAsync(true).Wait();
+                }
+            });
+            thread.Priority = ThreadPriority.Highest;
+            thread.Start();
         }
 
         private async void GamepadRemoved(object sender, Gamepad gamepad)
@@ -200,7 +198,7 @@ namespace robot.sl.Devices
 
                     await _motorController.MoveCarAsync(motorCarMoveCommand, MotorCommandSource.Other);
                 }
-                
+
                 if (motorCarMoveCommand.Speed == 0.0)
                 {
                     _motorStopped = true;
@@ -212,7 +210,7 @@ namespace robot.sl.Devices
                     && servoCarControlCommand.DirectionControlDown == false) == false)
                 {
                     _servoStopped = false;
-                    
+
                     await _servoController.MoveServo(servoCarControlCommand);
                 }
 
