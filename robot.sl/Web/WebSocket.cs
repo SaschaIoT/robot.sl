@@ -3,6 +3,7 @@ using robot.sl.CarControl;
 using robot.sl.Devices;
 using robot.sl.Sensors;
 using System;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -23,12 +24,46 @@ namespace robot.sl.Web
         Binary = 130
     }
 
+    public class ClientFrameSend
+    {
+        public string ClientIP { get; set; }
+        public long FrameSend { get; set; }
+    }
+
+    public static class ClientFrameSendCache
+    {
+        public static ConcurrentBag<ClientFrameSend> ClientFrameSend { get; } = new ConcurrentBag<ClientFrameSend>();
+
+        public static bool IsNewFrame(string clientIP, long frameSend)
+        {
+            var clientFrameSend = ClientFrameSend.FirstOrDefault(cfs => cfs.ClientIP == clientIP);
+            if (clientFrameSend == null)
+            {
+                clientFrameSend = new ClientFrameSend { ClientIP = clientIP, FrameSend = frameSend };
+                ClientFrameSend.Add(clientFrameSend);
+
+                return true;
+            }
+
+            if (frameSend > clientFrameSend.FrameSend)
+            {
+                clientFrameSend.FrameSend = frameSend;
+                return true;
+            }
+
+            return false;
+        }
+    }
+
     public class WebSocket
     {
+        private string _clientIP;
         private IInputStream _inputStream;
         private IOutputStream _outputStream;
         private HttpServerRequest _httpServerRequest;
         private const uint BUFFER_SIZE = 3024;
+        private byte[] _frame = null;
+        private const int SEND_VIDEOFRAME_INVERVAL_MILLISECONDS = 1;
 
         private DateTime _motorLastAction = DateTime.Now;
         private DateTime _servoLastAction = DateTime.Now;
@@ -53,6 +88,7 @@ namespace robot.sl.Web
                          AutomaticDrive automaticDrive,
                          Dance dance)
         {
+            _clientIP = socket.Information.RemoteAddress.ToString();
             _inputStream = socket.InputStream;
             _outputStream = socket.OutputStream;
             _httpServerRequest = httpServerRequest;
@@ -65,16 +101,16 @@ namespace robot.sl.Web
 
         public async Task StartAsync()
         {
-            if(await CheckWebSocketVersionSupportAsync())
+            if (await CheckWebSocketVersionSupportAsync())
             {
-                await ReadFramesAsync();
+                await Task.WhenAll(ReadFramesAsync(), SendVideoFrames());
             }
         }
-        
+
         private async Task<bool> CheckWebSocketVersionSupportAsync()
         {
             var webSocketVersion = new Regex("Sec-WebSocket-Version:(.*)", RegexOptions.IgnoreCase).Match(_httpServerRequest.Request).Groups[1].Value.Trim();
-            if(webSocketVersion != "13")
+            if (webSocketVersion != "13")
             {
                 await WriteUpgradeRequiredAsync();
 
@@ -118,6 +154,26 @@ namespace robot.sl.Web
             await _outputStream.FlushAsync();
         }
 
+        private async Task SendVideoFrames()
+        {
+            while (true)
+            {
+                if (ClientFrameSendCache.IsNewFrame(_clientIP, BitConverter.ToInt64(_camera.Frame, 0)))
+                {
+                    _frame = _camera.Frame;
+
+                    await SendVideoFrameAsync(_frame.ToArray());
+                }
+
+                await Task.Delay(SEND_VIDEOFRAME_INVERVAL_MILLISECONDS);
+            }
+        }
+
+        private async Task SendVideoFrameAsync(byte[] frame)
+        {
+            await WriteFrameAsync(frame, OpCode.Binary);
+        }
+
         private async Task ProcessFrameAsync(string frameContent)
         {
             var content = JsonObject.Parse(frameContent);
@@ -125,12 +181,6 @@ namespace robot.sl.Web
 
             switch (command)
             {
-                case "VideoFrame":
-
-                    var cameraFrame = _camera.Frame.ToArray();
-                    await WriteFrameAsync(cameraFrame, OpCode.Binary);
-
-                    break;
                 case "CarControlCommand":
 
                     var parameter = content["parameter"].GetObject();
@@ -145,8 +195,7 @@ namespace robot.sl.Web
                         DirectionControlUpDownStepSpeed = DIRECTION_CONTROL_UP_DOWN_STEP_SPEED
                     };
 
-                    if (carControlCommand.DirectionControlLeft
-                        && carControlCommand.DirectionControlRight)
+                    if (carControlCommand.DirectionControlLeft && carControlCommand.DirectionControlRight)
                     {
                         carControlCommand.DirectionControlLeft = false;
                         carControlCommand.DirectionControlRight = false;
@@ -201,22 +250,6 @@ namespace robot.sl.Web
                     await WriteFrameAsync(state.Stringify());
 
                     break;
-                //Commet in for server side frame rate measurement
-                //case "ServerVideoFrameRate":
-
-                //    var serverVideoFrameRate = new JsonObject
-                //        {
-                //            { "command", JsonValue.CreateStringValue("ServerVideoFrameRate") },
-                //            { "parameter", new JsonObject
-                //                {
-                //                { "FrameRate", JsonValue.CreateNumberValue(_camera.FrameRate)}
-                //                }
-                //            }
-                //        };
-
-                //    await WriteFrame(serverVideoFrameRate.Stringify());
-
-                //    break;
             }
         }
 
@@ -252,12 +285,6 @@ namespace robot.sl.Web
                 Array.Reverse(lengthBytes, 0, lengthBytes.Length);
 
                 header = header.Concat(lengthBytes).ToArray();
-
-                //var lengthBytes = new byte[2];
-                //lengthBytes[0] = (byte)((data.Length >> 8) & 255);
-                //lengthBytes[1] = (byte)(data.Length & 255);
-
-                //lengthBytes.CopyTo(header, 2);
             }
             else
             {
@@ -285,7 +312,7 @@ namespace robot.sl.Web
             while (true)
             {
                 await Task.Delay(1);
-                
+
                 var readBytes = await _inputStream.ReadAsync(buffer, BUFFER_SIZE, InputStreamOptions.Partial);
 
                 var readBytesLength = (int)readBytes.Length;
@@ -381,13 +408,13 @@ namespace robot.sl.Web
         private async Task CarMoveCommand(CarControlCommand carControlCommand)
         {
             var now = DateTime.Now;
-            
+
             // Motor
             var motorStopp = (!carControlCommand.DirectionControlLeft
                               && !carControlCommand.DirectionControlRight
                               && !carControlCommand.SpeedControlForward
                               && !carControlCommand.SpeedControlBackward);
-            
+
             if (((motorStopp && _motorStopped) == false
                  && now.Subtract(_motorLastAction) >= TimeSpan.FromMilliseconds(SERVO_MOTOR_PERIOD_ACTION_MILLISECONDS))
                 || (motorStopp && _motorStopped == false))

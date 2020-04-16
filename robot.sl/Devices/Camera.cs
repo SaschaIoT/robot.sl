@@ -31,20 +31,15 @@ namespace robot.sl.Devices
         //Get video frame workers
         private const int GET_FRAME_WORKER_COUNT = 4;
         private long _frameDuration = 0;
-        private volatile object _getFrameLock = new object();
         private volatile Stopwatch _lastFrame = new Stopwatch();
         private volatile Stopwatch _lastFrameAdded = new Stopwatch();
         private volatile object _lastFrameAddedLock = new object();
-
-        //Commet in for server side frame rate measurement
-        //public double FrameRate { get; private set; }
-        //private DateTime _frameRateLastFrame;
 
         //Check if camera support resolution before change
         private const int VIDEO_WIDTH = 1280;
         private const int VIDEO_HEIGHT = 720;
 
-        private const double IMAGE_QUALITY_PERCENT = 0.6d;
+        private const double IMAGE_QUALITY_PERCENT = 0.4d;
         private BitmapPropertySet _imageQuality;
 
         public async Task InitializeAsync()
@@ -76,8 +71,6 @@ namespace robot.sl.Devices
 
                 var settings = new MediaCaptureInitializationSettings()
                 {
-                    SharingMode = MediaCaptureSharingMode.ExclusiveControl,
-
                     //With CPU the results contain always SoftwareBitmaps, otherwise with GPU
                     //they preferring D3DSurface
                     MemoryPreference = MediaCaptureMemoryPreference.Cpu,
@@ -125,8 +118,6 @@ namespace robot.sl.Devices
             {
                 try
                 {
-                    WaitFrame();
-
                     using (var frame = _mediaFrameReader.TryAcquireLatestFrame())
                     {
                         var frameDuration = new Stopwatch();
@@ -136,6 +127,8 @@ namespace robot.sl.Devices
                             || frame.VideoMediaFrame == null
                             || frame.VideoMediaFrame.SoftwareBitmap == null)
                             continue;
+
+                        var timestamp = BitConverter.GetBytes(DateTime.Now.Ticks).ToList();
 
                         using (var stream = new InMemoryRandomAccessStream())
                         {
@@ -164,15 +157,11 @@ namespace robot.sl.Devices
                                     {
                                         if (_lastFrameAdded.Elapsed.Subtract(frameDuration.Elapsed) > TimeSpan.Zero)
                                         {
-                                            Frame = image;
+                                            timestamp.AddRange(image);
+                                            Frame = timestamp.ToArray();
 
                                             _lastFrameAdded = frameDuration;
                                             _frameDuration = frameDuration.ElapsedMilliseconds;
-
-                                            //Commet in for server side frame rate measurement
-                                            //var now = DateTime.Now;
-                                            //FrameRate = now.Subtract(_frameRateLastFrame).TotalMilliseconds;
-                                            //_frameRateLastFrame = now;
                                         }
                                     }
 
@@ -196,21 +185,20 @@ namespace robot.sl.Devices
         {
             for (int workerNumber = 0; workerNumber < GET_FRAME_WORKER_COUNT; workerNumber++)
             {
-                Task.Factory.StartNew(() =>
+                var thread = new Thread(() =>
                 {
-
-                    ProcessFrames();
-
-                }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-                 .AsAsyncAction()
-                 .AsTask()
-                 .ContinueWith((t) =>
-                 {
-
-                     Logger.WriteAsync(nameof(Camera), t.Exception).Wait();
-                     SystemController.ShutdownApplicationAsync(true).Wait();
-
-                 }, TaskContinuationOptions.OnlyOnFaulted);
+                    try
+                    {
+                        ProcessFrames();
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.WriteAsync(nameof(Camera), exception).Wait();
+                        SystemController.ShutdownApplicationAsync(true).Wait();
+                    }
+                });
+                thread.Priority = ThreadPriority.Normal;
+                thread.Start();
             }
         }
 
@@ -226,15 +214,6 @@ namespace robot.sl.Devices
             _isStopping = false;
 
             await _mediaFrameReader.StopAsync();
-        }
-
-        public void WaitFrame()
-        {
-            lock (_getFrameLock)
-            {
-                var wait = _frameDuration / GET_FRAME_WORKER_COUNT;
-                Task.Delay(wait.SafeConvertToInt32()).Wait();
-            }
         }
     }
 }

@@ -29,7 +29,7 @@ namespace robot.sl.Sensors
         private const int SECOND_TO_MINUTE_FACTOR = 60;
         private const int MINUTE_TO_HOUR_FACTOR = 60;
         private const int MEASUREMENT_TIME_MILLISECONDS = 70;
-        private const int MEASUREMENT_FILTER_COUNT = 4;        
+        private const int MEASUREMENT_FILTER_COUNT = 4;
         private const int GPIO_PIN_DEBOUNCE_TIMEOUT_MILLISECONDS = 25;
 
         private static GpioChangeCounter _gpioChangeCounter;
@@ -51,21 +51,20 @@ namespace robot.sl.Sensors
 
         public static void Start()
         {
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() =>
             {
-
-                StartInternal();
-
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Current)
-             .AsAsyncAction()
-             .AsTask()
-             .ContinueWith((t) =>
-             {
-
-                 Logger.WriteAsync(nameof(SpeedSensor), t.Exception).Wait();
-                 SystemController.ShutdownApplicationAsync(true).Wait();
-
-             }, TaskContinuationOptions.OnlyOnFaulted);
+                try
+                {
+                    StartInternal();
+                }
+                catch (Exception exception)
+                {
+                    Logger.WriteAsync(nameof(SpeedSensor), exception).Wait();
+                    SystemController.ShutdownApplicationAsync(true).Wait();
+                }
+            });
+            thread.Priority = ThreadPriority.Highest;
+            thread.Start();
         }
 
         private static void StartInternal()
@@ -118,7 +117,7 @@ namespace robot.sl.Sensors
             _lastDownsUps.Add(roundsPerMinute);
 
             roundsPerMinute = (int)Math.Round(_lastDownsUps.Average());
-            
+
             RoundsPerMinute = roundsPerMinute;
 
             var roundsPerHour = roundsPerMinute * MINUTE_TO_HOUR_FACTOR;

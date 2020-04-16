@@ -15,7 +15,7 @@ namespace robot.sl.CarControl
         private const int DS_LASER_MIDDLE_TOP_MIN_RANGE_MILLIMETERS = 700;
         private const int DS_LASER_MIDDLE_BOTTOM_MIN_RANGE_MILLIMETERS = 700;
         private const int DS_LASER_BOTTOM_MIN_RANGE_MILLIMETERS = 700;
-        
+
         private const int CHECK_FORWARD_HANG_AFTER = 1500;
         private const int SERVO_HALF_MOVE_TIME_MILLISECONDS = 850;
         private const int SERVO_QUARTER_MOVE_TIME_MILLISECONDS = SERVO_HALF_MOVE_TIME_MILLISECONDS / 2;
@@ -142,7 +142,7 @@ namespace robot.sl.CarControl
         {
             await CliffSensorStateSynchronous.Call(async () =>
             {
-                if(toggle)
+                if (toggle)
                 {
                     on = _isCliffSensorOn == false;
                 }
@@ -170,29 +170,30 @@ namespace robot.sl.CarControl
 
         private void StartInternalAsync()
         {
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() =>
             {
-                _distanceSensorLaserAnalogTop.ClearDistancesFiltered();
-                _distanceSensorLaserMiddleTop.ClearDistancesFiltered();
-                _distanceSensorLaserMiddleBottom.ClearDistancesFiltered();
-                _distanceSensorLaserBottom.ClearDistancesFiltered();
-                _distanceSensorUltrasonic.ClearDistancesFiltered();
-                
-                _cancellationTokenSource = new CancellationTokenSource();
+                try
+                {
+                    _distanceSensorLaserAnalogTop.ClearDistancesFiltered();
+                    _distanceSensorLaserMiddleTop.ClearDistancesFiltered();
+                    _distanceSensorLaserMiddleBottom.ClearDistancesFiltered();
+                    _distanceSensorLaserBottom.ClearDistancesFiltered();
+                    _distanceSensorUltrasonic.ClearDistancesFiltered();
 
-                StartInternal(_cancellationTokenSource.Token).Wait();
+                    _cancellationTokenSource = new CancellationTokenSource();
 
-                _threadWaiter.WaitOne();
+                    StartInternal(_cancellationTokenSource.Token).Wait();
 
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-            .AsAsyncAction()
-            .AsTask()
-            .ContinueWith((t) =>
-            {
-                Logger.WriteAsync(nameof(AutomaticDrive), t.Exception).Wait();
-                SystemController.ShutdownApplicationAsync(true).Wait();
-
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                    _threadWaiter.WaitOne();
+                }
+                catch (Exception exception)
+                {
+                    Logger.WriteAsync(nameof(AutomaticDrive), exception).Wait();
+                    SystemController.ShutdownApplicationAsync(true).Wait();
+                }
+            });
+            thread.Priority = ThreadPriority.Highest;
+            thread.Start();
         }
 
         private async Task StartInternal(CancellationToken cancellationToken)
@@ -465,7 +466,7 @@ namespace robot.sl.CarControl
                 }
             });
 
-            if(forwardFree)
+            if (forwardFree)
                 return FreeDirection.Forward;
 
             _distanceSensorLaserAnalogTop.ClearDistancesFiltered();
@@ -480,7 +481,7 @@ namespace robot.sl.CarControl
             }
 
             _isForward = false;
-            
+
             var carMoveCommand = new CarMoveCommand
             {
                 Speed = 0
@@ -492,7 +493,7 @@ namespace robot.sl.CarControl
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeft);
             await Task.Delay(SERVO_HALF_MOVE_TIME_MILLISECONDS, cancellationToken);
             var dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
-            
+
             if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_CENTIMETERS)
             {
                 return FreeDirection.Left;
@@ -502,7 +503,7 @@ namespace robot.sl.CarControl
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalLeftMiddle);
             await Task.Delay(SERVO_QUARTER_MOVE_TIME_MILLISECONDS, cancellationToken);
             dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
-            
+
             if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_CENTIMETERS)
             {
                 return FreeDirection.LeftMiddle;
@@ -522,7 +523,7 @@ namespace robot.sl.CarControl
             _servoController.PwmController.SetPwm(Servo.DistanceSensorHorizontal, 0, ServoPositions.DistanceSensorHorizontalRight);
             await Task.Delay(SERVO_QUARTER_MOVE_TIME_MILLISECONDS, cancellationToken);
             dsUltrasonicDistance = await _distanceSensorUltrasonic.GetDistance();
-            
+
             if (dsUltrasonicDistance > DS_ULTRASONIC_MIN_RANGE_CENTIMETERS)
             {
                 return FreeDirection.Right;
@@ -540,7 +541,7 @@ namespace robot.sl.CarControl
             var distanceSensorLaserMiddleBottomTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceMiddleBottom = _distanceSensorLaserMiddleBottom.GetDistanceFiltered());
             var distanceSensorLaserBottomTask = Task.Factory.StartNew(() => distanceSensorReadings.LaserDistanceBottom = _distanceSensorLaserBottom.GetDistanceFiltered());
 
-            if(_isCliffSensorOn)
+            if (_isCliffSensorOn)
             {
                 var distanceSensorAnalogTopTask = _distanceSensorLaserAnalogTop.GetDistanceFiltered();
 

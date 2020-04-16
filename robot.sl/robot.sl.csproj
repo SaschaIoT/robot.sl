@@ -11,13 +11,15 @@
     <AssemblyName>robot.sl</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.15063.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.17763.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <PackageCertificateKeyFile>robot.sl_TemporaryKey.pfx</PackageCertificateKeyFile>
     <RuntimeIdentifiers>win10-arm;win10-arm-aot;win10-x86;win10-x86-aot;win10-x64;win10-x64-aot</RuntimeIdentifiers>
+    <PackageCertificateThumbprint>2DE9034928DB1DBF24C0571C52EB537025B7260B</PackageCertificateThumbprint>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -92,6 +94,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <None Include="robot.sl_TemporaryKey.pfx" />
     <None Include="Web\Images\Favico\manifest.json" />
   </ItemGroup>
   <ItemGroup>
@@ -130,7 +133,6 @@
     <Compile Include="Helper\MotorSyncronous.cs" />
     <Compile Include="Helper\ServoHelper.cs" />
     <Compile Include="Helper\AudioDeviceController.cs" />
-    <Compile Include="Helper\NumberHelper.cs" />
     <Compile Include="Helper\DispatcherHelper.cs" />
     <Compile Include="Helper\EnumHelper.cs" />
     <Compile Include="Helper\Logger.cs" />
@@ -158,7 +160,6 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="robot.sl_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Audio\SpeechRecognizerGrammer.xml" />
@@ -226,7 +227,6 @@
     <Content Include="Web\JavaScript\FullScreenAPI.js" />
     <Content Include="Web\JavaScript\PreloadImagesDesktop.js" />
     <Content Include="Web\JavaScript\PreloadImagesMobile.js" />
-    <Content Include="Web\JavaScript\ServerVideoFrameRate.js" />
     <Content Include="Web\JavaScript\Camera.js" />
     <Content Include="Web\JavaScript\CarControlCommandDesktop.js" />
     <Content Include="Web\JavaScript\CarControlCommandMobile.js" />
@@ -255,11 +255,8 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <SDKReference Include="WindowsDesktop, Version=10.0.15063.0">
+    <SDKReference Include="WindowsDesktop, Version=10.0.17763.0">
       <Name>Windows Desktop Extensions for the UWP</Name>
-    </SDKReference>
-    <SDKReference Include="WindowsIoT, Version=10.0.15063.0">
-      <Name>Windows IoT Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
   <ItemGroup>

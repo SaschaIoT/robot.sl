@@ -49,22 +49,21 @@ namespace robot.sl.Audio
 
         public void Start()
         {
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() =>
             {
-
-                _speechRecognizer.ContinuousRecognitionSession.StartAsync().AsTask().Wait();
-                _threadWaiter.WaitOne();
-
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-             .AsAsyncAction()
-             .AsTask()
-             .ContinueWith((t) =>
-             {
-
-                 Logger.WriteAsync(nameof(SpeechRecognition), t.Exception).Wait();
-                 SystemController.ShutdownApplicationAsync(true).Wait();
-
-             }, TaskContinuationOptions.OnlyOnFaulted);
+                try
+                {
+                    _speechRecognizer.ContinuousRecognitionSession.StartAsync().AsTask().Wait();
+                    _threadWaiter.WaitOne();
+                }
+                catch (Exception exception)
+                {
+                    Logger.WriteAsync(nameof(SpeechRecognition), exception).Wait();
+                    SystemController.ShutdownApplicationAsync(true).Wait();
+                }
+            });
+            thread.Priority = ThreadPriority.Highest;
+            thread.Start();
         }
 
         public async Task StopAsync()

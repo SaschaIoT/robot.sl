@@ -46,21 +46,20 @@ namespace robot.sl.Audio
 
         public void Start()
         {
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() =>
             {
-
-                StartInternalAsync().Wait();
-
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-             .AsAsyncAction()
-             .AsTask()
-             .ContinueWith((t) =>
-             {
-
-                 Logger.WriteAsync(nameof(AutomaticSpeakController), t.Exception).Wait();
-                 SystemController.ShutdownApplicationAsync(true).Wait();
-
-             }, TaskContinuationOptions.OnlyOnFaulted);
+                try
+                {
+                    StartInternalAsync().Wait();
+                }
+                catch (Exception exception)
+                {
+                    Logger.WriteAsync(nameof(AutomaticSpeakController), exception).Wait();
+                    SystemController.ShutdownApplicationAsync(true).Wait();
+                }
+            });
+            thread.Priority = ThreadPriority.Normal;
+            thread.Start();
         }
 
         private async Task StartInternalAsync()

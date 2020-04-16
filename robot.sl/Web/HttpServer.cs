@@ -26,27 +26,27 @@ namespace robot.sl.Web
                                     Dance dance)
         {
 
-            Task.Factory.StartNew(() =>
+            var thread = new Thread(() =>
             {
+                try
+                {
+                    _httpServer = new HttpServer(motorController,
+                             servoController,
+                             automaticDrive,
+                             camera,
+                             dance);
 
-                _httpServer = new HttpServer(motorController,
-                                             servoController,
-                                             automaticDrive,
-                                             camera,
-                                             dance);
-                _httpServer.StartAsync();
-                _threadWaiter.WaitOne();
-
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
-             .AsAsyncAction()
-             .AsTask()
-             .ContinueWith((t) =>
-             {
-
-                 Logger.WriteAsync(nameof(HttpServerController), t.Exception).Wait();
-                 SystemController.ShutdownApplicationAsync(true).Wait();
-
-             }, TaskContinuationOptions.OnlyOnFaulted);
+                    _httpServer.StartAsync();
+                    _threadWaiter.WaitOne();
+                }
+                catch (Exception exception)
+                {
+                    Logger.WriteAsync(nameof(HttpServerController), exception).Wait();
+                    SystemController.ShutdownApplicationAsync(true).Wait();
+                }
+            });
+            thread.Priority = ThreadPriority.Highest;
+            thread.Start();
         }
 
         public void Stop()
