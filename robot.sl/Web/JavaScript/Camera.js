@@ -85,4 +85,3 @@ function KeepAliveGetVideoFrames(id) {
 
 KeepAliveGetVideoFrames(0);
 KeepAliveGetVideoFrames(1);
-KeepAliveGetVideoFrames(2);

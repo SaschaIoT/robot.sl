@@ -313,7 +313,7 @@ namespace robot.sl.Web
                 if (_camera.Frame != null)
                 {
                     var webSocket = new WebSocket(socket, request, _camera, _motorController, _servoController, _automaticDrive, _dance);
-                    await webSocket.StartAsync();
+                    await webSocket.StartAsync(true);
                 }
                 else
                 {
@@ -324,7 +324,7 @@ namespace robot.sl.Web
             else if (request.Url.StartsWith("/controller", StringComparison.OrdinalIgnoreCase))
             {
                 var webSocket = new WebSocket(socket, request, _camera, _motorController, _servoController, _automaticDrive, _dance);
-                await webSocket.StartAsync();
+                await webSocket.StartAsync(false);
             }
             //Get desktop html view
             else if (request.Url.StartsWith("/desktop", StringComparison.OrdinalIgnoreCase))
