@@ -99,11 +99,18 @@ namespace robot.sl.Web
             _dance = dance;
         }
 
-        public async Task StartAsync()
+        public async Task StartAsync(bool sendVideoFrames)
         {
             if (await CheckWebSocketVersionSupportAsync())
             {
-                await Task.WhenAll(ReadFramesAsync(), SendVideoFrames());
+                if (sendVideoFrames)
+                {
+                    await Task.WhenAll(ReadFramesAsync(), SendVideoFrames());
+                }
+                else
+                {
+                    await ReadFramesAsync();
+                }
             }
         }
 
