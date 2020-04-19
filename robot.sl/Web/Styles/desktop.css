@@ -1,13 +1,6 @@
 ﻿html {
     width: 100%;
     height: 100%;
-    
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
 
 body {
@@ -16,6 +9,13 @@ body {
     height: 100%;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     color: white;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #streamWebCam {
@@ -24,6 +24,7 @@ body {
     height: 100%;
     position: fixed;
     z-index: 0;
+    pointer-events: none;
 }
 
 .automatic-drive-button {
